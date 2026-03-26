@@ -42,7 +42,7 @@
                             if ($map->image) {
                                 $imageUrl = \Illuminate\Support\Str::startsWith($map->image, ['http://', 'https://', '/'])
                                     ? $map->image
-                                    : asset('storage/'.$map->image);
+                                    : '/storage/'.$map->image;
                             }
                         @endphp
                         <option

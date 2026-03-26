@@ -131,7 +131,7 @@ class KilterController extends Controller
             'name' => $map->name,
             'image' => $map->image,
             'image_physical_path' => $map->image_physical_path,
-            'image_url' => asset('storage/'.$map->image),
+            'image_url' => '/storage/'.$map->image,
         ]);
     }
 

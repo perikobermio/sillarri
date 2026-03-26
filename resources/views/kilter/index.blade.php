@@ -86,7 +86,7 @@
                             if ($block->map?->image) {
                                 $mapImageUrl = \Illuminate\Support\Str::startsWith($block->map->image, ['http://', 'https://', '/'])
                                     ? $block->map->image
-                                    : asset('storage/'.$block->map->image);
+                                    : '/storage/'.$block->map->image;
                             }
                         @endphp
                         <tr>

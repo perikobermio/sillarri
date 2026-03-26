@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('css/climb.css') }}">
+    <link rel="stylesheet" href="/css/climb.css">
 </head>
 <body>
     <div class="bg-layer"></div>
@@ -20,7 +20,7 @@
             @auth
                 <a href="{{ route('dashboard') }}">Dashboard</a>
                 <div class="user-chip">
-                    <img src="{{ asset('images/default-avatar.svg') }}" alt="Foto de perfil por defecto">
+                    <img src="/images/default-avatar.svg" alt="Foto de perfil por defecto">
                     <span>{{ auth()->user()->name }}</span>
                 </div>
                 <form method="POST" action="{{ route('logout') }}" class="logout-form">
