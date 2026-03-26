@@ -7,12 +7,18 @@ RUN apt-get update \
        libpq-dev \
        libzip-dev \
        libicu-dev \
+       libjpeg62-turbo-dev \
+       libpng-dev \
+       libwebp-dev \
+       libfreetype6-dev \
        libxml2-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
     && docker-php-ext-install \
        pdo \
        pdo_pgsql \
        pgsql \
        bcmath \
+       gd \
        intl \
        xml \
        dom \
