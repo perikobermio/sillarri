@@ -73,6 +73,63 @@ body {
   opacity: 0.9;
 }
 
+.user-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 0.25rem 0.5rem 0.25rem 0.25rem;
+}
+
+.user-chip img {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: block;
+}
+
+.user-chip span {
+  font-weight: 600;
+  color: var(--sand);
+}
+
+.icon-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.06);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.logout-form {
+  margin: 0;
+}
+
+.icon-btn svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: var(--text);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.flash-ok {
+  margin-bottom: 1rem;
+  border: 1px solid rgba(134, 184, 161, 0.55);
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  background: rgba(134, 184, 161, 0.15);
+  color: #d8efe4;
+}
+
 main {
   width: min(1160px, calc(100% - 2rem));
   margin: 1.5rem auto 2rem;
@@ -320,33 +377,196 @@ main {
 }
 
 .kilter-page {
-  display: grid;
-  gap: 1rem;
-}
-
-.kilter-hero,
-.kilter-grid article {
   border-radius: 16px;
   border: 1px solid var(--border);
   background: var(--card);
   padding: 1.2rem;
 }
 
-.kilter-hero h1 {
-  margin: 0.35rem 0 0.7rem;
+.kilter-table-head {
+  display: flex;
+  gap: 1rem;
+  align-items: end;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.kilter-table-head h1 {
+  margin: 0.3rem 0 0;
   font-family: "Bebas Neue", sans-serif;
-  font-size: clamp(2rem, 6vw, 4rem);
+  font-size: clamp(1.8rem, 5vw, 3.2rem);
   letter-spacing: 1px;
 }
 
-.kilter-grid {
+.kilter-search {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.kilter-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.kilter-search input {
+  min-width: 270px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  padding: 0.68rem 0.8rem;
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+.kilter-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 940px;
+}
+
+.kilter-table th,
+.kilter-table td {
+  text-align: left;
+  padding: 0.75rem 0.6rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  vertical-align: top;
+}
+
+.kilter-table th {
+  color: var(--mint);
+  font-size: 0.85rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.kilter-table code {
+  color: #ffd6b4;
+  white-space: nowrap;
+}
+
+.kilter-form-wrap h1 {
+  margin: 0.3rem 0 1rem;
+  font-family: "Bebas Neue", sans-serif;
+  font-size: clamp(1.8rem, 5vw, 3rem);
+  letter-spacing: 1px;
+}
+
+.kilter-form {
   display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+  max-width: 760px;
+}
+
+.kilter-form input,
+.kilter-form textarea,
+.kilter-form select {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  padding: 0.68rem 0.8rem;
+  font: inherit;
+}
+
+.desktop-warning {
+  border: 1px solid rgba(240, 139, 62, 0.45);
+  border-radius: 10px;
+  background: rgba(240, 139, 62, 0.14);
+  color: #ffd7ba;
+  padding: 0.65rem 0.8rem;
+  margin: 0.3rem 0 0.6rem;
+}
+
+.map-upload-toggle {
+  width: fit-content;
+  margin-top: 0.2rem;
+}
+
+.map-picker-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.map-picker-row select {
+  flex: 1 1 320px;
+}
+
+.hidden-map-upload {
+  display: none;
+}
+
+#new-map-fields {
+  margin-top: 0.45rem;
+}
+
+.modal-shell {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  z-index: 30;
+}
+
+.hidden-modal {
+  display: none;
+}
+
+.modal-card {
+  width: min(560px, 100%);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: rgba(20, 18, 16, 0.95);
+  padding: 1rem;
+}
+
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.8rem;
+}
+
+.modal-head h2 {
+  margin: 0;
+  font-family: "Bebas Neue", sans-serif;
+  letter-spacing: 1px;
+  font-size: 2rem;
+}
+
+.map-upload-label {
+  font-size: 0.9rem;
+  color: #eadccc;
+}
+
+.hidden-error {
+  display: none;
+}
+
+.kilter-form-actions {
+  display: flex;
+  gap: 0.6rem;
+  margin-top: 0.65rem;
+  flex-wrap: wrap;
 }
 
 @media (max-width: 920px) {
-  .kilter-grid {
-    grid-template-columns: 1fr;
+  .kilter-table-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .kilter-search input {
+    min-width: 220px;
   }
 }

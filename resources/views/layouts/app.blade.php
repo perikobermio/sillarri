@@ -19,9 +19,17 @@
             <a class="kilter-nav" href="{{ route('kilter') }}">KILTER</a>
             @auth
                 <a href="{{ route('dashboard') }}">Dashboard</a>
-                <form method="POST" action="{{ route('logout') }}">
+                <div class="user-chip">
+                    <img src="{{ asset('images/default-avatar.svg') }}" alt="Foto de perfil por defecto">
+                    <span>{{ auth()->user()->name }}</span>
+                </div>
+                <form method="POST" action="{{ route('logout') }}" class="logout-form">
                     @csrf
-                    <button type="submit" class="link-btn">Salir</button>
+                    <button type="submit" class="icon-btn" title="Cerrar sesión" aria-label="Cerrar sesión">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M15.75 16.5 20.25 12 15.75 7.5M20 12H9.75M12 20.25H6.75A2.25 2.25 0 0 1 4.5 18V6A2.25 2.25 0 0 1 6.75 3.75H12" />
+                        </svg>
+                    </button>
                 </form>
             @else
                 <a href="{{ route('login') }}">Entrar</a>
@@ -31,6 +39,9 @@
     </header>
 
     <main>
+        @if(session('status'))
+            <div class="flash-ok">{{ session('status') }}</div>
+        @endif
         @yield('content')
     </main>
 </body>

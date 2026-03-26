@@ -9,9 +9,9 @@
         <form method="POST" action="{{ route('login.attempt') }}" class="auth-form">
             @csrf
 
-            <label>Email</label>
-            <input type="email" name="email" value="{{ old('email') }}" required autofocus>
-            @error('email')
+            <label>Email o usuario</label>
+            <input type="text" name="login" value="{{ old('login') }}" required autofocus>
+            @error('login')
                 <small class="error">{{ $message }}</small>
             @enderror
 

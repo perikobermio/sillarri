@@ -1,15 +1,14 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\KilterController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('home');
 })->name('home');
 
-Route::get('/kilter', function () {
-    return view('kilter.index');
-})->name('kilter');
+Route::get('/kilter', [KilterController::class, 'index'])->name('kilter');
 
 Route::middleware('guest')->group(function (): void {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -23,6 +22,10 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/dashboard', function () {
         return view('dashboard.index');
     })->name('dashboard');
+
+    Route::get('/kilter/create', [KilterController::class, 'create'])->name('kilter.create');
+    Route::post('/kilter/maps', [KilterController::class, 'storeMap'])->name('kilter.maps.store');
+    Route::post('/kilter', [KilterController::class, 'store'])->name('kilter.store');
 
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });
