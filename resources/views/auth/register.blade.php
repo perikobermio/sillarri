@@ -15,6 +15,12 @@
                 <small class="error">{{ $message }}</small>
             @enderror
 
+            <label>Username</label>
+            <input type="text" name="username" value="{{ old('username') }}" required>
+            @error('username')
+                <small class="error">{{ $message }}</small>
+            @enderror
+
             <label>Email</label>
             <input type="email" name="email" value="{{ old('email') }}" required>
             @error('email')

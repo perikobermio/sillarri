@@ -21,7 +21,7 @@
                 <details class="user-menu">
                     <summary class="user-chip">
                         <img src="/images/default-avatar.svg" alt="Foto de perfil por defecto">
-                        <span>{{ auth()->user()->name }}</span>
+                        <span>{{ auth()->user()->username ?? auth()->user()->name }}</span>
                     </summary>
                     <div class="user-dropdown">
                         @if(\Illuminate\Support\Facades\Route::has('users.public'))

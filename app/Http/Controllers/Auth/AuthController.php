@@ -64,12 +64,14 @@ class AuthController extends Controller
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'username' => ['required', 'string', 'min:3', 'max:30', 'alpha_dash', 'unique:users,username'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'confirmed', 'min:8'],
         ]);
 
         $user = User::create([
-            'name' => $data['name'],
+            'name' => trim((string) $data['name']),
+            'username' => Str::lower(trim((string) $data['username'])),
             'email' => Str::lower(trim((string) $data['email'])),
             'password' => Hash::make($data['password']),
         ]);
