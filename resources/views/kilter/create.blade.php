@@ -115,21 +115,30 @@
         </div>
 
         <div class="coord-toolbar">
+            <label for="coord-mode">Marrazki mota</label>
+            <select id="coord-mode">
+                <option value="points" selected>Zirkuluak</option>
+                <option value="line">Lerroa</option>
+            </select>
             <button type="button" class="btn btn-secondary" id="clear-points">Puntuak garbitu</button>
-            <label for="point-type">Mota</label>
-            <select id="point-type">
-                <option value="pie">Horia - oina</option>
-                <option value="mano_pie" selected>Urdina - eskua/oina</option>
-                <option value="comienzo">Arrosa - hasiera</option>
-                <option value="top">Gorria - topa</option>
-            </select>
-            <label for="point-size">Tamaina</label>
-            <select id="point-size">
-                <option value="pequeno">Txikia</option>
-                <option value="mediano" selected>Ertaina</option>
-                <option value="grande">Handia</option>
-                <option value="gigante">Erraldoia</option>
-            </select>
+            <span id="point-type-wrap" class="coord-option-wrap">
+                <label for="point-type">Mota</label>
+                <select id="point-type">
+                    <option value="pie">Horia - oina</option>
+                    <option value="mano_pie" selected>Urdina - eskua/oina</option>
+                    <option value="comienzo">Arrosa - hasiera</option>
+                    <option value="top">Gorria - topa</option>
+                </select>
+            </span>
+            <span id="point-size-wrap" class="coord-option-wrap">
+                <label for="point-size">Tamaina</label>
+                <select id="point-size">
+                    <option value="pequeno">Txikia</option>
+                    <option value="mediano" selected>Ertaina</option>
+                    <option value="grande">Handia</option>
+                    <option value="gigante">Erraldoia</option>
+                </select>
+            </span>
             <span id="coord-count">0 puntu</span>
         </div>
 
@@ -154,20 +163,73 @@
         const mapSelect = document.getElementById('map-select');
         const boulderInput = document.getElementById('boulder-input');
         const boulderSummary = document.getElementById('boulder-summary');
+        const validModes = ['points', 'line'];
+        const validTypes = ['pie', 'mano_pie', 'comienzo', 'top'];
+        const validSizes = ['pequeno', 'mediano', 'grande', 'gigante'];
 
-        function parsePoints() {
+        function normalizeBoulderState(payload) {
+            if (Array.isArray(payload)) {
+                return {
+                    mode: 'points',
+                    points: payload.map((point) => ({
+                        x: Number(point?.x ?? 0),
+                        y: Number(point?.y ?? 0),
+                        type: validTypes.includes(point?.type) ? point.type : 'mano_pie',
+                        size: validSizes.includes(point?.size) ? point.size : 'mediano',
+                    })),
+                };
+            }
+
+            if (payload && typeof payload === 'object' && Array.isArray(payload.points)) {
+                const mode = validModes.includes(payload.mode) ? payload.mode : 'points';
+                if (mode === 'line') {
+                    return {
+                        mode,
+                        points: payload.points.map((point) => ({
+                            x: Number(point?.x ?? 0),
+                            y: Number(point?.y ?? 0),
+                        })),
+                    };
+                }
+
+                return {
+                    mode: 'points',
+                    points: payload.points.map((point) => ({
+                        x: Number(point?.x ?? 0),
+                        y: Number(point?.y ?? 0),
+                        type: validTypes.includes(point?.type) ? point.type : 'mano_pie',
+                        size: validSizes.includes(point?.size) ? point.size : 'mediano',
+                    })),
+                };
+            }
+
+            return { mode: 'points', points: [] };
+        }
+
+        function parseBoulderState() {
             try {
                 const parsed = JSON.parse(boulderInput.value || '[]');
-                return Array.isArray(parsed) ? parsed : [];
+                return normalizeBoulderState(parsed);
             } catch {
-                return [];
+                return { mode: 'points', points: [] };
             }
         }
 
         function syncBoulderSummary() {
-            const points = parsePoints();
+            const state = parseBoulderState();
+            const points = state.points;
+            if (points.length === 0) {
+                boulderSummary.textContent = 'Ez dago punturik zehaztuta';
+                return;
+            }
+
+            if (state.mode === 'line') {
+                boulderSummary.textContent = `${points.length} puntu lotuta (lerroa)`;
+                return;
+            }
+
             boulderSummary.textContent = points.length > 0
-                ? `${points.length} puntu zehaztuta`
+                ? `${points.length} puntu zehaztuta (zirkuluak)`
                 : 'Ez dago punturik zehaztuta';
         }
 
@@ -302,11 +364,15 @@
         const coordStage = document.getElementById('coord-stage');
         const coordCanvasWrap = document.getElementById('coord-canvas-wrap');
         const coordCount = document.getElementById('coord-count');
+        const coordModeSelect = document.getElementById('coord-mode');
         const pointTypeSelect = document.getElementById('point-type');
         const pointSizeSelect = document.getElementById('point-size');
+        const pointTypeWrap = document.getElementById('point-type-wrap');
+        const pointSizeWrap = document.getElementById('point-size-wrap');
 
         const clearPointsBtn = document.getElementById('clear-points');
 
+        let tempMode = 'points';
         let tempPoints = [];
         let zoom = 1;
         let isPanning = false;
@@ -320,6 +386,7 @@
         let pinchStartDistance = 0;
         let pinchStartZoom = 1;
         let baseImageWidth = 0;
+        let minZoom = 0.01;
 
         function hasFinePointer() {
             return window.matchMedia('(pointer: fine)').matches;
@@ -334,23 +401,94 @@
         }
 
         function setZoom(value) {
-            zoom = Math.min(3, Math.max(0.2, value));
+            zoom = Math.min(3, Math.max(minZoom, value));
             if (!coordImage) return;
             if (!baseImageWidth) {
                 const fallbackWidth = coordCanvasWrap?.clientWidth || 680;
                 baseImageWidth = Math.max(680, Math.round(fallbackWidth));
             }
             coordImage.style.width = `${Math.round(baseImageWidth * zoom)}px`;
+            coordLayer.style.setProperty('--point-scale', String(zoom));
+            requestAnimationFrame(renderPoints);
+        }
+
+        function fitImageZoom() {
+            const wrapWidth = coordCanvasWrap?.clientWidth || 0;
+            const wrapHeight = coordCanvasWrap?.clientHeight || 0;
+            const naturalWidth = coordImage?.naturalWidth || 0;
+            const naturalHeight = coordImage?.naturalHeight || 0;
+            if (!wrapWidth || !wrapHeight || !naturalWidth || !naturalHeight) {
+                minZoom = 0.01;
+                return 1;
+            }
+
+            if (!baseImageWidth) {
+                baseImageWidth = Math.max(680, Math.round(wrapWidth));
+            }
+
+            const imageHeightAtZoom1 = baseImageWidth * (naturalHeight / naturalWidth);
+            const fitByWidth = wrapWidth / baseImageWidth;
+            const fitByHeight = wrapHeight / imageHeightAtZoom1;
+            const fitZoom = Math.min(fitByWidth, fitByHeight);
+
+            minZoom = Math.max(0.001, fitZoom * 0.35);
+            return Math.min(1, fitZoom);
+        }
+
+        function drawLine(from, to, className) {
+            const layerWidth = coordLayer.clientWidth || coordImage.clientWidth || 0;
+            const layerHeight = coordLayer.clientHeight || coordImage.clientHeight || 0;
+            if (!layerWidth || !layerHeight) return null;
+
+            const x1 = (from.x / 100) * layerWidth;
+            const y1 = (from.y / 100) * layerHeight;
+            const x2 = (to.x / 100) * layerWidth;
+            const y2 = (to.y / 100) * layerHeight;
+            const dx = x2 - x1;
+            const dy = y2 - y1;
+            const lengthPx = Math.hypot(dx, dy);
+            const angleDeg = Math.atan2(dy, dx) * (180 / Math.PI);
+            const segment = document.createElement('span');
+            segment.className = className;
+            segment.style.left = `${x1}px`;
+            segment.style.top = `${y1}px`;
+            segment.style.width = `${lengthPx}px`;
+            segment.style.transform = `rotate(${angleDeg}deg)`;
+            return segment;
+        }
+
+        function syncModeUi() {
+            const isLineMode = tempMode === 'line';
+            if (pointTypeWrap) {
+                pointTypeWrap.classList.toggle('is-hidden', isLineMode);
+                pointTypeWrap.setAttribute('aria-hidden', isLineMode ? 'true' : 'false');
+            }
+            if (pointSizeWrap) {
+                pointSizeWrap.classList.toggle('is-hidden', isLineMode);
+                pointSizeWrap.setAttribute('aria-hidden', isLineMode ? 'true' : 'false');
+            }
         }
 
         function renderPoints() {
             coordLayer.innerHTML = '';
+
+            if (tempMode === 'line') {
+                for (let i = 0; i < tempPoints.length - 1; i += 1) {
+                    const segment = drawLine(tempPoints[i], tempPoints[i + 1], 'coord-line');
+                    if (segment) coordLayer.appendChild(segment);
+                }
+            }
+
             tempPoints.forEach((point, index) => {
                 const marker = document.createElement('button');
                 marker.type = 'button';
-                const type = point.type || 'mano_pie';
-                const size = point.size || 'mediano';
-                marker.className = `coord-point type-${type} size-${size}`;
+                if (tempMode === 'line') {
+                    marker.className = 'coord-point line-node';
+                } else {
+                    const type = point.type || 'mano_pie';
+                    const size = point.size || 'mediano';
+                    marker.className = `coord-point type-${type} size-${size}`;
+                }
                 marker.style.left = `${point.x}%`;
                 marker.style.top = `${point.y}%`;
                 marker.title = `Puntua ${index + 1} (klik ezabatzeko)`;
@@ -361,7 +499,9 @@
                 });
                 coordLayer.appendChild(marker);
             });
-            coordCount.textContent = `${tempPoints.length} puntu`;
+            coordCount.textContent = tempMode === 'line'
+                ? `${tempPoints.length} puntu (lerroa)`
+                : `${tempPoints.length} puntu (zirkuluak)`;
         }
 
         function openBoulderModal() {
@@ -383,12 +523,11 @@
             boulderError.classList.add('hidden-error');
             boulderError.textContent = '';
             coordImage.src = imageUrl;
-            tempPoints = parsePoints().map((point) => ({
-                x: Number(point?.x ?? 0),
-                y: Number(point?.y ?? 0),
-                type: point?.type || 'mano_pie',
-                size: point?.size || 'mediano',
-            }));
+            const state = parseBoulderState();
+            tempMode = state.mode;
+            tempPoints = state.points;
+            if (coordModeSelect) coordModeSelect.value = tempMode;
+            minZoom = 0.001;
             setZoom(1);
             if (coordCanvasWrap) {
                 coordCanvasWrap.scrollLeft = 0;
@@ -400,6 +539,7 @@
             pinchStartZoom = zoom;
             baseImageWidth = 0;
             coordImage.style.cursor = hasFinePointer() ? 'grab' : 'crosshair';
+            syncModeUi();
             renderPoints();
             boulderModal.classList.remove('hidden-modal');
             syncBodyScrollLock();
@@ -433,15 +573,22 @@
             const x = ((event.clientX - rect.left) / rect.width) * 100;
             const y = ((event.clientY - rect.top) / rect.height) * 100;
 
-            const type = pointTypeSelect?.value || 'mano_pie';
-            const size = pointSizeSelect?.value || 'mediano';
+            if (tempMode === 'line') {
+                tempPoints.push({
+                    x: Number(x.toFixed(3)),
+                    y: Number(y.toFixed(3)),
+                });
+            } else {
+                const type = pointTypeSelect?.value || 'mano_pie';
+                const size = pointSizeSelect?.value || 'mediano';
 
-            tempPoints.push({
-                x: Number(x.toFixed(3)),
-                y: Number(y.toFixed(3)),
-                type,
-                size,
-            });
+                tempPoints.push({
+                    x: Number(x.toFixed(3)),
+                    y: Number(y.toFixed(3)),
+                    type,
+                    size,
+                });
+            }
 
             renderPoints();
         });
@@ -495,7 +642,12 @@
         coordImage?.addEventListener('load', () => {
             const wrapWidth = coordCanvasWrap?.clientWidth || 680;
             baseImageWidth = Math.max(680, Math.round(wrapWidth));
-            setZoom(zoom);
+            const fitZoom = fitImageZoom();
+            setZoom(fitZoom);
+            if (coordCanvasWrap) {
+                coordCanvasWrap.scrollLeft = 0;
+                coordCanvasWrap.scrollTop = 0;
+            }
         });
 
         coordCanvasWrap?.addEventListener('touchstart', (event) => {
@@ -593,8 +745,31 @@
             renderPoints();
         });
 
+        coordModeSelect?.addEventListener('change', () => {
+            const nextMode = coordModeSelect.value === 'line' ? 'line' : 'points';
+            tempMode = nextMode;
+            if (tempMode === 'points') {
+                tempPoints = tempPoints.map((point) => ({
+                    x: Number(point?.x ?? 0),
+                    y: Number(point?.y ?? 0),
+                    type: validTypes.includes(point?.type) ? point.type : 'mano_pie',
+                    size: validSizes.includes(point?.size) ? point.size : 'mediano',
+                }));
+            } else {
+                tempPoints = tempPoints.map((point) => ({
+                    x: Number(point?.x ?? 0),
+                    y: Number(point?.y ?? 0),
+                }));
+            }
+            syncModeUi();
+            renderPoints();
+        });
+
         saveBoulderBtn?.addEventListener('click', () => {
-            boulderInput.value = JSON.stringify(tempPoints);
+            boulderInput.value = JSON.stringify({
+                mode: tempMode,
+                points: tempPoints,
+            });
             syncBoulderSummary();
             closeBoulderModal();
         });

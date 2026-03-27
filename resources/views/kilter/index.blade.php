@@ -106,8 +106,8 @@
                 <tbody>
                     @forelse($blocks as $block)
                         @php
-                            $points = json_decode($block->boulder, true);
-                            $points = is_array($points) ? $points : [];
+                            $boulderData = json_decode($block->boulder, true);
+                            $boulderData = is_array($boulderData) ? $boulderData : [];
                             $mapImageUrl = '';
                             if ($block->map?->image) {
                                 $mapImageUrl = \Illuminate\Support\Str::startsWith($block->map->image, ['http://', 'https://', '/'])
@@ -122,7 +122,7 @@
                                     class="block-row-btn {{ $mapImageUrl !== '' ? 'is-clickable' : '' }}"
                                     @if($mapImageUrl !== '')
                                         data-image-url="{{ $mapImageUrl }}"
-                                        data-points='@json($points)'
+                                        data-points='@json($boulderData)'
                                         data-title="{{ $block->name }}"
                                     @else
                                         disabled
@@ -198,6 +198,10 @@
         let pinchStartDistance = 0;
         let pinchStartZoom = 1;
         let baseImageWidth = 0;
+        let currentState = { mode: 'points', points: [] };
+        const validModes = ['points', 'line'];
+        const validTypes = ['pie', 'mano_pie', 'comienzo', 'top'];
+        const validSizes = ['pequeno', 'mediano', 'grande', 'gigante'];
 
         function hasFinePointer() {
             return window.matchMedia('(pointer: fine)').matches;
@@ -216,6 +220,67 @@
             return Math.hypot(dx, dy);
         }
 
+        function normalizeBoulderState(payload) {
+            if (Array.isArray(payload)) {
+                return {
+                    mode: 'points',
+                    points: payload.map((point) => ({
+                        x: Number(point?.x ?? 0),
+                        y: Number(point?.y ?? 0),
+                        type: validTypes.includes(point?.type) ? point.type : 'mano_pie',
+                        size: validSizes.includes(point?.size) ? point.size : 'mediano',
+                    })),
+                };
+            }
+
+            if (payload && typeof payload === 'object' && Array.isArray(payload.points)) {
+                const mode = validModes.includes(payload.mode) ? payload.mode : 'points';
+                if (mode === 'line') {
+                    return {
+                        mode,
+                        points: payload.points.map((point) => ({
+                            x: Number(point?.x ?? 0),
+                            y: Number(point?.y ?? 0),
+                        })),
+                    };
+                }
+
+                return {
+                    mode: 'points',
+                    points: payload.points.map((point) => ({
+                        x: Number(point?.x ?? 0),
+                        y: Number(point?.y ?? 0),
+                        type: validTypes.includes(point?.type) ? point.type : 'mano_pie',
+                        size: validSizes.includes(point?.size) ? point.size : 'mediano',
+                    })),
+                };
+            }
+
+            return { mode: 'points', points: [] };
+        }
+
+        function drawLine(from, to, className) {
+            const layerWidth = viewerLayer.clientWidth || viewerImage.clientWidth || 0;
+            const layerHeight = viewerLayer.clientHeight || viewerImage.clientHeight || 0;
+            if (!layerWidth || !layerHeight) return null;
+
+            const x1 = (from.x / 100) * layerWidth;
+            const y1 = (from.y / 100) * layerHeight;
+            const x2 = (to.x / 100) * layerWidth;
+            const y2 = (to.y / 100) * layerHeight;
+            const dx = x2 - x1;
+            const dy = y2 - y1;
+            const lengthPx = Math.hypot(dx, dy);
+            const angleDeg = Math.atan2(dy, dx) * (180 / Math.PI);
+            const segment = document.createElement('span');
+            segment.className = className;
+            segment.style.left = `${x1}px`;
+            segment.style.top = `${y1}px`;
+            segment.style.width = `${lengthPx}px`;
+            segment.style.transform = `rotate(${angleDeg}deg)`;
+            return segment;
+        }
+
         function setZoom(value) {
             zoom = Math.min(3, Math.max(0.2, value));
             if (!baseImageWidth) {
@@ -223,45 +288,64 @@
                 baseImageWidth = Math.max(680, Math.round(fallbackWidth));
             }
             viewerImage.style.width = `${Math.round(baseImageWidth * zoom)}px`;
+            viewerLayer.style.setProperty('--point-scale', String(zoom));
+            requestAnimationFrame(renderCurrentState);
         }
 
         function closeViewer() {
             viewer.classList.add('hidden-modal');
             viewerImage.src = '';
             viewerLayer.innerHTML = '';
+            currentState = { mode: 'points', points: [] };
             activeTouchPoints.clear();
             isPanning = false;
             setZoom(1);
             syncBodyScrollLock();
         }
 
+        function renderCurrentState() {
+            viewerLayer.innerHTML = '';
+
+            if (currentState.mode === 'line') {
+                for (let i = 0; i < currentState.points.length - 1; i += 1) {
+                    const segment = drawLine(currentState.points[i], currentState.points[i + 1], 'viewer-line');
+                    if (segment) viewerLayer.appendChild(segment);
+                }
+            }
+
+            currentState.points.forEach((point) => {
+                if (typeof point?.x !== 'number' || typeof point?.y !== 'number') return;
+                const marker = document.createElement('span');
+                if (currentState.mode === 'line') {
+                    marker.className = 'viewer-point line-node';
+                } else {
+                    const type = point?.type || 'mano_pie';
+                    const size = point?.size || 'mediano';
+                    marker.className = `viewer-point type-${type} size-${size}`;
+                }
+                marker.style.left = `${point.x}%`;
+                marker.style.top = `${point.y}%`;
+                viewerLayer.appendChild(marker);
+            });
+        }
+
         buttons.forEach((btn) => {
             btn.addEventListener('click', () => {
                 const imageUrl = btn.dataset.imageUrl || '';
                 const title = btn.dataset.title || 'Blokea';
-                let points = [];
+                let state = { mode: 'points', points: [] };
 
                 try {
                     const parsed = JSON.parse(btn.dataset.points || '[]');
-                    points = Array.isArray(parsed) ? parsed : [];
+                    state = normalizeBoulderState(parsed);
                 } catch {
-                    points = [];
+                    state = { mode: 'points', points: [] };
                 }
+                currentState = state;
 
                 viewerTitle.textContent = title;
                 viewerImage.src = imageUrl;
-                viewerLayer.innerHTML = '';
-
-                points.forEach((point) => {
-                    if (typeof point?.x !== 'number' || typeof point?.y !== 'number') return;
-                    const marker = document.createElement('span');
-                    const type = point?.type || 'mano_pie';
-                    const size = point?.size || 'mediano';
-                    marker.className = `viewer-point type-${type} size-${size}`;
-                    marker.style.left = `${point.x}%`;
-                    marker.style.top = `${point.y}%`;
-                    viewerLayer.appendChild(marker);
-                });
+                renderCurrentState();
 
                 activeTouchPoints.clear();
                 isPanning = false;

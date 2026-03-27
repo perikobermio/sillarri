@@ -841,6 +841,16 @@ main {
   margin-bottom: 0.7rem;
 }
 
+.coord-toolbar > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.coord-option-wrap.is-hidden {
+  display: none !important;
+}
+
 .coord-canvas-wrap {
   width: 100%;
   max-height: 62vh;
@@ -878,6 +888,17 @@ main {
   cursor: pointer;
 }
 
+.coord-line,
+.viewer-line {
+  position: absolute;
+  height: 4px;
+  border-radius: 999px;
+  transform-origin: 0 50%;
+  background: linear-gradient(90deg, #f6e38c, #f08b3e);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.28), 0 0 10px rgba(240, 139, 62, 0.35);
+  pointer-events: none;
+}
+
 .boulder-preview {
   position: relative;
   width: 190px;
@@ -906,6 +927,17 @@ main {
   border: 3px solid #2f8cff;
   background: rgba(47, 140, 255, 0.2);
   box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.25), 0 0 12px rgba(47, 140, 255, 0.35);
+}
+
+.coord-point:not(.line-node),
+.viewer-point:not(.line-node) {
+  transform: translate(-50%, -50%) scale(var(--point-scale, 1));
+  transform-origin: center;
+}
+
+.coord-point.line-node,
+.viewer-point.line-node {
+  transform: translate(-50%, -50%);
 }
 
 .coord-point.size-pequeno,
@@ -962,6 +994,14 @@ main {
   border-color: #ff3b3b;
   background: rgba(255, 59, 59, 0.22);
   box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.25), 0 0 12px rgba(255, 59, 59, 0.35);
+}
+
+.coord-point.line-node,
+.viewer-point.line-node {
+  width: 8px;
+  border-color: #f7c44a;
+  background: rgba(247, 196, 74, 0.92);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.32), 0 0 5px rgba(247, 196, 74, 0.3);
 }
 
 .coord-toolbar select {
