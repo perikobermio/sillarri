@@ -94,6 +94,7 @@
             <table class="kilter-table">
                 <thead>
                     <tr>
+                        <th class="col-detail">Xehet.</th>
                         <th class="col-id">ID</th>
                         <th>Izena</th>
                         <th class="col-description">Deskribapena</th>
@@ -116,31 +117,39 @@
                             }
                         @endphp
                         <tr>
-                            <td colspan="7" class="row-padding-none">
-                                <button
-                                    type="button"
-                                    class="block-row-btn {{ $mapImageUrl !== '' ? 'is-clickable' : '' }}"
-                                    @if($mapImageUrl !== '')
-                                        data-image-url="{{ $mapImageUrl }}"
-                                        data-points='@json($boulderData)'
-                                        data-title="{{ $block->name }}"
-                                    @else
-                                        disabled
-                                    @endif
-                                >
-                                    <span class="col-id">{{ $block->id }}</span>
-                                    <span>{{ $block->name }}</span>
-                                    <span class="col-description">{{ $block->description }}</span>
-                                    <span>{{ $block->grade }}</span>
-                                    <span>{{ $block->map?->name ?? '-' }}</span>
-                                    <span>{{ $block->creator?->name ?? '-' }}</span>
-                                    <span class="col-created">{{ $block->created_at?->format('Y-m-d') }}</span>
-                                </button>
+                            <td colspan="8" class="row-padding-none">
+                                <div class="block-row-wrap">
+                                    <a
+                                        class="block-detail-link"
+                                        href="{{ route('kilter.show', $block) }}"
+                                        aria-label="Blokearen xehetasunak ikusi"
+                                        title="Xehetasunak"
+                                    >⋮</a>
+                                    <button
+                                        type="button"
+                                        class="block-row-btn {{ $mapImageUrl !== '' ? 'is-clickable' : '' }}"
+                                        @if($mapImageUrl !== '')
+                                            data-image-url="{{ $mapImageUrl }}"
+                                            data-points='@json($boulderData)'
+                                            data-title="{{ $block->name }}"
+                                        @else
+                                            disabled
+                                        @endif
+                                    >
+                                        <span class="col-id">{{ $block->id }}</span>
+                                        <span>{{ $block->name }}</span>
+                                        <span class="col-description">{{ $block->description }}</span>
+                                        <span>{{ $block->grade }}</span>
+                                        <span>{{ $block->map?->name ?? '-' }}</span>
+                                        <span>{{ $block->creator?->name ?? '-' }}</span>
+                                        <span class="col-created">{{ $block->created_at?->format('Y-m-d') }}</span>
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7">Ez dago blokerik uneko iragazkiarekin.</td>
+                            <td colspan="8">Ez dago blokerik uneko iragazkiarekin.</td>
                         </tr>
                     @endforelse
                 </tbody>

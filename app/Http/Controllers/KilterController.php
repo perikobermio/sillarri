@@ -16,6 +16,15 @@ use Illuminate\View\View;
 
 class KilterController extends Controller
 {
+    public function show(KilterBlock $block): View
+    {
+        $block->loadMissing(['map', 'creator']);
+
+        return view('kilter.show', [
+            'block' => $block,
+        ]);
+    }
+
     public function index(Request $request): View
     {
         $search = trim((string) $request->query('q', ''));

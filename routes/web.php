@@ -10,6 +10,7 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('/kilter', [KilterController::class, 'index'])->name('kilter');
+Route::get('/kilter/blokea/{block}', [KilterController::class, 'show'])->name('kilter.show');
 Route::get('/usuarios/{user}', [UserController::class, 'showPublic'])->name('users.public');
 
 Route::middleware('guest')->group(function (): void {
