@@ -11,16 +11,12 @@
 
             <div class="kilter-actions">
                 @auth
-                    <a class="btn btn-primary" href="{{ route('kilter.create') }}">Crear bloque</a>
+                    <a class="btn btn-primary create-block-btn" href="{{ route('kilter.create') }}">
+                        <span class="create-block-label">Crear bloque</span>
+                    </a>
                 @endauth
 
                 <form method="GET" action="{{ route('kilter') }}" class="kilter-search">
-                    <input
-                        type="text"
-                        name="q"
-                        value="{{ $search }}"
-                        placeholder="Buscar bloque por nombre..."
-                    >
                     @php
                         $romanMap = [
                             '5' => 'V',
@@ -56,8 +52,38 @@
                             @endforeach
                         </div>
                     </details>
-                    <button type="submit" class="btn btn-primary">Buscar</button>
-                    @if($search !== '' || count($selectedGrades) > 0)
+
+                    <details class="extra-filter-box">
+                        <summary>+</summary>
+                        <div class="extra-filter-panel">
+                            <label for="q-filter">Nombre</label>
+                            <input
+                                id="q-filter"
+                                type="text"
+                                name="q"
+                                value="{{ $search }}"
+                                placeholder="Buscar bloque por nombre..."
+                            >
+
+                            <label for="creator-filter">Usuario</label>
+                            <select id="creator-filter" name="creator">
+                                <option value="">Todos</option>
+                                @foreach($creators as $creator)
+                                    <option
+                                        value="{{ $creator->id }}"
+                                        @selected($selectedCreator !== null && (int) $creator->id === (int) $selectedCreator)
+                                    >
+                                        {{ $creator->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </details>
+
+                    <button type="submit" class="btn btn-primary search-submit-btn">
+                        <span class="search-submit-label">Buscar</span>
+                    </button>
+                    @if($search !== '' || count($selectedGrades) > 0 || $selectedCreator !== null)
                         <a class="btn btn-secondary" href="{{ route('kilter') }}">Limpiar</a>
                     @endif
                 </form>
@@ -68,13 +94,13 @@
             <table class="kilter-table">
                 <thead>
                     <tr>
-                        <th>ID</th>
+                        <th class="col-id">ID</th>
                         <th>Nombre</th>
-                        <th>Descripción</th>
+                        <th class="col-description">Descripcion</th>
                         <th>Grado</th>
                         <th>Mapa</th>
                         <th>Creador</th>
-                        <th>Creado</th>
+                        <th class="col-created">Creado</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -102,13 +128,13 @@
                                         disabled
                                     @endif
                                 >
-                                    <span>{{ $block->id }}</span>
+                                    <span class="col-id">{{ $block->id }}</span>
                                     <span>{{ $block->name }}</span>
-                                    <span>{{ $block->description }}</span>
+                                    <span class="col-description">{{ $block->description }}</span>
                                     <span>{{ $block->grade }}</span>
                                     <span>{{ $block->map?->name ?? '-' }}</span>
                                     <span>{{ $block->creator?->name ?? '-' }}</span>
-                                    <span>{{ $block->created_at?->format('Y-m-d') }}</span>
+                                    <span class="col-created">{{ $block->created_at?->format('Y-m-d') }}</span>
                                 </button>
                             </td>
                         </tr>
@@ -146,13 +172,14 @@
 
 <script>
     (function () {
-        const gradeDetails = document.querySelector('.grade-filter-box');
+        const filterDetails = document.querySelectorAll('.grade-filter-box, .extra-filter-box');
 
         document.addEventListener('click', (event) => {
-            if (!gradeDetails) return;
-            if (!gradeDetails.open) return;
-            if (gradeDetails.contains(event.target)) return;
-            gradeDetails.open = false;
+            filterDetails.forEach((detailsEl) => {
+                if (!detailsEl?.open) return;
+                if (detailsEl.contains(event.target)) return;
+                detailsEl.open = false;
+            });
         });
 
         const viewer = document.getElementById('boulder-viewer');

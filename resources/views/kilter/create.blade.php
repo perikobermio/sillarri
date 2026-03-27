@@ -56,7 +56,7 @@
                 </select>
 
                 <button type="button" class="btn btn-secondary map-upload-toggle" id="open-map-modal">
-                    Añadir mapa
+                    <span class="map-upload-toggle-label">Añadir mapa</span>
                 </button>
             </div>
             @error('map_id')
@@ -136,6 +136,7 @@
                 <option value="pequeno">Pequeño</option>
                 <option value="mediano" selected>Mediano</option>
                 <option value="grande">Grande</option>
+                <option value="gigante">Gigante</option>
             </select>
             <span id="coord-count">0 puntos</span>
         </div>
@@ -178,6 +179,11 @@
                 : 'Sin puntos definidos';
         }
 
+        function syncBodyScrollLock() {
+            const hasOpenModal = document.querySelector('.modal-shell:not(.hidden-modal)') !== null;
+            document.body.style.overflow = hasOpenModal ? 'hidden' : '';
+        }
+
         syncBoulderSummary();
 
         // Modal de mapa
@@ -191,12 +197,16 @@
         const mapCameraInput = document.getElementById('map-image-camera');
         const mapFileInput = document.getElementById('map-image-file');
 
-        const openMapModal = () => mapModal.classList.remove('hidden-modal');
+        const openMapModal = () => {
+            mapModal.classList.remove('hidden-modal');
+            syncBodyScrollLock();
+        };
         const closeMapModal = () => {
             mapModal.classList.add('hidden-modal');
             mapError.classList.add('hidden-error');
             mapError.textContent = '';
             mapForm.reset();
+            syncBodyScrollLock();
         };
 
         openMapBtn?.addEventListener('click', openMapModal);
@@ -294,21 +304,50 @@
         const coordImage = document.getElementById('coord-image');
         const coordLayer = document.getElementById('coord-layer');
         const coordStage = document.getElementById('coord-stage');
+        const coordCanvasWrap = document.getElementById('coord-canvas-wrap');
         const coordCount = document.getElementById('coord-count');
         const pointTypeSelect = document.getElementById('point-type');
         const pointSizeSelect = document.getElementById('point-size');
 
-        const zoomInBtn = document.getElementById('zoom-in');
         const zoomOutBtn = document.getElementById('zoom-out');
+        const zoomInBtn = document.getElementById('zoom-in');
         const zoomResetBtn = document.getElementById('zoom-reset');
         const clearPointsBtn = document.getElementById('clear-points');
 
         let tempPoints = [];
         let zoom = 1;
+        let isPanning = false;
+        let panStartX = 0;
+        let panStartY = 0;
+        let panStartScrollLeft = 0;
+        let panStartScrollTop = 0;
+        let panDistance = 0;
+        let suppressImageClick = false;
+        const activeTouchPoints = new Map();
+        let pinchStartDistance = 0;
+        let pinchStartZoom = 1;
+        let baseImageWidth = 0;
+
+        function hasFinePointer() {
+            return window.matchMedia('(pointer: fine)').matches;
+        }
+
+        function distanceBetweenTouches() {
+            const points = Array.from(activeTouchPoints.values());
+            if (points.length < 2) return 0;
+            const dx = points[0].x - points[1].x;
+            const dy = points[0].y - points[1].y;
+            return Math.hypot(dx, dy);
+        }
 
         function setZoom(value) {
             zoom = Math.min(3, Math.max(0.5, value));
-            coordStage.style.transform = `scale(${zoom})`;
+            if (!coordImage) return;
+            if (!baseImageWidth) {
+                const fallbackWidth = coordCanvasWrap?.clientWidth || 680;
+                baseImageWidth = Math.max(680, Math.round(fallbackWidth));
+            }
+            coordImage.style.width = `${Math.round(baseImageWidth * zoom)}px`;
         }
 
         function renderPoints() {
@@ -358,14 +397,28 @@
                 size: point?.size || 'mediano',
             }));
             setZoom(1);
+            if (coordCanvasWrap) {
+                coordCanvasWrap.scrollLeft = 0;
+                coordCanvasWrap.scrollTop = 0;
+            }
+            activeTouchPoints.clear();
+            isPanning = false;
+            pinchStartDistance = 0;
+            pinchStartZoom = zoom;
+            baseImageWidth = 0;
+            coordImage.style.cursor = hasFinePointer() ? 'grab' : 'crosshair';
             renderPoints();
             boulderModal.classList.remove('hidden-modal');
+            syncBodyScrollLock();
         }
 
         function closeBoulderModal() {
             boulderModal.classList.add('hidden-modal');
             boulderError.classList.add('hidden-error');
             boulderError.textContent = '';
+            activeTouchPoints.clear();
+            isPanning = false;
+            syncBodyScrollLock();
         }
 
         openBoulderBtn?.addEventListener('click', openBoulderModal);
@@ -376,6 +429,10 @@
         });
 
         coordImage?.addEventListener('click', (event) => {
+            if (suppressImageClick) {
+                suppressImageClick = false;
+                return;
+            }
             if (!coordImage.src) return;
             const rect = coordImage.getBoundingClientRect();
             if (!rect.width || !rect.height) return;
@@ -396,8 +453,150 @@
             renderPoints();
         });
 
-        zoomInBtn?.addEventListener('click', () => setZoom(zoom + 0.2));
-        zoomOutBtn?.addEventListener('click', () => setZoom(zoom - 0.2));
+        coordImage?.addEventListener('mousedown', (event) => {
+            if (!hasFinePointer()) return;
+            if (event.button !== 0) return;
+            if (!coordCanvasWrap) return;
+
+            isPanning = true;
+            panDistance = 0;
+            panStartX = event.clientX;
+            panStartY = event.clientY;
+            panStartScrollLeft = coordCanvasWrap.scrollLeft;
+            panStartScrollTop = coordCanvasWrap.scrollTop;
+            coordImage.style.cursor = 'grabbing';
+            event.preventDefault();
+        });
+
+        window.addEventListener('mousemove', (event) => {
+            if (!isPanning || !coordCanvasWrap) return;
+
+            const deltaX = event.clientX - panStartX;
+            const deltaY = event.clientY - panStartY;
+            panDistance = Math.max(panDistance, Math.abs(deltaX) + Math.abs(deltaY));
+
+            coordCanvasWrap.scrollLeft = panStartScrollLeft - deltaX;
+            coordCanvasWrap.scrollTop = panStartScrollTop - deltaY;
+        });
+
+        window.addEventListener('mouseup', () => {
+            if (!isPanning) return;
+            isPanning = false;
+            coordImage.style.cursor = hasFinePointer() ? 'grab' : 'crosshair';
+
+            if (panDistance > 3) {
+                suppressImageClick = true;
+                setTimeout(() => {
+                    suppressImageClick = false;
+                }, 0);
+            }
+        });
+
+        coordCanvasWrap?.addEventListener('wheel', (event) => {
+            if (!hasFinePointer()) return;
+            event.preventDefault();
+            const step = event.deltaY < 0 ? 0.12 : -0.12;
+            setZoom(zoom + step);
+        }, { passive: false });
+
+        coordImage?.addEventListener('load', () => {
+            const wrapWidth = coordCanvasWrap?.clientWidth || 680;
+            baseImageWidth = Math.max(680, Math.round(wrapWidth));
+            setZoom(zoom);
+        });
+
+        coordCanvasWrap?.addEventListener('touchstart', (event) => {
+            if (!coordCanvasWrap) return;
+
+            for (const touch of event.changedTouches) {
+                activeTouchPoints.set(touch.identifier, { x: touch.clientX, y: touch.clientY });
+            }
+
+            if (activeTouchPoints.size === 1) {
+                const point = Array.from(activeTouchPoints.values())[0];
+                isPanning = true;
+                panDistance = 0;
+                panStartX = point.x;
+                panStartY = point.y;
+                panStartScrollLeft = coordCanvasWrap.scrollLeft;
+                panStartScrollTop = coordCanvasWrap.scrollTop;
+            } else if (activeTouchPoints.size >= 2) {
+                isPanning = false;
+                pinchStartDistance = distanceBetweenTouches();
+                pinchStartZoom = zoom;
+            }
+        }, { passive: true });
+
+        coordCanvasWrap?.addEventListener('touchmove', (event) => {
+            if (!coordCanvasWrap) return;
+
+            for (const touch of event.changedTouches) {
+                if (activeTouchPoints.has(touch.identifier)) {
+                    activeTouchPoints.set(touch.identifier, { x: touch.clientX, y: touch.clientY });
+                }
+            }
+
+            if (activeTouchPoints.size >= 2) {
+                const nextDistance = distanceBetweenTouches();
+                if (pinchStartDistance > 0 && nextDistance > 0) {
+                    const scaleFactor = nextDistance / pinchStartDistance;
+                    setZoom(pinchStartZoom * scaleFactor);
+                    suppressImageClick = true;
+                }
+                event.preventDefault();
+                return;
+            }
+
+            if (!isPanning) return;
+            const point = Array.from(activeTouchPoints.values())[0];
+            if (!point) return;
+
+            const deltaX = point.x - panStartX;
+            const deltaY = point.y - panStartY;
+            panDistance = Math.max(panDistance, Math.abs(deltaX) + Math.abs(deltaY));
+            coordCanvasWrap.scrollLeft = panStartScrollLeft - deltaX;
+            coordCanvasWrap.scrollTop = panStartScrollTop - deltaY;
+
+            if (panDistance > 3) {
+                suppressImageClick = true;
+            }
+            event.preventDefault();
+        }, { passive: false });
+
+        coordCanvasWrap?.addEventListener('touchend', (event) => {
+            for (const touch of event.changedTouches) {
+                activeTouchPoints.delete(touch.identifier);
+            }
+
+            if (activeTouchPoints.size === 1) {
+                const point = Array.from(activeTouchPoints.values())[0];
+                isPanning = true;
+                panDistance = 0;
+                panStartX = point.x;
+                panStartY = point.y;
+                panStartScrollLeft = coordCanvasWrap?.scrollLeft ?? 0;
+                panStartScrollTop = coordCanvasWrap?.scrollTop ?? 0;
+                pinchStartDistance = 0;
+                pinchStartZoom = zoom;
+                return;
+            }
+
+            isPanning = false;
+            pinchStartDistance = 0;
+            pinchStartZoom = zoom;
+        }, { passive: true });
+
+        coordCanvasWrap?.addEventListener('touchcancel', (event) => {
+            for (const touch of event.changedTouches) {
+                activeTouchPoints.delete(touch.identifier);
+            }
+            isPanning = false;
+            pinchStartDistance = 0;
+            pinchStartZoom = zoom;
+        }, { passive: true });
+
+        zoomOutBtn?.addEventListener('click', () => setZoom(zoom - 0.12));
+        zoomInBtn?.addEventListener('click', () => setZoom(zoom + 0.12));
         zoomResetBtn?.addEventListener('click', () => setZoom(1));
         clearPointsBtn?.addEventListener('click', () => {
             tempPoints = [];

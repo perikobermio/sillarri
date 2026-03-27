@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\KilterBlock;
 use App\Models\KilterMap;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\JsonResponse;
@@ -18,6 +19,8 @@ class KilterController extends Controller
     public function index(Request $request): View
     {
         $search = trim((string) $request->query('q', ''));
+        $creatorQuery = trim((string) $request->query('creator', ''));
+        $selectedCreator = ctype_digit($creatorQuery) ? (int) $creatorQuery : null;
         $grades = $this->grades();
         $gradeQuery = $request->query('grade', []);
         $gradeList = is_array($gradeQuery) ? $gradeQuery : [$gradeQuery];
@@ -34,7 +37,17 @@ class KilterController extends Controller
             ->when(count($selectedGrades) > 0, function ($query) use ($selectedGrades): void {
                 $query->whereIn(DB::raw('LOWER(grade)'), $selectedGrades);
             })
+            ->when($selectedCreator !== null, function ($query) use ($selectedCreator): void {
+                $query->where('user_id', $selectedCreator);
+            })
             ->orderByDesc('created_at')
+            ->get();
+
+        $creators = User::query()
+            ->select('users.id', 'users.name')
+            ->join('kilter_blocks', 'kilter_blocks.user_id', '=', 'users.id')
+            ->distinct()
+            ->orderBy('users.name')
             ->get();
 
         return view('kilter.index', [
@@ -42,6 +55,8 @@ class KilterController extends Controller
             'search' => $search,
             'grades' => $grades,
             'selectedGrades' => $selectedGrades,
+            'creators' => $creators,
+            'selectedCreator' => $selectedCreator,
         ]);
     }
 
@@ -72,7 +87,7 @@ class KilterController extends Controller
         }
 
         $validTypes = ['pie', 'mano_pie', 'comienzo', 'top'];
-        $validSizes = ['pequeno', 'mediano', 'grande'];
+        $validSizes = ['pequeno', 'mediano', 'grande', 'gigante'];
 
         foreach ($coords as $point) {
             if (! is_array($point)) {
