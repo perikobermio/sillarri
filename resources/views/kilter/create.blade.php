@@ -256,20 +256,37 @@
                 const response = await fetch('{{ route('kilter.maps.store') }}', {
                     method: 'POST',
                     body: payload,
+                    credentials: 'same-origin',
                     headers: {
+                        'X-CSRF-TOKEN': mapForm.querySelector('input[name="_token"]').value,
                         'X-Requested-With': 'XMLHttpRequest',
                         'Accept': 'application/json'
                     }
                 });
 
-                const data = await response.json();
+                const contentType = response.headers.get('content-type') || '';
+                let data = null;
+                let rawText = '';
+
+                if (contentType.includes('application/json')) {
+                    data = await response.json();
+                } else {
+                    rawText = await response.text();
+                }
 
                 if (!response.ok) {
-                    let msg = data?.message || 'No se ha podido guardar el mapa.';
+                    let msg = data?.message || `Error ${response.status} guardando el mapa.`;
                     if (data?.errors) {
                         const firstKey = Object.keys(data.errors)[0];
                         const firstError = firstKey ? data.errors[firstKey]?.[0] : null;
                         if (firstError) msg = firstError;
+                    }
+                    if (response.status === 419) {
+                        msg = 'Sesión caducada (419). Recarga la página e inténtalo de nuevo.';
+                    } else if (response.status === 413) {
+                        msg = 'La imagen es demasiado grande para el servidor (413).';
+                    } else if (!data && rawText) {
+                        msg = `Error ${response.status}. Revisa logs del servidor.`;
                     }
                     mapError.textContent = msg;
                     mapError.classList.remove('hidden-error');
@@ -286,8 +303,9 @@
                 mapSelect.value = String(data.id);
 
                 closeMapModal();
-            } catch {
-                mapError.textContent = 'Error de red guardando el mapa.';
+            } catch (error) {
+                const detail = error instanceof Error ? ` (${error.message})` : '';
+                mapError.textContent = `Error de red guardando el mapa${detail}.`;
                 mapError.classList.remove('hidden-error');
             } finally {
                 saveMapBtn.disabled = false;

@@ -24,7 +24,9 @@
                         <span>{{ auth()->user()->name }}</span>
                     </summary>
                     <div class="user-dropdown">
-                        <a href="{{ route('users.public', auth()->user()) }}">Estadisticas</a>
+                        @if(\Illuminate\Support\Facades\Route::has('users.public'))
+                            <a href="{{ route('users.public', auth()->user()) }}">Estadisticas</a>
+                        @endif
                         <a href="{{ route('settings') }}">Settings</a>
                         <hr>
                         <form method="POST" action="{{ route('logout') }}">

@@ -32,6 +32,11 @@ COPY docker/php/entrypoint.sh /usr/local/bin/entrypoint.sh
 WORKDIR /var/www/html
 
 RUN mkdir -p /tmp && chmod 1777 /tmp
+RUN { \
+      echo "upload_max_filesize=12M"; \
+      echo "post_max_size=12M"; \
+      echo "memory_limit=256M"; \
+    } > /usr/local/etc/php/conf.d/uploads.ini
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["php-fpm"]
