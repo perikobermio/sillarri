@@ -97,11 +97,6 @@
             <label class="map-upload-label">Seleccionar imagen</label>
             <input type="file" name="image" id="map-image-file" accept="image/*" required>
 
-            @if($isMobileClient)
-                <label class="map-upload-label">O sacar foto en este momento</label>
-                <input type="file" name="image_camera" id="map-image-camera" accept="image/*" capture="environment">
-            @endif
-
             <small class="error hidden-error" id="map-modal-error"></small>
 
             <div class="kilter-form-actions">
@@ -120,9 +115,6 @@
         </div>
 
         <div class="coord-toolbar">
-            <button type="button" class="btn btn-secondary" id="zoom-out">- Zoom</button>
-            <button type="button" class="btn btn-secondary" id="zoom-in">+ Zoom</button>
-            <button type="button" class="btn btn-secondary" id="zoom-reset">Reset</button>
             <button type="button" class="btn btn-secondary" id="clear-points">Limpiar puntos</button>
             <label for="point-type">Tipo</label>
             <select id="point-type">
@@ -191,11 +183,10 @@
         const openMapBtn = document.getElementById('open-map-modal');
         const closeMapBtn = document.getElementById('close-map-modal');
         const cancelMapBtn = document.getElementById('cancel-map-modal');
-        const mapForm = document.getElementById('map-create-form');
-        const mapError = document.getElementById('map-modal-error');
-        const saveMapBtn = document.getElementById('save-map-btn');
-        const mapCameraInput = document.getElementById('map-image-camera');
-        const mapFileInput = document.getElementById('map-image-file');
+            const mapForm = document.getElementById('map-create-form');
+            const mapError = document.getElementById('map-modal-error');
+            const saveMapBtn = document.getElementById('save-map-btn');
+            const mapFileInput = document.getElementById('map-image-file');
 
         const openMapModal = () => {
             mapModal.classList.remove('hidden-modal');
@@ -216,18 +207,6 @@
             if (event.target === mapModal) closeMapModal();
         });
 
-        mapCameraInput?.addEventListener('change', () => {
-            if (mapCameraInput.files && mapCameraInput.files.length > 0) {
-                mapFileInput.value = '';
-            }
-        });
-
-        mapFileInput?.addEventListener('change', () => {
-            if (mapFileInput.files && mapFileInput.files.length > 0 && mapCameraInput) {
-                mapCameraInput.value = '';
-            }
-        });
-
         mapForm?.addEventListener('submit', async (event) => {
             event.preventDefault();
 
@@ -239,12 +218,11 @@
             payload.append('_token', mapForm.querySelector('input[name="_token"]').value);
             payload.append('name', mapForm.querySelector('#map-name').value);
 
-            const cameraFile = mapCameraInput?.files?.[0];
             const file = mapFileInput?.files?.[0];
-            const chosenFile = cameraFile || file;
+            const chosenFile = file;
 
             if (!chosenFile) {
-                mapError.textContent = 'Debes seleccionar una imagen o sacar una foto.';
+                mapError.textContent = 'Debes seleccionar una imagen.';
                 mapError.classList.remove('hidden-error');
                 saveMapBtn.disabled = false;
                 return;
@@ -327,9 +305,6 @@
         const pointTypeSelect = document.getElementById('point-type');
         const pointSizeSelect = document.getElementById('point-size');
 
-        const zoomOutBtn = document.getElementById('zoom-out');
-        const zoomInBtn = document.getElementById('zoom-in');
-        const zoomResetBtn = document.getElementById('zoom-reset');
         const clearPointsBtn = document.getElementById('clear-points');
 
         let tempPoints = [];
@@ -359,7 +334,7 @@
         }
 
         function setZoom(value) {
-            zoom = Math.min(3, Math.max(0.5, value));
+            zoom = Math.min(3, Math.max(0.2, value));
             if (!coordImage) return;
             if (!baseImageWidth) {
                 const fallbackWidth = coordCanvasWrap?.clientWidth || 680;
@@ -613,9 +588,6 @@
             pinchStartZoom = zoom;
         }, { passive: true });
 
-        zoomOutBtn?.addEventListener('click', () => setZoom(zoom - 0.12));
-        zoomInBtn?.addEventListener('click', () => setZoom(zoom + 0.12));
-        zoomResetBtn?.addEventListener('click', () => setZoom(1));
         clearPointsBtn?.addEventListener('click', () => {
             tempPoints = [];
             renderPoints();

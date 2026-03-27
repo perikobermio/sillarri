@@ -155,13 +155,7 @@
             <h2 id="boulder-viewer-title">Boulder</h2>
             <button type="button" class="btn btn-secondary" id="close-boulder-viewer">Volver</button>
         </div>
-        <div class="viewer-toolbar">
-            <button type="button" class="btn btn-secondary" id="viewer-zoom-out">- Zoom</button>
-            <button type="button" class="btn btn-secondary" id="viewer-zoom-in">+ Zoom</button>
-            <button type="button" class="btn btn-secondary" id="viewer-zoom-reset">Reset</button>
-            <span id="viewer-zoom-label">100%</span>
-        </div>
-        <div class="viewer-wrap">
+        <div class="viewer-wrap" id="viewer-wrap">
             <div class="viewer-stage" id="viewer-stage">
                 <img id="viewer-image" alt="Mapa del boulder">
                 <div id="viewer-layer"></div>
@@ -188,27 +182,57 @@
         const viewerImage = document.getElementById('viewer-image');
         const viewerLayer = document.getElementById('viewer-layer');
         const viewerStage = document.getElementById('viewer-stage');
+        const viewerWrap = document.getElementById('viewer-wrap');
         const buttons = document.querySelectorAll('.block-row-btn.is-clickable');
-        const zoomInBtn = document.getElementById('viewer-zoom-in');
-        const zoomOutBtn = document.getElementById('viewer-zoom-out');
-        const zoomResetBtn = document.getElementById('viewer-zoom-reset');
-        const zoomLabel = document.getElementById('viewer-zoom-label');
 
-        if (!viewer || !viewerImage || !viewerLayer || !viewerStage) return;
+        if (!viewer || !viewerImage || !viewerLayer || !viewerStage || !viewerWrap) return;
 
         let zoom = 1;
+        let isPanning = false;
+        let panStartX = 0;
+        let panStartY = 0;
+        let panStartScrollLeft = 0;
+        let panStartScrollTop = 0;
+        let panDistance = 0;
+        const activeTouchPoints = new Map();
+        let pinchStartDistance = 0;
+        let pinchStartZoom = 1;
+        let baseImageWidth = 0;
+
+        function hasFinePointer() {
+            return window.matchMedia('(pointer: fine)').matches;
+        }
+
+        function syncBodyScrollLock() {
+            const hasOpenModal = document.querySelector('.modal-shell:not(.hidden-modal)') !== null;
+            document.body.style.overflow = hasOpenModal ? 'hidden' : '';
+        }
+
+        function distanceBetweenTouches() {
+            const points = Array.from(activeTouchPoints.values());
+            if (points.length < 2) return 0;
+            const dx = points[0].x - points[1].x;
+            const dy = points[0].y - points[1].y;
+            return Math.hypot(dx, dy);
+        }
 
         function setZoom(value) {
-            zoom = Math.min(4, Math.max(0.5, value));
-            viewerStage.style.transform = `scale(${zoom})`;
-            zoomLabel.textContent = `${Math.round(zoom * 100)}%`;
+            zoom = Math.min(3, Math.max(0.2, value));
+            if (!baseImageWidth) {
+                const fallbackWidth = viewerWrap.clientWidth || 680;
+                baseImageWidth = Math.max(680, Math.round(fallbackWidth));
+            }
+            viewerImage.style.width = `${Math.round(baseImageWidth * zoom)}px`;
         }
 
         function closeViewer() {
             viewer.classList.add('hidden-modal');
             viewerImage.src = '';
             viewerLayer.innerHTML = '';
+            activeTouchPoints.clear();
+            isPanning = false;
             setZoom(1);
+            syncBodyScrollLock();
         }
 
         buttons.forEach((btn) => {
@@ -239,14 +263,146 @@
                     viewerLayer.appendChild(marker);
                 });
 
+                activeTouchPoints.clear();
+                isPanning = false;
+                pinchStartDistance = 0;
+                pinchStartZoom = zoom;
+                baseImageWidth = 0;
                 setZoom(1);
+                viewerWrap.scrollLeft = 0;
+                viewerWrap.scrollTop = 0;
+                viewerWrap.style.cursor = hasFinePointer() ? 'grab' : 'default';
                 viewer.classList.remove('hidden-modal');
+                syncBodyScrollLock();
             });
         });
 
-        zoomInBtn?.addEventListener('click', () => setZoom(zoom + 0.2));
-        zoomOutBtn?.addEventListener('click', () => setZoom(zoom - 0.2));
-        zoomResetBtn?.addEventListener('click', () => setZoom(1));
+        viewerImage.addEventListener('load', () => {
+            const wrapWidth = viewerWrap.clientWidth || 680;
+            baseImageWidth = Math.max(680, Math.round(wrapWidth));
+            setZoom(zoom);
+        });
+
+        viewerWrap.addEventListener('mousedown', (event) => {
+            if (!hasFinePointer()) return;
+            if (event.button !== 0) return;
+
+            isPanning = true;
+            panDistance = 0;
+            panStartX = event.clientX;
+            panStartY = event.clientY;
+            panStartScrollLeft = viewerWrap.scrollLeft;
+            panStartScrollTop = viewerWrap.scrollTop;
+            viewerWrap.style.cursor = 'grabbing';
+            event.preventDefault();
+        });
+
+        window.addEventListener('mousemove', (event) => {
+            if (!isPanning) return;
+
+            const deltaX = event.clientX - panStartX;
+            const deltaY = event.clientY - panStartY;
+            panDistance = Math.max(panDistance, Math.abs(deltaX) + Math.abs(deltaY));
+
+            viewerWrap.scrollLeft = panStartScrollLeft - deltaX;
+            viewerWrap.scrollTop = panStartScrollTop - deltaY;
+        });
+
+        window.addEventListener('mouseup', () => {
+            if (!isPanning) return;
+            isPanning = false;
+            viewerWrap.style.cursor = hasFinePointer() ? 'grab' : 'default';
+        });
+
+        viewerWrap.addEventListener('wheel', (event) => {
+            if (!hasFinePointer()) return;
+            event.preventDefault();
+            const step = event.deltaY < 0 ? 0.12 : -0.12;
+            setZoom(zoom + step);
+        }, { passive: false });
+
+        viewerWrap.addEventListener('touchstart', (event) => {
+            for (const touch of event.changedTouches) {
+                activeTouchPoints.set(touch.identifier, { x: touch.clientX, y: touch.clientY });
+            }
+
+            if (activeTouchPoints.size === 1) {
+                const point = Array.from(activeTouchPoints.values())[0];
+                isPanning = true;
+                panDistance = 0;
+                panStartX = point.x;
+                panStartY = point.y;
+                panStartScrollLeft = viewerWrap.scrollLeft;
+                panStartScrollTop = viewerWrap.scrollTop;
+            } else if (activeTouchPoints.size >= 2) {
+                isPanning = false;
+                pinchStartDistance = distanceBetweenTouches();
+                pinchStartZoom = zoom;
+            }
+        }, { passive: true });
+
+        viewerWrap.addEventListener('touchmove', (event) => {
+            for (const touch of event.changedTouches) {
+                if (activeTouchPoints.has(touch.identifier)) {
+                    activeTouchPoints.set(touch.identifier, { x: touch.clientX, y: touch.clientY });
+                }
+            }
+
+            if (activeTouchPoints.size >= 2) {
+                const nextDistance = distanceBetweenTouches();
+                if (pinchStartDistance > 0 && nextDistance > 0) {
+                    const scaleFactor = nextDistance / pinchStartDistance;
+                    setZoom(pinchStartZoom * scaleFactor);
+                }
+                event.preventDefault();
+                return;
+            }
+
+            if (!isPanning) return;
+            const point = Array.from(activeTouchPoints.values())[0];
+            if (!point) return;
+
+            const deltaX = point.x - panStartX;
+            const deltaY = point.y - panStartY;
+            panDistance = Math.max(panDistance, Math.abs(deltaX) + Math.abs(deltaY));
+
+            viewerWrap.scrollLeft = panStartScrollLeft - deltaX;
+            viewerWrap.scrollTop = panStartScrollTop - deltaY;
+            event.preventDefault();
+        }, { passive: false });
+
+        viewerWrap.addEventListener('touchend', (event) => {
+            for (const touch of event.changedTouches) {
+                activeTouchPoints.delete(touch.identifier);
+            }
+
+            if (activeTouchPoints.size === 1) {
+                const point = Array.from(activeTouchPoints.values())[0];
+                isPanning = true;
+                panDistance = 0;
+                panStartX = point.x;
+                panStartY = point.y;
+                panStartScrollLeft = viewerWrap.scrollLeft;
+                panStartScrollTop = viewerWrap.scrollTop;
+                pinchStartDistance = 0;
+                pinchStartZoom = zoom;
+                return;
+            }
+
+            isPanning = false;
+            pinchStartDistance = 0;
+            pinchStartZoom = zoom;
+        }, { passive: true });
+
+        viewerWrap.addEventListener('touchcancel', (event) => {
+            for (const touch of event.changedTouches) {
+                activeTouchPoints.delete(touch.identifier);
+            }
+            isPanning = false;
+            pinchStartDistance = 0;
+            pinchStartZoom = zoom;
+        }, { passive: true });
+
         closeBtn?.addEventListener('click', closeViewer);
         viewer.addEventListener('click', (event) => {
             if (event.target === viewer) closeViewer();
