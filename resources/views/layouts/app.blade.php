@@ -20,24 +20,24 @@
             @auth
                 <details class="user-menu">
                     <summary class="user-chip">
-                        <img src="/images/default-avatar.svg" alt="Foto de perfil por defecto">
+                        <img src="/images/default-avatar.svg" alt="Lehenetsitako profileko irudia">
                         <span>{{ auth()->user()->username ?? auth()->user()->name }}</span>
                     </summary>
                     <div class="user-dropdown">
                         @if(\Illuminate\Support\Facades\Route::has('users.public'))
-                            <a href="{{ route('users.public', auth()->user()) }}">Estadisticas</a>
+                            <a href="{{ route('users.public', auth()->user()) }}">Estatistikak</a>
                         @endif
-                        <a href="{{ route('settings') }}">Settings</a>
+                        <a href="{{ route('settings') }}">Ezarpenak</a>
                         <hr>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-                            <button type="submit">Logout</button>
+                            <button type="submit">Saioa itxi</button>
                         </form>
                     </div>
                 </details>
             @else
-                <a href="{{ route('login') }}">Entrar</a>
-                <a href="{{ route('register') }}">Crear cuenta</a>
+                <a href="{{ route('login') }}">Sartu</a>
+                <a href="{{ route('register') }}">Kontua sortu</a>
             @endauth
         </nav>
     </header>

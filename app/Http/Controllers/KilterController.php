@@ -83,7 +83,7 @@ class KilterController extends Controller
 
         $coords = json_decode($data['boulder'], true);
         if (! is_array($coords) || count($coords) === 0) {
-            return back()->withErrors(['boulder' => 'Debes marcar al menos una coordenada en el mapa.'])->withInput();
+            return back()->withErrors(['boulder' => 'Gutxienez koordenatu bat markatu behar duzu mapan.'])->withInput();
         }
 
         $validTypes = ['pie', 'mano_pie', 'comienzo', 'top'];
@@ -91,7 +91,7 @@ class KilterController extends Controller
 
         foreach ($coords as $point) {
             if (! is_array($point)) {
-                return back()->withErrors(['boulder' => 'Formato de coordenadas no válido.'])->withInput();
+                return back()->withErrors(['boulder' => 'Koordenatuen formatua ez da baliozkoa.'])->withInput();
             }
 
             $x = $point['x'] ?? null;
@@ -100,15 +100,15 @@ class KilterController extends Controller
             $size = $point['size'] ?? null;
 
             if (! is_numeric($x) || ! is_numeric($y)) {
-                return back()->withErrors(['boulder' => 'Cada punto debe tener coordenadas numéricas.'])->withInput();
+                return back()->withErrors(['boulder' => 'Puntu bakoitzak koordenatu numerikoak izan behar ditu.'])->withInput();
             }
 
             if ((float) $x < 0 || (float) $x > 100 || (float) $y < 0 || (float) $y > 100) {
-                return back()->withErrors(['boulder' => 'Las coordenadas deben estar entre 0 y 100.'])->withInput();
+                return back()->withErrors(['boulder' => 'Koordenatuek 0 eta 100 artean egon behar dute.'])->withInput();
             }
 
             if (! in_array($type, $validTypes, true) || ! in_array($size, $validSizes, true)) {
-                return back()->withErrors(['boulder' => 'Cada punto debe incluir tipo y tamaño válidos.'])->withInput();
+                return back()->withErrors(['boulder' => 'Puntu bakoitzak mota eta tamaina baliozkoak izan behar ditu.'])->withInput();
             }
         }
 
@@ -123,7 +123,7 @@ class KilterController extends Controller
 
         return redirect()
             ->route('kilter')
-            ->with('status', 'Bloque creado correctamente.');
+            ->with('status', 'Blokea ondo sortu da.');
     }
 
     public function storeMap(Request $request): JsonResponse

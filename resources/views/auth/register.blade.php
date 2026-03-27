@@ -1,15 +1,15 @@
-@extends('layouts.app', ['title' => 'Crear cuenta | Sillarri Climb'])
+@extends('layouts.app', ['title' => 'Kontua sortu | Sillarri Climb'])
 
 @section('content')
 <section class="auth-wrap">
     <div class="auth-card">
-        <h1>Únete a Sillarri</h1>
-        <p>Crea tu perfil y empieza a registrar bloques, vías y entrenos.</p>
+        <h1>Bat egin Sillarri-rekin</h1>
+        <p>Sortu zure profila eta hasi blokeak, bideak eta entrenamenduak erregistratzen.</p>
 
         <form method="POST" action="{{ route('register.store') }}" class="auth-form">
             @csrf
 
-            <label>Nombre</label>
+            <label>Izena</label>
             <input type="text" name="name" value="{{ old('name') }}" required>
             @error('name')
                 <small class="error">{{ $message }}</small>
@@ -27,19 +27,19 @@
                 <small class="error">{{ $message }}</small>
             @enderror
 
-            <label>Contraseña</label>
+            <label>Pasahitza</label>
             <input type="password" name="password" required>
             @error('password')
                 <small class="error">{{ $message }}</small>
             @enderror
 
-            <label>Repite la contraseña</label>
+            <label>Errepikatu pasahitza</label>
             <input type="password" name="password_confirmation" required>
 
-            <button type="submit" class="btn btn-primary btn-block">Crear cuenta</button>
+            <button type="submit" class="btn btn-primary btn-block">Kontua sortu</button>
         </form>
 
-        <p class="switch-link">¿Ya tienes cuenta? <a href="{{ route('login') }}">Inicia sesión</a></p>
+        <p class="switch-link">Kontua baduzu? <a href="{{ route('login') }}">Hasi saioa</a></p>
     </div>
 </section>
 @endsection

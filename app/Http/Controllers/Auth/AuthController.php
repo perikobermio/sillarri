@@ -50,7 +50,7 @@ class AuthController extends Controller
 
         if (! $user || ! Hash::check($password, $user->password)) {
             return back()
-                ->withErrors(['login' => 'Credenciales no válidas.'])
+                ->withErrors(['login' => 'Kredentzialak ez dira baliozkoak.'])
                 ->onlyInput('login');
         }
 

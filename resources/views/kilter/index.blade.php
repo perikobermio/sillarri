@@ -6,13 +6,13 @@
         <div class="kilter-table-head">
             <div>
                 <p class="eyebrow">Kilter Board Hub</p>
-                <h1>KILTER BLOQUES</h1>
+                <h1>KILTER BLOKEAK</h1>
             </div>
 
             <div class="kilter-actions">
                 @auth
                     <a class="btn btn-primary create-block-btn" href="{{ route('kilter.create') }}">
-                        <span class="create-block-label">Crear bloque</span>
+                        <span class="create-block-label">Blokea sortu</span>
                     </a>
                 @endauth
 
@@ -32,7 +32,7 @@
                         }
                     @endphp
                     <details class="grade-filter-box">
-                        <summary>Grade</summary>
+                        <summary>Gradua</summary>
                         <div class="grade-check-list">
                             @foreach($groupedGrades as $group => $list)
                                 <div class="grade-group-title">{{ $romanMap[$group] ?? $group }}</div>
@@ -56,18 +56,18 @@
                     <details class="extra-filter-box">
                         <summary>+</summary>
                         <div class="extra-filter-panel">
-                            <label for="q-filter">Nombre</label>
+                            <label for="q-filter">Izena</label>
                             <input
                                 id="q-filter"
                                 type="text"
                                 name="q"
                                 value="{{ $search }}"
-                                placeholder="Buscar bloque por nombre..."
+                                placeholder="Bilatu blokea izenaren arabera..."
                             >
 
-                            <label for="creator-filter">Usuario</label>
+                            <label for="creator-filter">Erabiltzailea</label>
                             <select id="creator-filter" name="creator">
-                                <option value="">Todos</option>
+                                <option value="">Denak</option>
                                 @foreach($creators as $creator)
                                     <option
                                         value="{{ $creator->id }}"
@@ -81,10 +81,10 @@
                     </details>
 
                     <button type="submit" class="btn btn-primary search-submit-btn">
-                        <span class="search-submit-label">Buscar</span>
+                        <span class="search-submit-label">Bilatu</span>
                     </button>
                     @if($search !== '' || count($selectedGrades) > 0 || $selectedCreator !== null)
-                        <a class="btn btn-secondary" href="{{ route('kilter') }}">Limpiar</a>
+                        <a class="btn btn-secondary" href="{{ route('kilter') }}">Garbitu</a>
                     @endif
                 </form>
             </div>
@@ -95,12 +95,12 @@
                 <thead>
                     <tr>
                         <th class="col-id">ID</th>
-                        <th>Nombre</th>
-                        <th class="col-description">Descripcion</th>
-                        <th>Grado</th>
+                        <th>Izena</th>
+                        <th class="col-description">Deskribapena</th>
+                        <th>Gradua</th>
                         <th>Mapa</th>
-                        <th>Creador</th>
-                        <th class="col-created">Creado</th>
+                        <th>Sortzailea</th>
+                        <th class="col-created">Sortua</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -140,7 +140,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7">No hay bloques para el filtro actual.</td>
+                            <td colspan="7">Ez dago blokerik uneko iragazkiarekin.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -153,11 +153,11 @@
     <div class="modal-card modal-card-xl">
         <div class="modal-head">
             <h2 id="boulder-viewer-title">Boulder</h2>
-            <button type="button" class="btn btn-secondary" id="close-boulder-viewer">Volver</button>
+            <button type="button" class="btn btn-secondary" id="close-boulder-viewer">Itzuli</button>
         </div>
         <div class="viewer-wrap" id="viewer-wrap">
             <div class="viewer-stage" id="viewer-stage">
-                <img id="viewer-image" alt="Mapa del boulder">
+                <img id="viewer-image" alt="Boulder mapa">
                 <div id="viewer-layer"></div>
             </div>
         </div>
@@ -238,7 +238,7 @@
         buttons.forEach((btn) => {
             btn.addEventListener('click', () => {
                 const imageUrl = btn.dataset.imageUrl || '';
-                const title = btn.dataset.title || 'Boulder';
+                const title = btn.dataset.title || 'Blokea';
                 let points = [];
 
                 try {

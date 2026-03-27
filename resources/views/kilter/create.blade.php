@@ -1,29 +1,29 @@
-@extends('layouts.app', ['title' => 'Crear bloque | KILTER'])
+@extends('layouts.app', ['title' => 'Blokea sortu | KILTER'])
 
 @section('content')
 <section class="kilter-page">
     <div class="kilter-form-wrap">
         <p class="eyebrow">Kilter Board Hub</p>
-        <h1>CREAR BLOQUE</h1>
+        <h1>BLOKEA SORTU</h1>
 
         <form method="POST" action="{{ route('kilter.store') }}" class="kilter-form" enctype="multipart/form-data">
             @csrf
 
-            <label>Nombre del bloque</label>
+            <label>Blokearen izena</label>
             <input type="text" name="name" value="{{ old('name') }}" required>
             @error('name')
                 <small class="error">{{ $message }}</small>
             @enderror
 
-            <label>Descripción</label>
+            <label>Deskribapena</label>
             <textarea name="description" rows="4" required>{{ old('description') }}</textarea>
             @error('description')
                 <small class="error">{{ $message }}</small>
             @enderror
 
-            <label>Grado</label>
+            <label>Gradua</label>
             <select name="grade" required>
-                <option value="">Selecciona grado</option>
+                <option value="">Hautatu gradua</option>
                 @foreach($grades as $grade)
                     <option value="{{ $grade }}" @selected(old('grade') === $grade)>{{ $grade }}</option>
                 @endforeach
@@ -35,7 +35,7 @@
             <label>Mapa</label>
             <div class="map-picker-row">
                 <select name="map_id" id="map-select" required>
-                    <option value="">Selecciona un mapa</option>
+                    <option value="">Hautatu mapa bat</option>
                     @foreach($maps as $map)
                         @php
                             $imageUrl = '';
@@ -56,26 +56,26 @@
                 </select>
 
                 <button type="button" class="btn btn-secondary map-upload-toggle" id="open-map-modal">
-                    <span class="map-upload-toggle-label">Añadir mapa</span>
+                    <span class="map-upload-toggle-label">Mapa gehitu</span>
                 </button>
             </div>
             @error('map_id')
                 <small class="error">{{ $message }}</small>
             @enderror
 
-            <label>Coordenadas boulder</label>
+            <label>Boulder koordenatuak</label>
             <input type="hidden" name="boulder" id="boulder-input" value="{{ old('boulder') }}">
             <div class="boulder-row">
-                <button type="button" class="btn btn-secondary" id="open-boulder-modal">Definir coordenadas</button>
-                <span id="boulder-summary" class="boulder-summary">Sin puntos definidos</span>
+                <button type="button" class="btn btn-secondary" id="open-boulder-modal">Koordenatuak zehaztu</button>
+                <span id="boulder-summary" class="boulder-summary">Ez dago punturik zehaztuta</span>
             </div>
             @error('boulder')
                 <small class="error">{{ $message }}</small>
             @enderror
 
             <div class="kilter-form-actions">
-                <button type="submit" class="btn btn-primary">Guardar bloque</button>
-                <a href="{{ route('kilter') }}" class="btn btn-secondary">Cancelar</a>
+                <button type="submit" class="btn btn-primary">Blokea gorde</button>
+                <a href="{{ route('kilter') }}" class="btn btn-secondary">Utzi</a>
             </div>
         </form>
     </div>
@@ -84,24 +84,24 @@
 <div class="modal-shell hidden-modal" id="map-modal" role="dialog" aria-modal="true" aria-labelledby="map-modal-title">
     <div class="modal-card">
         <div class="modal-head">
-            <h2 id="map-modal-title">Añadir mapa</h2>
-            <button type="button" class="icon-btn" id="close-map-modal" aria-label="Cerrar modal">×</button>
+            <h2 id="map-modal-title">Mapa gehitu</h2>
+            <button type="button" class="icon-btn" id="close-map-modal" aria-label="Itxi leihoa">×</button>
         </div>
 
         <form id="map-create-form" class="kilter-form" enctype="multipart/form-data">
             <input type="hidden" name="_token" value="{{ csrf_token() }}">
 
-            <label>Nombre del mapa</label>
+            <label>Maparen izena</label>
             <input type="text" name="name" id="map-name" required>
 
-            <label class="map-upload-label">Seleccionar imagen</label>
+            <label class="map-upload-label">Irudia hautatu</label>
             <input type="file" name="image" id="map-image-file" accept="image/*" required>
 
             <small class="error hidden-error" id="map-modal-error"></small>
 
             <div class="kilter-form-actions">
-                <button type="submit" class="btn btn-primary" id="save-map-btn">Guardar mapa</button>
-                <button type="button" class="btn btn-secondary" id="cancel-map-modal">Cancelar</button>
+                <button type="submit" class="btn btn-primary" id="save-map-btn">Mapa gorde</button>
+                <button type="button" class="btn btn-secondary" id="cancel-map-modal">Utzi</button>
             </div>
         </form>
     </div>
@@ -110,32 +110,32 @@
 <div class="modal-shell hidden-modal" id="boulder-modal" role="dialog" aria-modal="true" aria-labelledby="boulder-modal-title">
     <div class="modal-card modal-card-xl">
         <div class="modal-head">
-            <h2 id="boulder-modal-title">Seleccionar coordenadas boulder</h2>
-            <button type="button" class="icon-btn" id="close-boulder-modal" aria-label="Cerrar modal">×</button>
+            <h2 id="boulder-modal-title">Boulder koordenatuak hautatu</h2>
+            <button type="button" class="icon-btn" id="close-boulder-modal" aria-label="Itxi leihoa">×</button>
         </div>
 
         <div class="coord-toolbar">
-            <button type="button" class="btn btn-secondary" id="clear-points">Limpiar puntos</button>
-            <label for="point-type">Tipo</label>
+            <button type="button" class="btn btn-secondary" id="clear-points">Puntuak garbitu</button>
+            <label for="point-type">Mota</label>
             <select id="point-type">
-                <option value="pie">Amarillo - pie</option>
-                <option value="mano_pie" selected>Azul - mano/pie</option>
-                <option value="comienzo">Rosa - comienzo</option>
-                <option value="top">Rojo - top</option>
+                <option value="pie">Horia - oina</option>
+                <option value="mano_pie" selected>Urdina - eskua/oina</option>
+                <option value="comienzo">Arrosa - hasiera</option>
+                <option value="top">Gorria - topa</option>
             </select>
-            <label for="point-size">Tamaño</label>
+            <label for="point-size">Tamaina</label>
             <select id="point-size">
-                <option value="pequeno">Pequeño</option>
-                <option value="mediano" selected>Mediano</option>
-                <option value="grande">Grande</option>
-                <option value="gigante">Gigante</option>
+                <option value="pequeno">Txikia</option>
+                <option value="mediano" selected>Ertaina</option>
+                <option value="grande">Handia</option>
+                <option value="gigante">Erraldoia</option>
             </select>
-            <span id="coord-count">0 puntos</span>
+            <span id="coord-count">0 puntu</span>
         </div>
 
         <div class="coord-canvas-wrap" id="coord-canvas-wrap">
             <div class="coord-stage" id="coord-stage">
-                <img id="coord-image" alt="Mapa para coordenadas">
+                <img id="coord-image" alt="Koordenatuetarako mapa">
                 <div id="coord-layer"></div>
             </div>
         </div>
@@ -143,8 +143,8 @@
         <small class="error hidden-error" id="boulder-modal-error"></small>
 
         <div class="kilter-form-actions">
-            <button type="button" class="btn btn-primary" id="save-boulder-points">Guardar coordenadas</button>
-            <button type="button" class="btn btn-secondary" id="cancel-boulder-modal">Cancelar</button>
+            <button type="button" class="btn btn-primary" id="save-boulder-points">Koordenatuak gorde</button>
+            <button type="button" class="btn btn-secondary" id="cancel-boulder-modal">Utzi</button>
         </div>
     </div>
 </div>
@@ -167,8 +167,8 @@
         function syncBoulderSummary() {
             const points = parsePoints();
             boulderSummary.textContent = points.length > 0
-                ? `${points.length} punto(s) definido(s)`
-                : 'Sin puntos definidos';
+                ? `${points.length} puntu zehaztuta`
+                : 'Ez dago punturik zehaztuta';
         }
 
         function syncBodyScrollLock() {
@@ -222,7 +222,7 @@
             const chosenFile = file;
 
             if (!chosenFile) {
-                mapError.textContent = 'Debes seleccionar una imagen.';
+                mapError.textContent = 'Irudi bat hautatu behar duzu.';
                 mapError.classList.remove('hidden-error');
                 saveMapBtn.disabled = false;
                 return;
@@ -253,18 +253,18 @@
                 }
 
                 if (!response.ok) {
-                    let msg = data?.message || `Error ${response.status} guardando el mapa.`;
+                    let msg = data?.message || `Errorea ${response.status} mapa gordetzean.`;
                     if (data?.errors) {
                         const firstKey = Object.keys(data.errors)[0];
                         const firstError = firstKey ? data.errors[firstKey]?.[0] : null;
                         if (firstError) msg = firstError;
                     }
                     if (response.status === 419) {
-                        msg = 'Sesión caducada (419). Recarga la página e inténtalo de nuevo.';
+                        msg = 'Saioa iraungi da (419). Berritu orria eta saiatu berriro.';
                     } else if (response.status === 413) {
-                        msg = 'La imagen es demasiado grande para el servidor (413).';
+                        msg = 'Irudia handiegia da zerbitzarirako (413).';
                     } else if (!data && rawText) {
-                        msg = `Error ${response.status}. Revisa logs del servidor.`;
+                        msg = `Errorea ${response.status}. Berrikusi zerbitzariaren logak.`;
                     }
                     mapError.textContent = msg;
                     mapError.classList.remove('hidden-error');
@@ -283,7 +283,7 @@
                 closeMapModal();
             } catch (error) {
                 const detail = error instanceof Error ? ` (${error.message})` : '';
-                mapError.textContent = `Error de red guardando el mapa${detail}.`;
+                mapError.textContent = `Sareko errorea mapa gordetzean${detail}.`;
                 mapError.classList.remove('hidden-error');
             } finally {
                 saveMapBtn.disabled = false;
@@ -353,7 +353,7 @@
                 marker.className = `coord-point type-${type} size-${size}`;
                 marker.style.left = `${point.x}%`;
                 marker.style.top = `${point.y}%`;
-                marker.title = `Punto ${index + 1} (click para borrar)`;
+                marker.title = `Puntua ${index + 1} (klik ezabatzeko)`;
                 marker.addEventListener('click', (event) => {
                     event.stopPropagation();
                     tempPoints.splice(index, 1);
@@ -361,7 +361,7 @@
                 });
                 coordLayer.appendChild(marker);
             });
-            coordCount.textContent = `${tempPoints.length} punto(s)`;
+            coordCount.textContent = `${tempPoints.length} puntu`;
         }
 
         function openBoulderModal() {
@@ -369,13 +369,13 @@
             const imageUrl = selected?.dataset?.imageUrl || '';
 
             if (!mapSelect.value) {
-                boulderError.textContent = 'Selecciona primero un mapa.';
+                boulderError.textContent = 'Lehenengo mapa bat hautatu.';
                 boulderError.classList.remove('hidden-error');
                 return;
             }
 
             if (!imageUrl) {
-                boulderError.textContent = 'El mapa seleccionado no tiene imagen disponible.';
+                boulderError.textContent = 'Hautatutako mapak ez du irudi erabilgarririk.';
                 boulderError.classList.remove('hidden-error');
                 return;
             }
