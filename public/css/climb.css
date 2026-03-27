@@ -853,7 +853,9 @@ main {
 
 .coord-canvas-wrap {
   width: 100%;
+  height: 62vh;
   max-height: 62vh;
+  min-height: 320px;
   overflow: auto;
   touch-action: none;
   border: 1px solid rgba(255, 255, 255, 0.15);
@@ -871,7 +873,7 @@ main {
   display: block;
   max-width: none;
   width: 100%;
-  min-width: 680px;
+  min-width: 0;
   cursor: crosshair;
 }
 
