@@ -8,6 +8,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class AuthController extends Controller
@@ -29,17 +30,31 @@ class AuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        $loginField = filter_var($data['login'], FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+        $loginValue = trim($data['login']);
+        $password = (string) $data['password'];
+        $remember = $request->boolean('remember');
+        $user = null;
 
-        if (! Auth::attempt([
-            $loginField => $data['login'],
-            'password' => $data['password'],
-        ], $request->boolean('remember'))) {
+        if (filter_var($loginValue, FILTER_VALIDATE_EMAIL)) {
+            $normalizedEmail = Str::lower($loginValue);
+            $user = User::query()
+                ->whereRaw('LOWER(email) = ?', [$normalizedEmail])
+                ->first();
+        } else {
+            $normalizedUsername = Str::lower($loginValue);
+            $user = User::query()
+                ->whereNotNull('username')
+                ->whereRaw('LOWER(username) = ?', [$normalizedUsername])
+                ->first();
+        }
+
+        if (! $user || ! Hash::check($password, $user->password)) {
             return back()
                 ->withErrors(['login' => 'Credenciales no válidas.'])
                 ->onlyInput('login');
         }
 
+        Auth::login($user, $remember);
         $request->session()->regenerate();
 
         return redirect()->intended(route('dashboard'));
@@ -55,7 +70,7 @@ class AuthController extends Controller
 
         $user = User::create([
             'name' => $data['name'],
-            'email' => $data['email'],
+            'email' => Str::lower(trim((string) $data['email'])),
             'password' => Hash::make($data['password']),
         ]);
 
