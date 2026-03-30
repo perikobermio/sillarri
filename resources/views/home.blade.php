@@ -63,6 +63,7 @@
 
 <script>
     (function () {
+        const weatherBaseUrl = "{{ route('weather') }}";
         const locations = [
             { name: 'Ereño', lat: 43.357, lon: -2.625 },
             { name: 'Urkiola', lat: 43.103, lon: -2.646 },
@@ -124,11 +125,12 @@
                 return '<span class="weather-pill weather-pill-empty">—</span>';
             }
 
+            const href = `${weatherBaseUrl}?place=${encodeURIComponent(daySpec.place)}&date=${formatDateKey(daySpec.date)}`;
             return `
-                <span class="weather-pill">
+                <a class="weather-pill weather-pill-link" href="${href}">
                     <span class="weather-icon" aria-hidden="true">${iconFromWmo(data.code)}</span>
                     <span>${Math.round(data.max)}°/${Math.round(data.min)}°</span>
-                </span>
+                </a>
             `;
         }
 
@@ -163,7 +165,7 @@
 
             const dates = targetDates();
             const daysMarkup = dates
-                .map((daySpec) => `<td>${buildDayCell(daySpec, weatherByDate)}</td>`)
+                .map((daySpec) => `<td>${buildDayCell({ ...daySpec, place: location.name }, weatherByDate)}</td>`)
                 .join('');
 
             return `

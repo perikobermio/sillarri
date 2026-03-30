@@ -85,6 +85,7 @@
         (function () {
             const ticker = document.getElementById('headerWeatherTicker');
             if (!ticker) return;
+            const weatherBaseUrl = "{{ route('weather') }}";
 
             const locations = [
                 { name: 'Ereño', lat: 43.357, lon: -2.625 },
@@ -158,16 +159,20 @@
                     const today = dates[0];
                     const item = byDate.get(today.key);
                     if (!item) continue;
-                    entries.push(`${location.name} · ${iconFromWmo(item.code)} ${Math.round(item.max)}°/${Math.round(item.min)}°`);
+                    entries.push({
+                        text: `${location.name} · ${iconFromWmo(item.code)} ${Math.round(item.max)}°/${Math.round(item.min)}°`,
+                        href: `${weatherBaseUrl}?place=${encodeURIComponent(location.name)}&date=${today.key}`,
+                    });
                 }
 
                 return entries;
             }
 
-            function showWithFade(text) {
+            function showWithFade(entry) {
                 ticker.classList.remove('is-visible');
                 window.setTimeout(() => {
-                    ticker.textContent = text;
+                    ticker.textContent = entry.text;
+                    ticker.href = entry.href;
                     ticker.classList.add('is-visible');
                 }, 220);
             }

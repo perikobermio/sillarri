@@ -12,6 +12,9 @@ Route::get('/', function () {
 
 Route::get('/kilter', [KilterController::class, 'index'])->name('kilter');
 Route::get('/sailkapena', [RankingController::class, 'index'])->name('ranking');
+Route::get('/eguraldia', function () {
+    return view('weather.index');
+})->name('weather');
 Route::get('/kilter/blokea/{block}', [KilterController::class, 'show'])->name('kilter.show');
 Route::get('/usuarios/{user}', [UserController::class, 'showPublic'])->name('users.public');
 
