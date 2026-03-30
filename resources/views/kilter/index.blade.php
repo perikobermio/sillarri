@@ -38,7 +38,7 @@
                         }
                     @endphp
                     <details class="grade-filter-box">
-                        <summary>Gradua</summary>
+                        <summary><span class="grade-summary-label">Gradua</span></summary>
                         <div class="grade-check-list">
                             @foreach($groupedGrades as $group => $list)
                                 <div class="grade-group-title">{{ $romanMap[$group] ?? $group }}</div>
@@ -95,12 +95,12 @@
                         </div>
                     </details>
 
-                    <button type="submit" class="btn btn-primary search-submit-btn">
+                    <a class="btn btn-secondary clear-filters-btn" href="{{ route('kilter') }}" aria-label="Garbitu">
+                        <span class="clear-filters-label">Garbitu</span>
+                    </a>
+                    <button type="submit" class="btn btn-primary search-submit-btn" aria-label="Bilatu">
                         <span class="search-submit-label">Bilatu</span>
                     </button>
-                    @if($search !== '' || count($selectedGrades) > 0 || $selectedCreator !== null || (($selectedCompletedFilter ?? 'all') !== 'all'))
-                        <a class="btn btn-secondary" href="{{ route('kilter') }}">Garbitu</a>
-                    @endif
                 </form>
             </div>
         </div>

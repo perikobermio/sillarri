@@ -28,7 +28,7 @@
                 <tr>
                     <th>Ordua</th>
                     <th>⛅</th>
-                    <th>🌡 Tenperatura</th>
+                    <th>Tenperatura</th>
                     <th>Sentsazioa</th>
                     <th>Euria</th>
                     <th>Euri aukera</th>
