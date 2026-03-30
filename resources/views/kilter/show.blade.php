@@ -113,12 +113,6 @@
             @if(! $viewerUser)
                 <p class="muted-note">Blokea eginda markatzeko saioa hasi behar duzu.</p>
             @endif
-            @if(! $canEdit)
-                <p class="muted-note">Ez daukazu bloke hau editatzeko baimenik.</p>
-            @endif
-            @if(! $canDelete)
-                <p class="muted-note">Ez daukazu bloke hau ezabatzeko baimenik.</p>
-            @endif
 
             <hr class="detail-separator">
             <h3>Blokearen datuak</h3>

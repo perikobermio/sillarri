@@ -4,8 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\KilterBlock;
 use App\Models\User;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class UserController extends Controller
@@ -50,6 +53,36 @@ class UserController extends Controller
         return view('users.settings', [
             'userProfile' => $request->user(),
         ]);
+    }
+
+    public function updateSettings(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => [
+                'required',
+                'string',
+                'email',
+                'max:255',
+                Rule::unique('users', 'email')->ignore($user->id),
+            ],
+            'password' => ['nullable', 'string', 'confirmed'],
+        ]);
+
+        $user->name = trim((string) $data['name']);
+        $user->email = strtolower(trim((string) $data['email']));
+
+        if (filled($data['password'] ?? null)) {
+            $user->password = Hash::make((string) $data['password']);
+        }
+
+        $user->save();
+
+        return redirect()
+            ->route('settings')
+            ->with('status', 'Ezarpenak ondo gorde dira.');
     }
 
     /**

@@ -24,10 +24,8 @@ Route::middleware('guest')->group(function (): void {
 });
 
 Route::middleware('auth')->group(function (): void {
-    Route::get('/dashboard', function () {
-        return view('dashboard.index');
-    })->name('dashboard');
     Route::get('/settings', [UserController::class, 'settings'])->name('settings');
+    Route::put('/settings', [UserController::class, 'updateSettings'])->name('settings.update');
 
     Route::get('/kilter/create', [KilterController::class, 'create'])->name('kilter.create');
     Route::get('/kilter/blokea/{block}/edit', [KilterController::class, 'edit'])->name('kilter.edit');
