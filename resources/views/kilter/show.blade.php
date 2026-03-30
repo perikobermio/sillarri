@@ -4,6 +4,8 @@
 @php
     $boulderData = json_decode($block->boulder, true);
     $boulderData = is_array($boulderData) ? $boulderData : [];
+    $viewerUser = auth()->user();
+    $canDelete = $viewerUser && ((int) $viewerUser->id === (int) $block->user_id || (bool) $viewerUser->is_admin);
     $mapImageUrl = '';
     if ($block->map?->image) {
         $mapImageUrl = \Illuminate\Support\Str::startsWith($block->map->image, ['http://', 'https://', '/'])
@@ -21,7 +23,7 @@
         <a class="btn btn-secondary" href="{{ route('kilter') }}">Itzuli zerrendara</a>
     </div>
 
-    <div class="kilter-detail-grid">
+    <div class="kilter-detail-grid {{ $mapImageUrl === '' ? 'is-single-panel' : '' }}">
         <article class="panel">
             <h3>Blokearen datuak</h3>
             <p><strong>ID:</strong> {{ $block->id }}</p>
@@ -30,23 +32,60 @@
             <p><strong>Mapa:</strong> {{ $block->map?->name ?? '-' }}</p>
             <p><strong>Sortzailea:</strong> {{ $block->creator?->name ?? '-' }}</p>
             <p><strong>Sortua:</strong> {{ $block->created_at?->format('Y-m-d') ?? '-' }}</p>
+
+            <hr class="detail-separator">
+            <h3>Ekintza erabilgarriak</h3>
+            @if($canDelete)
+                <form method="POST" action="{{ route('kilter.destroy', $block) }}" class="detail-action-form" id="delete-block-form">
+                    @csrf
+                    @method('DELETE')
+                    <button type="button" class="btn btn-danger detail-action-btn" id="open-delete-confirm-modal">
+                        <span class="action-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                                <path d="M5 7h14"></path>
+                                <path d="M10 11v6"></path>
+                                <path d="M14 11v6"></path>
+                                <path d="M8 7l1-2h6l1 2"></path>
+                                <path d="M7 7l1 12h8l1-12"></path>
+                            </svg>
+                        </span>
+                        <span>Blokea ezabatu</span>
+                    </button>
+                </form>
+            @else
+                <p class="muted-note">Ez daukazu bloke hau ezabatzeko baimenik.</p>
+            @endif
         </article>
 
-        <article class="panel">
-            <h3>Mapa</h3>
-            @if($mapImageUrl !== '')
+        @if($mapImageUrl !== '')
+            <article class="panel">
+                <h3>Mapa</h3>
                 <div class="viewer-wrap detail-viewer-wrap">
                     <div class="viewer-stage">
                         <img id="detail-viewer-image" src="{{ $mapImageUrl }}" alt="Blokearen mapa">
                         <div id="detail-viewer-layer"></div>
                     </div>
                 </div>
-            @else
-                <p>Bloke honek ez du maparik.</p>
-            @endif
-        </article>
+            </article>
+        @endif
     </div>
 </section>
+
+@if($canDelete)
+<div class="modal-shell hidden-modal" id="delete-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="delete-confirm-title">
+    <div class="modal-card">
+        <div class="modal-head">
+            <h2 id="delete-confirm-title">Blokea ezabatu</h2>
+            <button type="button" class="icon-btn" id="close-delete-confirm-modal" aria-label="Itxi leihoa">×</button>
+        </div>
+        <p class="confirm-delete-text">Ziur zaude <strong>{{ $block->name }}</strong> blokea betiko ezabatu nahi duzula?</p>
+        <div class="kilter-form-actions">
+            <button type="button" class="btn btn-danger" id="confirm-delete-block">Bai, ezabatu</button>
+            <button type="button" class="btn btn-secondary" id="cancel-delete-block">Utzi</button>
+        </div>
+    </div>
+</div>
+@endif
 
 @if($mapImageUrl !== '')
 <script>
@@ -152,6 +191,40 @@
             image.addEventListener('load', renderOverlay, { once: true });
         }
         window.addEventListener('resize', renderOverlay);
+    })();
+</script>
+@endif
+
+@if($canDelete)
+<script>
+    (function () {
+        const modal = document.getElementById('delete-confirm-modal');
+        const openBtn = document.getElementById('open-delete-confirm-modal');
+        const closeBtn = document.getElementById('close-delete-confirm-modal');
+        const cancelBtn = document.getElementById('cancel-delete-block');
+        const confirmBtn = document.getElementById('confirm-delete-block');
+        const form = document.getElementById('delete-block-form');
+
+        if (!modal || !openBtn || !closeBtn || !cancelBtn || !confirmBtn || !form) return;
+
+        function openModal() {
+            modal.classList.remove('hidden-modal');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            modal.classList.add('hidden-modal');
+            document.body.style.overflow = '';
+        }
+
+        openBtn.addEventListener('click', openModal);
+        closeBtn.addEventListener('click', closeModal);
+        cancelBtn.addEventListener('click', closeModal);
+        confirmBtn.addEventListener('click', () => form.submit());
+
+        modal.addEventListener('click', (event) => {
+            if (event.target === modal) closeModal();
+        });
     })();
 </script>
 @endif

@@ -22,8 +22,14 @@
                     <summary class="user-chip">
                         <img src="/images/default-avatar.svg" alt="Lehenetsitako profileko irudia">
                         <span>{{ auth()->user()->username ?? auth()->user()->name }}</span>
+                        @if((bool) auth()->user()->is_admin)
+                            <span class="admin-pill" title="Administratzailea" aria-label="Administratzailea">ADMIN</span>
+                        @endif
                     </summary>
                     <div class="user-dropdown">
+                        @if((bool) auth()->user()->is_admin)
+                            <div class="admin-row">Kontu mota: Administratzailea</div>
+                        @endif
                         @if(\Illuminate\Support\Facades\Route::has('users.public'))
                             <a href="{{ route('users.public', auth()->user()) }}">Estatistikak</a>
                         @endif

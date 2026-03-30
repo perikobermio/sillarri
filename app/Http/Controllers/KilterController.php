@@ -197,6 +197,26 @@ class KilterController extends Controller
         ]);
     }
 
+    public function destroy(Request $request, KilterBlock $block): RedirectResponse
+    {
+        $user = $request->user();
+        if (! $user) {
+            abort(403);
+        }
+
+        $isOwner = (int) $block->user_id === (int) $user->id;
+        $isAdmin = (bool) $user->is_admin;
+        if (! $isOwner && ! $isAdmin) {
+            abort(403, 'Ez daukazu bloke hau ezabatzeko baimenik.');
+        }
+
+        $block->delete();
+
+        return redirect()
+            ->route('kilter')
+            ->with('status', 'Blokea ondo ezabatu da.');
+    }
+
     /**
      * Store map image normalized to a max height to avoid huge uploads.
      *

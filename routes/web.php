@@ -30,6 +30,7 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/kilter/create', [KilterController::class, 'create'])->name('kilter.create');
     Route::post('/kilter/maps', [KilterController::class, 'storeMap'])->name('kilter.maps.store');
     Route::post('/kilter', [KilterController::class, 'store'])->name('kilter.store');
+    Route::delete('/kilter/blokea/{block}', [KilterController::class, 'destroy'])->name('kilter.destroy');
 
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });

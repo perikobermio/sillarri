@@ -170,6 +170,7 @@
                 <div id="viewer-layer"></div>
             </div>
         </div>
+        <p id="viewer-map-error" class="error hidden-error viewer-map-error">Errorea maparen irudia kargatzean.</p>
     </div>
 </div>
 
@@ -192,6 +193,7 @@
         const viewerLayer = document.getElementById('viewer-layer');
         const viewerStage = document.getElementById('viewer-stage');
         const viewerWrap = document.getElementById('viewer-wrap');
+        const viewerMapError = document.getElementById('viewer-map-error');
         const buttons = document.querySelectorAll('.block-row-btn.is-clickable');
 
         if (!viewer || !viewerImage || !viewerLayer || !viewerStage || !viewerWrap) return;
@@ -315,6 +317,10 @@
             viewer.classList.add('hidden-modal');
             viewerImage.src = '';
             viewerLayer.innerHTML = '';
+            if (viewerMapError) {
+                viewerMapError.classList.add('hidden-error');
+                viewerMapError.textContent = 'Errorea maparen irudia kargatzean.';
+            }
             currentState = { mode: 'points', points: [] };
             applyWidthFitOnLoad = false;
             activeTouchPoints.clear();
@@ -365,7 +371,11 @@
 
                 viewerTitle.textContent = title;
                 viewerImage.src = imageUrl;
-                renderCurrentState();
+                viewerLayer.innerHTML = '';
+                if (viewerMapError) {
+                    viewerMapError.classList.add('hidden-error');
+                    viewerMapError.textContent = 'Errorea maparen irudia kargatzean.';
+                }
 
                 activeTouchPoints.clear();
                 isPanning = false;
@@ -382,6 +392,9 @@
         });
 
         viewerImage.addEventListener('load', () => {
+            if (viewerMapError) {
+                viewerMapError.classList.add('hidden-error');
+            }
             baseImageWidth = Math.max(1, viewerImage.naturalWidth || viewerWrap.clientWidth || 680);
             if (applyWidthFitOnLoad) {
                 if ((viewerWrap.clientWidth || 0) < 10) {
@@ -396,6 +409,16 @@
                 applyWidthFitOnLoad = false;
             } else {
                 setZoom(zoom);
+            }
+            renderCurrentState();
+        });
+
+        viewerImage.addEventListener('error', () => {
+            viewerLayer.innerHTML = '';
+            currentState = { mode: 'points', points: [] };
+            if (viewerMapError) {
+                viewerMapError.textContent = 'Errorea maparen irudia kargatzean. Egiaztatu maparen fitxategia.';
+                viewerMapError.classList.remove('hidden-error');
             }
         });
 
