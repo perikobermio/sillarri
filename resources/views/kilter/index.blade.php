@@ -207,10 +207,13 @@
         let pinchStartDistance = 0;
         let pinchStartZoom = 1;
         let baseImageWidth = 0;
+        let applyWidthFitOnLoad = false;
         let currentState = { mode: 'points', points: [] };
         const validModes = ['points', 'line'];
         const validTypes = ['pie', 'mano_pie', 'comienzo', 'top'];
         const validSizes = ['pequeno', 'mediano', 'grande', 'gigante'];
+        const minZoom = 0.01;
+        const maxZoom = 3;
 
         function hasFinePointer() {
             return window.matchMedia('(pointer: fine)').matches;
@@ -291,14 +294,21 @@
         }
 
         function setZoom(value) {
-            zoom = Math.min(3, Math.max(0.2, value));
+            zoom = Math.min(maxZoom, Math.max(minZoom, value));
             if (!baseImageWidth) {
-                const fallbackWidth = viewerWrap.clientWidth || 680;
-                baseImageWidth = Math.max(680, Math.round(fallbackWidth));
+                baseImageWidth = Math.max(1, viewerImage.naturalWidth || viewerWrap.clientWidth || 680);
             }
-            viewerImage.style.width = `${Math.round(baseImageWidth * zoom)}px`;
-            viewerLayer.style.setProperty('--point-scale', String(zoom));
+            const renderedWidth = Math.max(1, Math.round(baseImageWidth * zoom));
+            const pointScale = Math.max(0.7, renderedWidth / 680);
+            viewerImage.style.width = `${renderedWidth}px`;
+            viewerLayer.style.setProperty('--point-scale', String(pointScale));
             requestAnimationFrame(renderCurrentState);
+        }
+
+        function getWidthFitZoom() {
+            const wrapWidth = viewerWrap.clientWidth || 1;
+            const naturalWidth = viewerImage.naturalWidth || baseImageWidth || wrapWidth;
+            return wrapWidth / naturalWidth;
         }
 
         function closeViewer() {
@@ -306,6 +316,7 @@
             viewerImage.src = '';
             viewerLayer.innerHTML = '';
             currentState = { mode: 'points', points: [] };
+            applyWidthFitOnLoad = false;
             activeTouchPoints.clear();
             isPanning = false;
             setZoom(1);
@@ -361,7 +372,7 @@
                 pinchStartDistance = 0;
                 pinchStartZoom = zoom;
                 baseImageWidth = 0;
-                setZoom(1);
+                applyWidthFitOnLoad = true;
                 viewerWrap.scrollLeft = 0;
                 viewerWrap.scrollTop = 0;
                 viewerWrap.style.cursor = hasFinePointer() ? 'grab' : 'default';
@@ -371,9 +382,21 @@
         });
 
         viewerImage.addEventListener('load', () => {
-            const wrapWidth = viewerWrap.clientWidth || 680;
-            baseImageWidth = Math.max(680, Math.round(wrapWidth));
-            setZoom(zoom);
+            baseImageWidth = Math.max(1, viewerImage.naturalWidth || viewerWrap.clientWidth || 680);
+            if (applyWidthFitOnLoad) {
+                if ((viewerWrap.clientWidth || 0) < 10) {
+                    requestAnimationFrame(() => {
+                        if (!applyWidthFitOnLoad) return;
+                        setZoom(getWidthFitZoom());
+                        applyWidthFitOnLoad = false;
+                    });
+                    return;
+                }
+                setZoom(getWidthFitZoom());
+                applyWidthFitOnLoad = false;
+            } else {
+                setZoom(zoom);
+            }
         });
 
         viewerWrap.addEventListener('mousedown', (event) => {
