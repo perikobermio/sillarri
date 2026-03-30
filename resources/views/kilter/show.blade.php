@@ -216,14 +216,18 @@
         }
 
         function drawLine(from, to) {
-            const wrap = layer.getBoundingClientRect();
-            const x1 = (from.x / 100) * wrap.width;
-            const y1 = (from.y / 100) * wrap.height;
-            const x2 = (to.x / 100) * wrap.width;
-            const y2 = (to.y / 100) * wrap.height;
+            const width = image.clientWidth || layer.clientWidth || 0;
+            const height = image.clientHeight || layer.clientHeight || 0;
+            if (!width || !height) return null;
+
+            const x1 = (from.x / 100) * width;
+            const y1 = (from.y / 100) * height;
+            const x2 = (to.x / 100) * width;
+            const y2 = (to.y / 100) * height;
             const dx = x2 - x1;
             const dy = y2 - y1;
             const lengthPx = Math.hypot(dx, dy);
+            if (!lengthPx) return null;
             const angleDeg = Math.atan2(dy, dx) * (180 / Math.PI);
             const segment = document.createElement('span');
             segment.className = 'viewer-line';
@@ -240,13 +244,19 @@
             if (!image.naturalWidth || !image.naturalHeight) return;
             const currentWidth = image.clientWidth || 0;
             const naturalWidth = image.naturalWidth || currentWidth || 1;
+            const currentHeight = image.clientHeight || 0;
+            if (!currentWidth || !currentHeight) {
+                requestAnimationFrame(renderOverlay);
+                return;
+            }
             const pointScale = currentWidth / naturalWidth;
             layer.style.setProperty('--point-scale', String(Math.max(0.5, Math.min(1.2, pointScale))));
             layer.innerHTML = '';
 
             if (state.mode === 'line') {
                 for (let i = 0; i < state.points.length - 1; i += 1) {
-                    layer.appendChild(drawLine(state.points[i], state.points[i + 1]));
+                    const segment = drawLine(state.points[i], state.points[i + 1]);
+                    if (segment) layer.appendChild(segment);
                 }
             }
 
