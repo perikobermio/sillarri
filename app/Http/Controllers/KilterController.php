@@ -16,12 +16,22 @@ use Illuminate\View\View;
 
 class KilterController extends Controller
 {
-    public function show(KilterBlock $block): View
+    public function show(Request $request, KilterBlock $block): View
     {
         $block->loadMissing(['map', 'creator']);
+        $user = $request->user();
+        $isCompleted = false;
+
+        if ($user) {
+            $isCompleted = DB::table('kilter_block_completions')
+                ->where('user_id', $user->id)
+                ->where('kilter_block_id', $block->id)
+                ->exists();
+        }
 
         return view('kilter.show', [
             'block' => $block,
+            'isCompleted' => $isCompleted,
         ]);
     }
 
@@ -30,6 +40,10 @@ class KilterController extends Controller
         $search = trim((string) $request->query('q', ''));
         $creatorQuery = trim((string) $request->query('creator', ''));
         $selectedCreator = ctype_digit($creatorQuery) ? (int) $creatorQuery : null;
+        $completedFilterQuery = trim((string) $request->query('completed', 'all'));
+        $selectedCompletedFilter = in_array($completedFilterQuery, ['all', 'done', 'pending'], true)
+            ? $completedFilterQuery
+            : 'all';
         $grades = $this->grades();
         $gradeQuery = $request->query('grade', []);
         $gradeList = is_array($gradeQuery) ? $gradeQuery : [$gradeQuery];
@@ -37,6 +51,8 @@ class KilterController extends Controller
             return strtolower(trim((string) $value));
         }, $gradeList))));
         $selectedGrades = array_values(array_intersect($selectedGrades, $grades));
+
+        $user = $request->user();
 
         $blocks = KilterBlock::query()
             ->with(['map', 'creator'])
@@ -49,6 +65,24 @@ class KilterController extends Controller
             ->when($selectedCreator !== null, function ($query) use ($selectedCreator): void {
                 $query->where('user_id', $selectedCreator);
             })
+            ->when($selectedCompletedFilter !== 'all' && $user, function ($query) use ($selectedCompletedFilter, $user): void {
+                if ($selectedCompletedFilter === 'done') {
+                    $query->whereExists(function ($sub) use ($user): void {
+                        $sub->select(DB::raw(1))
+                            ->from('kilter_block_completions')
+                            ->whereColumn('kilter_block_completions.kilter_block_id', 'kilter_blocks.id')
+                            ->where('kilter_block_completions.user_id', $user->id);
+                    });
+                    return;
+                }
+
+                $query->whereNotExists(function ($sub) use ($user): void {
+                    $sub->select(DB::raw(1))
+                        ->from('kilter_block_completions')
+                        ->whereColumn('kilter_block_completions.kilter_block_id', 'kilter_blocks.id')
+                        ->where('kilter_block_completions.user_id', $user->id);
+                });
+            })
             ->orderByDesc('created_at')
             ->get();
 
@@ -59,6 +93,15 @@ class KilterController extends Controller
             ->orderBy('users.name')
             ->get();
 
+        $completedBlockIds = [];
+        if ($user) {
+            $completedBlockIds = DB::table('kilter_block_completions')
+                ->where('user_id', $user->id)
+                ->pluck('kilter_block_id')
+                ->map(static fn ($id): int => (int) $id)
+                ->all();
+        }
+
         return view('kilter.index', [
             'blocks' => $blocks,
             'search' => $search,
@@ -66,6 +109,8 @@ class KilterController extends Controller
             'selectedGrades' => $selectedGrades,
             'creators' => $creators,
             'selectedCreator' => $selectedCreator,
+            'completedBlockIds' => $completedBlockIds,
+            'selectedCompletedFilter' => $selectedCompletedFilter,
         ]);
     }
 
@@ -215,6 +260,32 @@ class KilterController extends Controller
         return redirect()
             ->route('kilter')
             ->with('status', 'Blokea ondo ezabatu da.');
+    }
+
+    public function toggleCompleted(Request $request, KilterBlock $block): RedirectResponse
+    {
+        $user = $request->user();
+        if (! $user) {
+            abort(403);
+        }
+
+        $completion = DB::table('kilter_block_completions')
+            ->where('user_id', $user->id)
+            ->where('kilter_block_id', $block->id);
+
+        if ($completion->exists()) {
+            $completion->delete();
+            return back()->with('status', 'Blokea eginda zerrendatik kendu da.');
+        }
+
+        DB::table('kilter_block_completions')->insert([
+            'user_id' => $user->id,
+            'kilter_block_id' => $block->id,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return back()->with('status', 'Blokea eginda bezala markatu da.');
     }
 
     /**

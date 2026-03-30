@@ -77,13 +77,22 @@
                                     </option>
                                 @endforeach
                             </select>
+
+                            @auth
+                                <label for="completed-filter">Egoera</label>
+                                <select id="completed-filter" name="completed">
+                                    <option value="all" @selected(($selectedCompletedFilter ?? 'all') === 'all')>Denak</option>
+                                    <option value="done" @selected(($selectedCompletedFilter ?? 'all') === 'done')>Eginda</option>
+                                    <option value="pending" @selected(($selectedCompletedFilter ?? 'all') === 'pending')>Egin gabe</option>
+                                </select>
+                            @endauth
                         </div>
                     </details>
 
                     <button type="submit" class="btn btn-primary search-submit-btn">
                         <span class="search-submit-label">Bilatu</span>
                     </button>
-                    @if($search !== '' || count($selectedGrades) > 0 || $selectedCreator !== null)
+                    @if($search !== '' || count($selectedGrades) > 0 || $selectedCreator !== null || (($selectedCompletedFilter ?? 'all') !== 'all'))
                         <a class="btn btn-secondary" href="{{ route('kilter') }}">Garbitu</a>
                     @endif
                 </form>
@@ -109,6 +118,7 @@
                         @php
                             $boulderData = json_decode($block->boulder, true);
                             $boulderData = is_array($boulderData) ? $boulderData : [];
+                            $isCompleted = in_array((int) $block->id, $completedBlockIds ?? [], true);
                             $mapImageUrl = '';
                             if ($block->map?->image) {
                                 $mapImageUrl = \Illuminate\Support\Str::startsWith($block->map->image, ['http://', 'https://', '/'])
@@ -127,7 +137,7 @@
                                     >⋮</a>
                                     <button
                                         type="button"
-                                        class="block-row-btn {{ $mapImageUrl !== '' ? 'is-clickable' : '' }}"
+                                        class="block-row-btn {{ $mapImageUrl !== '' ? 'is-clickable' : '' }} {{ $isCompleted ? 'is-completed' : '' }}"
                                         @if($mapImageUrl !== '')
                                             data-image-url="{{ $mapImageUrl }}"
                                             data-points='@json($boulderData)'

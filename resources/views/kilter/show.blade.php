@@ -25,6 +25,58 @@
 
     <div class="kilter-detail-grid {{ $mapImageUrl === '' ? 'is-single-panel' : '' }}">
         <article class="panel">
+            <div class="detail-actions-row">
+                @if($viewerUser)
+                    <form method="POST" action="{{ route('kilter.toggleCompleted', $block) }}" class="detail-action-form">
+                        @csrf
+                        <button
+                            type="submit"
+                            class="btn {{ $isCompleted ? 'btn-success' : 'btn-secondary' }} detail-action-btn"
+                            title="{{ $isCompleted ? 'Eginda markatua kendu' : 'Eginda markatu' }}"
+                            aria-label="{{ $isCompleted ? 'Eginda markatua kendu' : 'Eginda markatu' }}"
+                        >
+                            <span class="action-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                                    <path d="M20 7L9 18l-5-5"></path>
+                                </svg>
+                            </span>
+                        </button>
+                    </form>
+                @endif
+
+                @if($canDelete)
+                    <form method="POST" action="{{ route('kilter.destroy', $block) }}" class="detail-action-form" id="delete-block-form">
+                        @csrf
+                        @method('DELETE')
+                        <button
+                            type="button"
+                            class="btn btn-danger detail-action-btn"
+                            id="open-delete-confirm-modal"
+                            title="Blokea ezabatu"
+                            aria-label="Blokea ezabatu"
+                        >
+                            <span class="action-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                                    <path d="M5 7h14"></path>
+                                    <path d="M10 11v6"></path>
+                                    <path d="M14 11v6"></path>
+                                    <path d="M8 7l1-2h6l1 2"></path>
+                                    <path d="M7 7l1 12h8l1-12"></path>
+                                </svg>
+                            </span>
+                        </button>
+                    </form>
+                @endif
+            </div>
+
+            @if(! $viewerUser)
+                <p class="muted-note">Blokea eginda markatzeko saioa hasi behar duzu.</p>
+            @endif
+            @if(! $canDelete)
+                <p class="muted-note">Ez daukazu bloke hau ezabatzeko baimenik.</p>
+            @endif
+
+            <hr class="detail-separator">
             <h3>Blokearen datuak</h3>
             <p><strong>ID:</strong> {{ $block->id }}</p>
             <p><strong>Deskribapena:</strong> {{ $block->description }}</p>
@@ -32,29 +84,6 @@
             <p><strong>Mapa:</strong> {{ $block->map?->name ?? '-' }}</p>
             <p><strong>Sortzailea:</strong> {{ $block->creator?->name ?? '-' }}</p>
             <p><strong>Sortua:</strong> {{ $block->created_at?->format('Y-m-d') ?? '-' }}</p>
-
-            <hr class="detail-separator">
-            <h3>Ekintza erabilgarriak</h3>
-            @if($canDelete)
-                <form method="POST" action="{{ route('kilter.destroy', $block) }}" class="detail-action-form" id="delete-block-form">
-                    @csrf
-                    @method('DELETE')
-                    <button type="button" class="btn btn-danger detail-action-btn" id="open-delete-confirm-modal">
-                        <span class="action-icon" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
-                                <path d="M5 7h14"></path>
-                                <path d="M10 11v6"></path>
-                                <path d="M14 11v6"></path>
-                                <path d="M8 7l1-2h6l1 2"></path>
-                                <path d="M7 7l1 12h8l1-12"></path>
-                            </svg>
-                        </span>
-                        <span>Blokea ezabatu</span>
-                    </button>
-                </form>
-            @else
-                <p class="muted-note">Ez daukazu bloke hau ezabatzeko baimenik.</p>
-            @endif
         </article>
 
         @if($mapImageUrl !== '')
