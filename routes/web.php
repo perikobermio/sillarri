@@ -28,8 +28,10 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/settings', [UserController::class, 'settings'])->name('settings');
 
     Route::get('/kilter/create', [KilterController::class, 'create'])->name('kilter.create');
+    Route::get('/kilter/blokea/{block}/edit', [KilterController::class, 'edit'])->name('kilter.edit');
     Route::post('/kilter/maps', [KilterController::class, 'storeMap'])->name('kilter.maps.store');
     Route::post('/kilter', [KilterController::class, 'store'])->name('kilter.store');
+    Route::put('/kilter/blokea/{block}', [KilterController::class, 'update'])->name('kilter.update');
     Route::post('/kilter/blokea/{block}/toggle-completed', [KilterController::class, 'toggleCompleted'])->name('kilter.toggleCompleted');
     Route::post('/kilter/blokea/{block}/vote', [KilterController::class, 'vote'])->name('kilter.vote');
     Route::delete('/kilter/blokea/{block}', [KilterController::class, 'destroy'])->name('kilter.destroy');

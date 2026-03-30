@@ -5,6 +5,7 @@
     $boulderData = json_decode($block->boulder, true);
     $boulderData = is_array($boulderData) ? $boulderData : [];
     $viewerUser = auth()->user();
+    $canEdit = $viewerUser && ((int) $viewerUser->id === (int) $block->user_id || (bool) $viewerUser->is_admin);
     $canDelete = $viewerUser && ((int) $viewerUser->id === (int) $block->user_id || (bool) $viewerUser->is_admin);
     $ratingToColor = static function (float $value): string {
         $clamped = max(1.0, min(10.0, $value));
@@ -68,6 +69,22 @@
                     </button>
                 @endif
 
+                @if($canEdit)
+                    <a
+                        href="{{ route('kilter.edit', $block) }}"
+                        class="btn btn-secondary detail-action-btn"
+                        title="Blokea editatu"
+                        aria-label="Blokea editatu"
+                    >
+                        <span class="action-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                                <path d="M4 20h4l10-10-4-4L4 16z"></path>
+                                <path d="M13 7l4 4"></path>
+                            </svg>
+                        </span>
+                    </a>
+                @endif
+
                 @if($canDelete)
                     <form method="POST" action="{{ route('kilter.destroy', $block) }}" class="detail-action-form" id="delete-block-form">
                         @csrf
@@ -95,6 +112,9 @@
 
             @if(! $viewerUser)
                 <p class="muted-note">Blokea eginda markatzeko saioa hasi behar duzu.</p>
+            @endif
+            @if(! $canEdit)
+                <p class="muted-note">Ez daukazu bloke hau editatzeko baimenik.</p>
             @endif
             @if(! $canDelete)
                 <p class="muted-note">Ez daukazu bloke hau ezabatzeko baimenik.</p>

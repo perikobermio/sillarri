@@ -141,92 +141,44 @@ class KilterController extends Controller
         ]);
     }
 
+    public function edit(Request $request, KilterBlock $block): View
+    {
+        $user = $request->user();
+        if (! $user) {
+            abort(403);
+        }
+
+        $isOwner = (int) $block->user_id === (int) $user->id;
+        $isAdmin = (bool) $user->is_admin;
+        if (! $isOwner && ! $isAdmin) {
+            abort(403, 'Ez daukazu bloke hau editatzeko baimenik.');
+        }
+
+        $maps = KilterMap::query()->orderBy('name')->get();
+
+        return view('kilter.edit', [
+            'block' => $block,
+            'maps' => $maps,
+            'grades' => $this->grades(),
+            'isMobileClient' => $this->isMobileRequest($request),
+        ]);
+    }
+
     public function store(Request $request): RedirectResponse
     {
-        $data = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'description' => ['required', 'string'],
-            'grade' => ['required', Rule::in($this->grades())],
-            'map_id' => ['required', 'integer', 'exists:kilter_maps,id'],
-            'boulder' => ['required', 'json'],
-        ]);
-
-        $decoded = json_decode($data['boulder'], true);
-        if (! is_array($decoded)) {
-            return back()->withErrors(['boulder' => 'Gutxienez koordenatu bat markatu behar duzu mapan.'])->withInput();
-        }
-
-        $mode = 'points';
-        $coords = $decoded;
-        if (array_key_exists('points', $decoded)) {
-            $modeValue = $decoded['mode'] ?? 'points';
-            if (! in_array($modeValue, ['points', 'line'], true)) {
-                return back()->withErrors(['boulder' => 'Koordenatuen formatua ez da baliozkoa.'])->withInput();
-            }
-            $mode = $modeValue;
-            $coords = $decoded['points'];
-        }
-
-        if (! is_array($coords) || count($coords) === 0) {
-            return back()->withErrors(['boulder' => 'Gutxienez koordenatu bat markatu behar duzu mapan.'])->withInput();
-        }
-
-        $validTypes = ['pie', 'mano_pie', 'comienzo', 'top'];
-        $validSizes = ['pequeno', 'mediano', 'grande', 'gigante'];
-        $normalizedPoints = [];
-
-        foreach ($coords as $point) {
-            if (! is_array($point)) {
-                return back()->withErrors(['boulder' => 'Koordenatuen formatua ez da baliozkoa.'])->withInput();
-            }
-
-            $x = $point['x'] ?? null;
-            $y = $point['y'] ?? null;
-            $type = $point['type'] ?? null;
-            $size = $point['size'] ?? null;
-
-            if (! is_numeric($x) || ! is_numeric($y)) {
-                return back()->withErrors(['boulder' => 'Puntu bakoitzak koordenatu numerikoak izan behar ditu.'])->withInput();
-            }
-
-            if ((float) $x < 0 || (float) $x > 100 || (float) $y < 0 || (float) $y > 100) {
-                return back()->withErrors(['boulder' => 'Koordenatuek 0 eta 100 artean egon behar dute.'])->withInput();
-            }
-
-            if ($mode === 'points') {
-                if (! in_array($type, $validTypes, true) || ! in_array($size, $validSizes, true)) {
-                    return back()->withErrors(['boulder' => 'Puntu bakoitzak mota eta tamaina baliozkoak izan behar ditu.'])->withInput();
-                }
-
-                $normalizedPoints[] = [
-                    'x' => round((float) $x, 3),
-                    'y' => round((float) $y, 3),
-                    'type' => $type,
-                    'size' => $size,
-                ];
-            } else {
-                $normalizedPoints[] = [
-                    'x' => round((float) $x, 3),
-                    'y' => round((float) $y, 3),
-                ];
-            }
-        }
-
-        $normalizedBoulder = json_encode([
-            'mode' => $mode,
-            'points' => $normalizedPoints,
-        ]);
-        if (! is_string($normalizedBoulder)) {
-            return back()->withErrors(['boulder' => 'Koordenatuak ezin izan dira gorde.'])->withInput();
+        try {
+            $payload = $this->validatedBlockPayload($request);
+        } catch (\InvalidArgumentException $e) {
+            return back()->withErrors(['boulder' => $e->getMessage()])->withInput();
         }
 
         $block = KilterBlock::create([
-            'name' => $data['name'],
-            'description' => $data['description'],
-            'grade' => $data['grade'],
-            'map_id' => (int) $data['map_id'],
+            'name' => $payload['name'],
+            'description' => $payload['description'],
+            'grade' => $payload['grade'],
+            'map_id' => $payload['map_id'],
             'user_id' => $request->user()->id,
-            'boulder' => $normalizedBoulder,
+            'boulder' => $payload['boulder'],
         ]);
 
         DB::table('kilter_block_votes')->updateOrInsert(
@@ -244,6 +196,53 @@ class KilterController extends Controller
         return redirect()
             ->route('kilter')
             ->with('status', 'Blokea ondo sortu da.');
+    }
+
+    public function update(Request $request, KilterBlock $block): RedirectResponse
+    {
+        $user = $request->user();
+        if (! $user) {
+            abort(403);
+        }
+
+        $isOwner = (int) $block->user_id === (int) $user->id;
+        $isAdmin = (bool) $user->is_admin;
+        if (! $isOwner && ! $isAdmin) {
+            abort(403, 'Ez daukazu bloke hau editatzeko baimenik.');
+        }
+
+        try {
+            $payload = $this->validatedBlockPayload($request);
+        } catch (\InvalidArgumentException $e) {
+            return back()->withErrors(['boulder' => $e->getMessage()])->withInput();
+        }
+
+        $block->update([
+            'name' => $payload['name'],
+            'description' => $payload['description'],
+            'grade' => $payload['grade'],
+            'map_id' => $payload['map_id'],
+            'boulder' => $payload['boulder'],
+        ]);
+
+        DB::table('kilter_block_completions')
+            ->where('kilter_block_id', $block->id)
+            ->delete();
+        DB::table('kilter_block_votes')
+            ->where('kilter_block_id', $block->id)
+            ->delete();
+
+        DB::table('kilter_block_votes')->insert([
+            'user_id' => $block->user_id,
+            'kilter_block_id' => $block->id,
+            'value' => 5.0,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return redirect()
+            ->route('kilter.show', $block)
+            ->with('status', 'Blokea editatu da. Realizazio eta bozka guztiak berrabiarazi dira.');
     }
 
     public function storeMap(Request $request): JsonResponse
@@ -438,6 +437,104 @@ class KilterController extends Controller
             || str_contains($ua, 'ipad')
             || str_contains($ua, 'ipod')
             || str_contains($ua, 'mobile');
+    }
+
+    /**
+     * @return array{name:string,description:string,grade:string,map_id:int,boulder:string}
+     */
+    private function validatedBlockPayload(Request $request): array
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'description' => ['required', 'string'],
+            'grade' => ['required', Rule::in($this->grades())],
+            'map_id' => ['required', 'integer', 'exists:kilter_maps,id'],
+            'boulder' => ['required', 'json'],
+        ]);
+
+        $normalizedBoulder = $this->normalizeBoulderJson((string) $data['boulder']);
+
+        return [
+            'name' => (string) $data['name'],
+            'description' => (string) $data['description'],
+            'grade' => (string) $data['grade'],
+            'map_id' => (int) $data['map_id'],
+            'boulder' => $normalizedBoulder,
+        ];
+    }
+
+    private function normalizeBoulderJson(string $json): string
+    {
+        $decoded = json_decode($json, true);
+        if (! is_array($decoded)) {
+            throw new \InvalidArgumentException('Gutxienez koordenatu bat markatu behar duzu mapan.');
+        }
+
+        $mode = 'points';
+        $coords = $decoded;
+        if (array_key_exists('points', $decoded)) {
+            $modeValue = $decoded['mode'] ?? 'points';
+            if (! in_array($modeValue, ['points', 'line'], true)) {
+                throw new \InvalidArgumentException('Koordenatuen formatua ez da baliozkoa.');
+            }
+            $mode = $modeValue;
+            $coords = $decoded['points'];
+        }
+
+        if (! is_array($coords) || count($coords) === 0) {
+            throw new \InvalidArgumentException('Gutxienez koordenatu bat markatu behar duzu mapan.');
+        }
+
+        $validTypes = ['pie', 'mano_pie', 'comienzo', 'top'];
+        $validSizes = ['pequeno', 'mediano', 'grande', 'gigante'];
+        $normalizedPoints = [];
+
+        foreach ($coords as $point) {
+            if (! is_array($point)) {
+                throw new \InvalidArgumentException('Koordenatuen formatua ez da baliozkoa.');
+            }
+
+            $x = $point['x'] ?? null;
+            $y = $point['y'] ?? null;
+            $type = $point['type'] ?? null;
+            $size = $point['size'] ?? null;
+
+            if (! is_numeric($x) || ! is_numeric($y)) {
+                throw new \InvalidArgumentException('Puntu bakoitzak koordenatu numerikoak izan behar ditu.');
+            }
+
+            if ((float) $x < 0 || (float) $x > 100 || (float) $y < 0 || (float) $y > 100) {
+                throw new \InvalidArgumentException('Koordenatuek 0 eta 100 artean egon behar dute.');
+            }
+
+            if ($mode === 'points') {
+                if (! in_array($type, $validTypes, true) || ! in_array($size, $validSizes, true)) {
+                    throw new \InvalidArgumentException('Puntu bakoitzak mota eta tamaina baliozkoak izan behar ditu.');
+                }
+
+                $normalizedPoints[] = [
+                    'x' => round((float) $x, 3),
+                    'y' => round((float) $y, 3),
+                    'type' => $type,
+                    'size' => $size,
+                ];
+            } else {
+                $normalizedPoints[] = [
+                    'x' => round((float) $x, 3),
+                    'y' => round((float) $y, 3),
+                ];
+            }
+        }
+
+        $normalizedBoulder = json_encode([
+            'mode' => $mode,
+            'points' => $normalizedPoints,
+        ]);
+        if (! is_string($normalizedBoulder)) {
+            throw new \InvalidArgumentException('Koordenatuak ezin izan dira gorde.');
+        }
+
+        return $normalizedBoulder;
     }
 
     /**
