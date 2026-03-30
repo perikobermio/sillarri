@@ -177,7 +177,7 @@ class KilterController extends Controller
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'image' => ['required', 'image', 'max:5120'],
+            'image' => ['required', 'image', 'max:20480'],
         ]);
 
         [$path, $physicalPath] = $this->storeNormalizedMapImage($request->file('image'));

@@ -872,6 +872,30 @@ main {
   display: none;
 }
 
+.app-snackbar {
+  position: fixed;
+  left: 50%;
+  bottom: 1.1rem;
+  transform: translate(-50%, 120%);
+  min-width: min(92vw, 340px);
+  max-width: min(92vw, 520px);
+  padding: 0.7rem 0.9rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 95, 95, 0.55);
+  background: rgba(70, 20, 20, 0.96);
+  color: #ffe8e8;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+  z-index: 1200;
+  opacity: 0;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.app-snackbar.is-visible {
+  transform: translate(-50%, 0);
+  opacity: 1;
+}
+
 .boulder-row {
   display: flex;
   align-items: center;

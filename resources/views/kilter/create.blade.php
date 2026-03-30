@@ -158,6 +158,8 @@
     </div>
 </div>
 
+<div id="app-snackbar" class="app-snackbar" role="status" aria-live="polite"></div>
+
 <script>
     (function () {
         const mapSelect = document.getElementById('map-select');
@@ -245,10 +247,25 @@
         const openMapBtn = document.getElementById('open-map-modal');
         const closeMapBtn = document.getElementById('close-map-modal');
         const cancelMapBtn = document.getElementById('cancel-map-modal');
-            const mapForm = document.getElementById('map-create-form');
-            const mapError = document.getElementById('map-modal-error');
-            const saveMapBtn = document.getElementById('save-map-btn');
-            const mapFileInput = document.getElementById('map-image-file');
+        const mapForm = document.getElementById('map-create-form');
+        const mapError = document.getElementById('map-modal-error');
+        const saveMapBtn = document.getElementById('save-map-btn');
+        const mapFileInput = document.getElementById('map-image-file');
+        const appSnackbar = document.getElementById('app-snackbar');
+        const maxMapFileBytes = 20 * 1024 * 1024;
+        let snackbarTimeoutId = null;
+
+        function showSnackbar(message) {
+            if (!appSnackbar) return;
+            if (snackbarTimeoutId) {
+                clearTimeout(snackbarTimeoutId);
+            }
+            appSnackbar.textContent = message;
+            appSnackbar.classList.add('is-visible');
+            snackbarTimeoutId = setTimeout(() => {
+                appSnackbar.classList.remove('is-visible');
+            }, 4200);
+        }
 
         const openMapModal = () => {
             mapModal.classList.remove('hidden-modal');
@@ -286,6 +303,15 @@
             if (!chosenFile) {
                 mapError.textContent = 'Irudi bat hautatu behar duzu.';
                 mapError.classList.remove('hidden-error');
+                showSnackbar('Irudi bat hautatu behar duzu.');
+                saveMapBtn.disabled = false;
+                return;
+            }
+
+            if (chosenFile.size > maxMapFileBytes) {
+                mapError.textContent = 'Irudia handiegia da. Gehienez 20MB onartzen dira.';
+                mapError.classList.remove('hidden-error');
+                showSnackbar('Irudia handiegia da. Gehienez 20MB onartzen dira.');
                 saveMapBtn.disabled = false;
                 return;
             }
@@ -324,12 +350,13 @@
                     if (response.status === 419) {
                         msg = 'Saioa iraungi da (419). Berritu orria eta saiatu berriro.';
                     } else if (response.status === 413) {
-                        msg = 'Irudia handiegia da zerbitzarirako (413).';
+                        msg = 'Irudia handiegia da zerbitzarirako (413). Gehienez 20MB.';
                     } else if (!data && rawText) {
                         msg = `Errorea ${response.status}. Berrikusi zerbitzariaren logak.`;
                     }
                     mapError.textContent = msg;
                     mapError.classList.remove('hidden-error');
+                    showSnackbar(msg);
                     saveMapBtn.disabled = false;
                     return;
                 }
@@ -347,6 +374,7 @@
                 const detail = error instanceof Error ? ` (${error.message})` : '';
                 mapError.textContent = `Sareko errorea mapa gordetzean${detail}.`;
                 mapError.classList.remove('hidden-error');
+                showSnackbar(`Sareko errorea mapa gordetzean${detail}.`);
             } finally {
                 saveMapBtn.disabled = false;
             }
