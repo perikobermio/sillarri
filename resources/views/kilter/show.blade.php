@@ -6,6 +6,13 @@
     $boulderData = is_array($boulderData) ? $boulderData : [];
     $viewerUser = auth()->user();
     $canDelete = $viewerUser && ((int) $viewerUser->id === (int) $block->user_id || (bool) $viewerUser->is_admin);
+    $ratingToColor = static function (float $value): string {
+        $clamped = max(1.0, min(10.0, $value));
+        $ratio = ($clamped - 1.0) / 9.0;
+        $hue = 220.0 * (1.0 - $ratio);
+        return 'hsl('.round($hue, 1).' 78% 45%)';
+    };
+    $userVoteColor = $userVote !== null ? $ratingToColor((float) $userVote) : null;
     $mapImageUrl = '';
     if ($block->map?->image) {
         $mapImageUrl = \Illuminate\Support\Str::startsWith($block->map->image, ['http://', 'https://', '/'])
@@ -42,6 +49,23 @@
                             </span>
                         </button>
                     </form>
+
+                    <button
+                        type="button"
+                        class="btn {{ $userVoteColor ? 'btn-vote-colored' : 'btn-secondary' }} detail-action-btn"
+                        id="open-vote-modal"
+                        title="Balorazioa eman"
+                        aria-label="Balorazioa eman"
+                        @if($userVoteColor)
+                            style="--vote-color: {{ $userVoteColor }}"
+                        @endif
+                    >
+                        <span class="action-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                                <path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2-5.5-2.9-5.5 2.9 1-6.2-4.5-4.4 6.2-.9z"></path>
+                            </svg>
+                        </span>
+                    </button>
                 @endif
 
                 @if($canDelete)
@@ -81,6 +105,7 @@
             <p><strong>ID:</strong> {{ $block->id }}</p>
             <p><strong>Deskribapena:</strong> {{ $block->description }}</p>
             <p><strong>Gradua:</strong> {{ $block->grade }}</p>
+            <p><strong>Balorazioa:</strong> {{ number_format($ratingAverage, 1) }}/10 ({{ $ratingCount }} bozka)</p>
             <p><strong>Mapa:</strong> {{ $block->map?->name ?? '-' }}</p>
             <p><strong>Sortzailea:</strong> {{ $block->creator?->name ?? '-' }}</p>
             <p><strong>Sortua:</strong> {{ $block->created_at?->format('Y-m-d') ?? '-' }}</p>
@@ -112,6 +137,30 @@
             <button type="button" class="btn btn-danger" id="confirm-delete-block">Bai, ezabatu</button>
             <button type="button" class="btn btn-secondary" id="cancel-delete-block">Utzi</button>
         </div>
+    </div>
+</div>
+@endif
+
+@if($viewerUser)
+<div class="modal-shell hidden-modal" id="vote-modal" role="dialog" aria-modal="true" aria-labelledby="vote-modal-title">
+    <div class="modal-card">
+        <div class="modal-head">
+            <h2 id="vote-modal-title">Balorazioa</h2>
+            <button type="button" class="icon-btn" id="close-vote-modal" aria-label="Itxi leihoa">×</button>
+        </div>
+        <form method="POST" action="{{ route('kilter.vote', $block) }}" id="vote-form" class="kilter-form">
+            @csrf
+            <input type="hidden" name="value" id="vote-value-input" value="{{ number_format((float) ($userVote ?? 5), 1, '.', '') }}">
+            <div class="vote-stars" id="vote-stars" role="button" tabindex="0" aria-label="Balorazioa hautatu">
+                <span class="vote-stars-base" aria-hidden="true">☆☆☆☆☆☆☆☆☆☆</span>
+                <span class="vote-stars-fill" id="vote-stars-fill" aria-hidden="true">★★★★★★★★★★</span>
+            </div>
+            <p class="vote-value-text"><strong id="vote-value-label">{{ number_format((float) ($userVote ?? 5), 1) }}</strong> / 10</p>
+            <div class="kilter-form-actions">
+                <button type="submit" class="btn btn-primary">Gorde bozka</button>
+                <button type="button" class="btn btn-secondary" id="cancel-vote-modal">Utzi</button>
+            </div>
+        </form>
     </div>
 </div>
 @endif
@@ -220,6 +269,80 @@
             image.addEventListener('load', renderOverlay, { once: true });
         }
         window.addEventListener('resize', renderOverlay);
+    })();
+</script>
+@endif
+
+@if($viewerUser)
+<script>
+    (function () {
+        const modal = document.getElementById('vote-modal');
+        const openBtn = document.getElementById('open-vote-modal');
+        const closeBtn = document.getElementById('close-vote-modal');
+        const cancelBtn = document.getElementById('cancel-vote-modal');
+        const stars = document.getElementById('vote-stars');
+        const starsFill = document.getElementById('vote-stars-fill');
+        const valueInput = document.getElementById('vote-value-input');
+        const valueLabel = document.getElementById('vote-value-label');
+
+        if (!modal || !openBtn || !closeBtn || !cancelBtn || !stars || !starsFill || !valueInput || !valueLabel) return;
+
+        function setModalOpen(isOpen) {
+            modal.classList.toggle('hidden-modal', !isOpen);
+            document.body.style.overflow = isOpen ? 'hidden' : '';
+        }
+
+        function clampVote(value) {
+            const rounded = Math.round(value * 2) / 2;
+            return Math.max(1, Math.min(10, rounded));
+        }
+
+        function applyVote(value) {
+            const vote = clampVote(value);
+            valueInput.value = vote.toFixed(1);
+            valueLabel.textContent = vote.toFixed(1);
+            starsFill.style.width = `${(vote / 10) * 100}%`;
+        }
+
+        function voteFromPointer(clientX) {
+            const rect = stars.getBoundingClientRect();
+            const x = Math.max(0, Math.min(rect.width, clientX - rect.left));
+            if (rect.width <= 0) return 5;
+            if (x >= rect.width - 1) return 10;
+            const step = Math.max(1, Math.min(20, Math.ceil((x / rect.width) * 20)));
+            return clampVote(step / 2);
+        }
+
+        openBtn.addEventListener('click', () => {
+            applyVote(parseFloat(valueInput.value) || 5);
+            setModalOpen(true);
+        });
+        closeBtn.addEventListener('click', () => setModalOpen(false));
+        cancelBtn.addEventListener('click', () => setModalOpen(false));
+        modal.addEventListener('click', (event) => {
+            if (event.target === modal) setModalOpen(false);
+        });
+
+        stars.addEventListener('click', (event) => {
+            applyVote(voteFromPointer(event.clientX));
+        });
+        stars.addEventListener('mousemove', (event) => {
+            starsFill.style.width = `${(voteFromPointer(event.clientX) / 10) * 100}%`;
+        });
+        stars.addEventListener('mouseleave', () => {
+            applyVote(parseFloat(valueInput.value) || 5);
+        });
+        stars.addEventListener('keydown', (event) => {
+            const current = parseFloat(valueInput.value) || 5;
+            if (event.key === 'ArrowRight') {
+                event.preventDefault();
+                applyVote(current + 0.5);
+            }
+            if (event.key === 'ArrowLeft') {
+                event.preventDefault();
+                applyVote(current - 0.5);
+            }
+        });
     })();
 </script>
 @endif

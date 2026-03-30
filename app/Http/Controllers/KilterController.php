@@ -21,17 +21,29 @@ class KilterController extends Controller
         $block->loadMissing(['map', 'creator']);
         $user = $request->user();
         $isCompleted = false;
+        $userVote = null;
 
         if ($user) {
             $isCompleted = DB::table('kilter_block_completions')
                 ->where('user_id', $user->id)
                 ->where('kilter_block_id', $block->id)
                 ->exists();
+
+            $userVoteValue = DB::table('kilter_block_votes')
+                ->where('user_id', $user->id)
+                ->where('kilter_block_id', $block->id)
+                ->value('value');
+            $userVote = is_numeric($userVoteValue) ? (float) $userVoteValue : null;
         }
+
+        $rating = $this->ratingForBlocks([(int) $block->id])[(int) $block->id] ?? ['avg' => 5.0, 'count' => 0];
 
         return view('kilter.show', [
             'block' => $block,
             'isCompleted' => $isCompleted,
+            'userVote' => $userVote,
+            'ratingAverage' => (float) $rating['avg'],
+            'ratingCount' => (int) $rating['count'],
         ]);
     }
 
@@ -102,6 +114,9 @@ class KilterController extends Controller
                 ->all();
         }
 
+        $blockIds = $blocks->pluck('id')->map(static fn ($id): int => (int) $id)->all();
+        $ratingsByBlock = $this->ratingForBlocks($blockIds);
+
         return view('kilter.index', [
             'blocks' => $blocks,
             'search' => $search,
@@ -111,6 +126,7 @@ class KilterController extends Controller
             'selectedCreator' => $selectedCreator,
             'completedBlockIds' => $completedBlockIds,
             'selectedCompletedFilter' => $selectedCompletedFilter,
+            'ratingsByBlock' => $ratingsByBlock,
         ]);
     }
 
@@ -204,7 +220,7 @@ class KilterController extends Controller
             return back()->withErrors(['boulder' => 'Koordenatuak ezin izan dira gorde.'])->withInput();
         }
 
-        KilterBlock::create([
+        $block = KilterBlock::create([
             'name' => $data['name'],
             'description' => $data['description'],
             'grade' => $data['grade'],
@@ -212,6 +228,18 @@ class KilterController extends Controller
             'user_id' => $request->user()->id,
             'boulder' => $normalizedBoulder,
         ]);
+
+        DB::table('kilter_block_votes')->updateOrInsert(
+            [
+                'user_id' => $request->user()->id,
+                'kilter_block_id' => $block->id,
+            ],
+            [
+                'value' => 5.0,
+                'updated_at' => now(),
+                'created_at' => now(),
+            ]
+        );
 
         return redirect()
             ->route('kilter')
@@ -286,6 +314,35 @@ class KilterController extends Controller
         ]);
 
         return back()->with('status', 'Blokea eginda bezala markatu da.');
+    }
+
+    public function vote(Request $request, KilterBlock $block): RedirectResponse
+    {
+        $user = $request->user();
+        if (! $user) {
+            abort(403);
+        }
+
+        $data = $request->validate([
+            'value' => ['required', 'numeric', 'min:1', 'max:10'],
+        ]);
+
+        $value = round((float) $data['value'] * 2) / 2;
+        $value = max(1.0, min(10.0, $value));
+
+        DB::table('kilter_block_votes')->updateOrInsert(
+            [
+                'user_id' => $user->id,
+                'kilter_block_id' => $block->id,
+            ],
+            [
+                'value' => $value,
+                'updated_at' => now(),
+                'created_at' => now(),
+            ]
+        );
+
+        return back()->with('status', 'Bozka ondo gorde da.');
     }
 
     /**
@@ -381,6 +438,41 @@ class KilterController extends Controller
             || str_contains($ua, 'ipad')
             || str_contains($ua, 'ipod')
             || str_contains($ua, 'mobile');
+    }
+
+    /**
+     * @param list<int> $blockIds
+     * @return array<int, array{avg: float, count: int}>
+     */
+    private function ratingForBlocks(array $blockIds): array
+    {
+        if (count($blockIds) === 0) {
+            return [];
+        }
+
+        $rows = DB::table('kilter_block_votes')
+            ->select(
+                'kilter_block_id',
+                DB::raw('AVG(value) as avg_value'),
+                DB::raw('COUNT(*) as votes_count')
+            )
+            ->whereIn('kilter_block_id', $blockIds)
+            ->groupBy('kilter_block_id')
+            ->get();
+
+        $result = [];
+        foreach ($blockIds as $blockId) {
+            $result[(int) $blockId] = ['avg' => 5.0, 'count' => 0];
+        }
+
+        foreach ($rows as $row) {
+            $id = (int) $row->kilter_block_id;
+            $avg = is_numeric($row->avg_value) ? (float) $row->avg_value : 5.0;
+            $count = is_numeric($row->votes_count) ? (int) $row->votes_count : 0;
+            $result[$id] = ['avg' => round($avg, 2), 'count' => $count];
+        }
+
+        return $result;
     }
 
     /**

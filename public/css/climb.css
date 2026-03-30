@@ -714,6 +714,15 @@ main {
   background: rgba(255, 255, 255, 0.09);
 }
 
+.block-detail-link.is-rated {
+  background: color-mix(in srgb, var(--rating-color, #4e79d1) 85%, #111 15%);
+  color: #f2f7ff;
+}
+
+.block-detail-link.is-rated:hover {
+  background: color-mix(in srgb, var(--rating-color, #4e79d1) 92%, #111 8%);
+}
+
 .block-row-btn {
   width: 100%;
   border: 0;
@@ -782,6 +791,16 @@ main {
   justify-content: center;
 }
 
+.btn-vote-colored {
+  border-color: color-mix(in srgb, var(--vote-color, #4e79d1) 70%, #fff 30%);
+  background: color-mix(in srgb, var(--vote-color, #4e79d1) 86%, #111 14%);
+  color: #f5f9ff;
+}
+
+.btn-vote-colored:hover {
+  background: color-mix(in srgb, var(--vote-color, #4e79d1) 92%, #111 8%);
+}
+
 .action-icon {
   display: inline-flex;
   align-items: center;
@@ -806,6 +825,40 @@ main {
 .confirm-delete-text {
   margin: 0.1rem 0 0.9rem;
   color: #f3e9dc;
+}
+
+.vote-stars {
+  position: relative;
+  display: inline-block;
+  width: 10ch;
+  font-size: clamp(1.6rem, 4.5vw, 2.2rem);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  line-height: 1;
+  letter-spacing: 0;
+  cursor: pointer;
+  user-select: none;
+  outline: none;
+}
+
+.vote-stars-base {
+  color: rgba(255, 255, 255, 0.28);
+}
+
+.vote-stars-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  color: #ffcc4d;
+  width: 50%;
+  pointer-events: none;
+  text-shadow: 0 0 10px rgba(255, 204, 77, 0.35);
+}
+
+.vote-value-text {
+  margin: 0.6rem 0 0.1rem;
+  color: #f7eedd;
 }
 
 .detail-viewer-wrap {

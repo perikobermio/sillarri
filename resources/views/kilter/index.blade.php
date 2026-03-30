@@ -25,6 +25,12 @@
                             '8' => 'VIII',
                             '9' => 'IX',
                         ];
+                        $ratingToColor = static function (float $value): string {
+                            $clamped = max(1.0, min(10.0, $value));
+                            $ratio = ($clamped - 1.0) / 9.0;
+                            $hue = 220.0 * (1.0 - $ratio);
+                            return 'hsl('.round($hue, 1).' 78% 45%)';
+                        };
                         $groupedGrades = [];
                         foreach ($grades as $g) {
                             $groupKey = preg_replace('/[^0-9]/', '', $g);
@@ -119,6 +125,10 @@
                             $boulderData = json_decode($block->boulder, true);
                             $boulderData = is_array($boulderData) ? $boulderData : [];
                             $isCompleted = in_array((int) $block->id, $completedBlockIds ?? [], true);
+                            $rating = $ratingsByBlock[(int) $block->id] ?? ['avg' => 5.0, 'count' => 0];
+                            $ratingAvg = (float) ($rating['avg'] ?? 5.0);
+                            $showRatingTint = $ratingAvg >= 7 || $ratingAvg <= 3;
+                            $ratingColor = $ratingToColor($ratingAvg);
                             $mapImageUrl = '';
                             if ($block->map?->image) {
                                 $mapImageUrl = \Illuminate\Support\Str::startsWith($block->map->image, ['http://', 'https://', '/'])
@@ -130,10 +140,13 @@
                             <td colspan="8" class="row-padding-none">
                                 <div class="block-row-wrap">
                                     <a
-                                        class="block-detail-link"
+                                        class="block-detail-link {{ $showRatingTint ? 'is-rated' : '' }}"
                                         href="{{ route('kilter.show', $block) }}"
                                         aria-label="Blokearen xehetasunak ikusi"
-                                        title="Xehetasunak"
+                                        title="Xehetasunak · Balorazioa {{ number_format($ratingAvg, 1) }}"
+                                        @if($showRatingTint)
+                                            style="--rating-color: {{ $ratingColor }}"
+                                        @endif
                                     >⋮</a>
                                     <button
                                         type="button"
