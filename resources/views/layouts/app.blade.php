@@ -17,6 +17,7 @@
 
         <nav class="nav-links">
             <a class="kilter-nav" href="{{ route('kilter') }}">KILTER</a>
+            <a href="{{ route('ranking') }}">Sailkapena</a>
             @auth
                 <details class="user-menu">
                     <summary class="user-chip">

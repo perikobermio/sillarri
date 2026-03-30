@@ -405,6 +405,27 @@ main {
 .dashboard {
   display: grid;
   gap: 1rem;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.dashboard > * {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.dashboard .panel,
+.dashboard .stats-grid article {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.dashboard .table-scroll {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .stats-grid {
@@ -662,6 +683,133 @@ main {
   width: 100%;
   border-collapse: collapse;
   min-width: 940px;
+}
+
+.ranking-table {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  table-layout: fixed;
+  font-size: 0.9rem;
+}
+
+.ranking-table col.ranking-col-rank {
+  width: 14%;
+}
+
+.ranking-table col.ranking-col-user {
+  width: 56%;
+}
+
+.ranking-table col.ranking-col-score {
+  width: 30%;
+}
+
+.ranking-table th,
+.ranking-table td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0.4rem 0.34rem;
+  line-height: 1.2;
+}
+
+.kilter-table.ranking-table th,
+.kilter-table.ranking-table td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0.4rem 0.34rem;
+  line-height: 1.2;
+}
+
+.kilter-table.ranking-table th:nth-child(2),
+.kilter-table.ranking-table td:nth-child(2) {
+  max-width: 0;
+}
+
+.ranking-table th {
+  letter-spacing: 0;
+  text-transform: none;
+  font-size: 0.78rem;
+}
+
+.ranking-table th:nth-child(3),
+.ranking-table td:nth-child(3) { text-align: right; }
+
+.ranking-table-wrap {
+  width: 100%;
+  overflow: hidden;
+}
+
+.ranking-user-link {
+  color: #f4e7d7;
+  text-decoration: none;
+  font-weight: 600;
+  display: block;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ranking-user-link:hover {
+  text-decoration: underline;
+}
+
+.user-public-hero h1,
+.user-public-hero p {
+  overflow-wrap: anywhere;
+}
+
+.user-public-table-wrap {
+  width: 100%;
+  overflow: hidden;
+}
+
+.user-public-table {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  table-layout: fixed;
+  font-size: 0.9rem;
+}
+
+.kilter-table.user-public-table {
+  min-width: 0 !important;
+}
+
+.kilter-table.user-public-table th,
+.kilter-table.user-public-table td {
+  padding: 0.42rem 0.34rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+}
+
+.user-public-table th:nth-child(1),
+.user-public-table td:nth-child(1) {
+  width: 48px;
+}
+
+.user-public-table th:nth-child(3),
+.user-public-table td:nth-child(3) {
+  width: 68px;
+}
+
+.user-public-table th:nth-child(4),
+.user-public-table td:nth-child(4) {
+  width: 84px;
+}
+
+.user-public-table a {
+  color: #f4e7d7;
+  text-decoration: none;
+}
+
+.user-public-table a:hover {
+  text-decoration: underline;
 }
 
 .kilter-table th,
@@ -1077,15 +1225,42 @@ main {
 .coord-toolbar {
   display: flex;
   align-items: center;
-  gap: 0.45rem;
-  flex-wrap: wrap;
+  gap: 0.6rem;
+  flex-wrap: nowrap;
   margin-bottom: 0.7rem;
 }
 
-.coord-toolbar > span {
+.coord-toolbar .coord-option-wrap {
   display: inline-flex;
+  flex-direction: row;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.4rem;
+  min-width: max-content;
+  flex: 0 0 auto;
+}
+
+.coord-toolbar .coord-option-wrap label {
+  margin: 0;
+  color: var(--mint);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.9px;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.coord-toolbar .btn {
+  align-self: center;
+  flex: 0 0 auto;
+}
+
+.coord-count-badge {
+  margin-left: 0.2rem;
+  align-self: center;
+  color: #d7cec1;
+  font-size: 0.92rem;
+  white-space: nowrap;
+  flex: 0 0 auto;
 }
 
 .coord-option-wrap.is-hidden {
@@ -1249,7 +1424,25 @@ main {
 
 .coord-toolbar select {
   width: auto;
-  min-width: 130px;
+  min-width: 148px;
+  max-width: 230px;
+  appearance: none;
+  -webkit-appearance: none;
+  border-radius: 999px;
+  border: 1px solid rgba(240, 139, 62, 0.52);
+  background:
+    linear-gradient(45deg, transparent 50%, #ffd4a8 50%) calc(100% - 18px) calc(50% - 2px) / 6px 6px no-repeat,
+    linear-gradient(135deg, #ffd4a8 50%, transparent 50%) calc(100% - 12px) calc(50% - 2px) / 6px 6px no-repeat,
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+  color: #f8f0e6;
+  padding: 0.45rem 2rem 0.45rem 0.8rem;
+  line-height: 1.2;
+}
+
+.coord-toolbar select:focus {
+  outline: none;
+  border-color: rgba(240, 139, 62, 0.92);
+  box-shadow: 0 0 0 2px rgba(240, 139, 62, 0.22);
 }
 
 .kilter-form-actions {
@@ -1286,6 +1479,105 @@ main {
     flex: 1 1 auto;
     min-height: 240px;
     max-height: none;
+  }
+
+  .coord-toolbar {
+    gap: 0.45rem;
+    flex-wrap: wrap;
+    overflow: visible;
+    align-items: flex-end;
+  }
+
+  .coord-toolbar .coord-option-wrap {
+    min-width: 0;
+    flex: 1 1 220px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.24rem;
+  }
+
+  .coord-toolbar select {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+  }
+
+  .coord-toolbar .btn {
+    width: 100%;
+    flex: 1 1 100%;
+  }
+
+  .coord-count-badge {
+    width: 100%;
+    margin-left: 0;
+    text-align: right;
+  }
+
+  .ranking-table {
+    font-size: 0.84rem;
+  }
+
+  .ranking-table th,
+  .ranking-table td {
+    padding: 0.34rem 0.3rem;
+  }
+
+  .kilter-table.ranking-table {
+    min-width: 0;
+    width: 100%;
+    table-layout: fixed;
+    font-size: 0.78rem;
+  }
+
+  .kilter-table.ranking-table th,
+  .kilter-table.ranking-table td {
+    padding: 0.26rem 0.22rem;
+    letter-spacing: 0;
+  }
+
+  .ranking-table col.ranking-col-rank {
+    width: 12%;
+  }
+
+  .ranking-table col.ranking-col-user {
+    width: 52%;
+  }
+
+  .ranking-table col.ranking-col-score {
+    width: 36%;
+  }
+
+  .user-public-completions {
+    padding: 0.75rem;
+  }
+
+  .user-public-table {
+    font-size: 0.78rem;
+  }
+
+  .kilter-table.user-public-table {
+    min-width: 0 !important;
+  }
+
+  .kilter-table.user-public-table th,
+  .kilter-table.user-public-table td {
+    padding: 0.26rem 0.22rem;
+    letter-spacing: 0;
+  }
+
+  .user-public-table th:nth-child(1),
+  .user-public-table td:nth-child(1) {
+    width: 38px;
+  }
+
+  .user-public-table th:nth-child(3),
+  .user-public-table td:nth-child(3) {
+    width: 56px;
+  }
+
+  .user-public-table th:nth-child(4),
+  .user-public-table td:nth-child(4) {
+    width: 64px;
   }
 
   .kilter-table-head {

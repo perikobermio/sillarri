@@ -119,11 +119,13 @@
         </div>
 
         <div class="coord-toolbar">
-            <label for="coord-mode">Marrazki mota</label>
-            <select id="coord-mode">
+            <span class="coord-option-wrap">
+                <label for="coord-mode">Marrazki mota</label>
+                <select id="coord-mode">
                 <option value="points" selected>Zirkuluak</option>
                 <option value="line">Lerroa</option>
             </select>
+            </span>
             <button type="button" class="btn btn-secondary" id="clear-points">Puntuak garbitu</button>
             <span id="point-type-wrap" class="coord-option-wrap">
                 <label for="point-type">Mota</label>
@@ -143,7 +145,7 @@
                     <option value="gigante">Erraldoia</option>
                 </select>
             </span>
-            <span id="coord-count">0 puntu</span>
+            <span id="coord-count" class="coord-count-badge">0 puntu</span>
         </div>
 
         <div class="coord-canvas-wrap" id="coord-canvas-wrap">

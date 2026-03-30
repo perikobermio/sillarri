@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\KilterController;
+use App\Http\Controllers\RankingController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -10,6 +11,7 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('/kilter', [KilterController::class, 'index'])->name('kilter');
+Route::get('/sailkapena', [RankingController::class, 'index'])->name('ranking');
 Route::get('/kilter/blokea/{block}', [KilterController::class, 'show'])->name('kilter.show');
 Route::get('/usuarios/{user}', [UserController::class, 'showPublic'])->name('users.public');
 

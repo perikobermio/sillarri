@@ -2,31 +2,46 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\KilterBlock;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class UserController extends Controller
 {
     public function showPublic(User $user): View
     {
-        $blocks = $user->blocks()
-            ->with('map')
+        $completedIds = DB::table('kilter_block_completions')
+            ->where('user_id', $user->id)
             ->orderByDesc('created_at')
-            ->get();
+            ->pluck('kilter_block_id')
+            ->map(static fn ($id): int => (int) $id)
+            ->all();
 
-        $grades = $blocks->pluck('grade')
+        $completedBlocks = count($completedIds) > 0
+            ? KilterBlock::query()
+                ->with('map')
+                ->whereIn('id', $completedIds)
+                ->get()
+                ->sortBy(fn (KilterBlock $block) => array_search((int) $block->id, $completedIds, true))
+                ->values()
+            : collect();
+
+        $completedGrades = $completedBlocks->pluck('grade')
             ->filter(fn ($grade) => is_string($grade) && $grade !== '')
             ->map(fn (string $grade) => strtolower($grade))
             ->values();
 
-        $bestGrade = $this->resolveBestGrade($grades->all());
+        $bestGrade = $this->resolveBestGrade($completedGrades->all());
+        $difficultyPercent = $this->averageDifficultyPercent($completedGrades->all());
 
         return view('users.public', [
             'userProfile' => $user,
-            'blocks' => $blocks,
-            'totalBlocks' => $blocks->count(),
+            'completedBlocks' => $completedBlocks,
+            'totalCompletedBlocks' => $completedBlocks->count(),
             'bestGrade' => $bestGrade,
+            'difficultyPercent' => $difficultyPercent,
         ]);
     }
 
@@ -82,5 +97,31 @@ class UserController extends Controller
         }
 
         return $result;
+    }
+
+    /**
+     * @param list<string> $grades
+     */
+    private function averageDifficultyPercent(array $grades): float
+    {
+        $order = $this->orderedGrades();
+        $weight = array_flip($order);
+        $maxWeight = max(1, count($order) - 1);
+
+        $sum = 0.0;
+        $count = 0;
+        foreach ($grades as $grade) {
+            if (! isset($weight[$grade])) {
+                continue;
+            }
+            $sum += ($weight[$grade] / $maxWeight) * 100;
+            $count++;
+        }
+
+        if ($count === 0) {
+            return 0.0;
+        }
+
+        return round($sum / $count, 1);
     }
 }

@@ -2,25 +2,57 @@
 
 @section('content')
 <section class="dashboard">
-    <div class="panel">
+    <div class="panel user-public-hero">
         <p class="eyebrow">Profil publikoa</p>
         <h1>{{ $userProfile->username ?? $userProfile->name }}</h1>
-        <p>KILTER blokeei buruzko jarduera publikoaren laburpena.</p>
+        <p>KILTER jardueraren laburpena: egindako blokeak, zailtasuna eta datu nagusiak.</p>
     </div>
 
     <div class="stats-grid">
         <article>
-            <h3>Sortutako blokeak</h3>
-            <p>{{ $totalBlocks }}</p>
+            <h3>Egindako blokeak</h3>
+            <p>{{ $totalCompletedBlocks }}</p>
         </article>
         <article>
             <h3>Gradu onena</h3>
             <p>{{ $bestGrade }}</p>
         </article>
         <article>
-            <h3>Azken blokea</h3>
-            <p>{{ $blocks->first()?->created_at?->format('Y-m-d') ?? '-' }}</p>
+            <h3>Zailtasun %</h3>
+            <p>{{ number_format($difficultyPercent, 1) }}%</p>
         </article>
+    </div>
+
+    <div class="panel user-public-completions">
+        <h3>Egindako blokeak</h3>
+        @if($completedBlocks->isEmpty())
+            <p>Oraindik ez du blokerik eginda markatu.</p>
+        @else
+            <div class="table-scroll user-public-table-wrap">
+                <table class="kilter-table user-public-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Izena</th>
+                            <th>Gradua</th>
+                            <th>Mapa</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($completedBlocks as $block)
+                            <tr>
+                                <td>{{ $block->id }}</td>
+                                <td>
+                                    <a href="{{ route('kilter.show', $block) }}">{{ $block->name }}</a>
+                                </td>
+                                <td>{{ $block->grade }}</td>
+                                <td>{{ $block->map?->name ?? '-' }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @endif
     </div>
 </section>
 @endsection
