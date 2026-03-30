@@ -11,7 +11,16 @@
     <div class="panel">
         <h3>Kontuaren datuak</h3>
 
-        <form method="POST" action="{{ route('settings.update') }}" class="auth-form">
+        @php
+            $avatarPath = $userProfile->avatar_path ?? '';
+            $avatarUrl = $avatarPath !== ''
+                ? (\Illuminate\Support\Str::startsWith($avatarPath, ['http://', 'https://', '/'])
+                    ? $avatarPath
+                    : '/storage/'.$avatarPath)
+                : '/images/default-avatar.svg';
+        @endphp
+
+        <form method="POST" action="{{ route('settings.update') }}" class="auth-form" enctype="multipart/form-data">
             @csrf
             @method('PUT')
 
@@ -29,6 +38,15 @@
 
             <label>Username</label>
             <input type="text" value="{{ $userProfile->username ?? '-' }}" disabled>
+
+            <label>Avatarra</label>
+            <div class="avatar-field">
+                <img class="avatar-preview" src="{{ $avatarUrl }}" alt="Avatarra">
+                <input type="file" name="avatar" accept="image/*">
+            </div>
+            @error('avatar')
+                <small class="error">{{ $message }}</small>
+            @enderror
 
             <label>Pasahitz berria (aukerakoa)</label>
             <input type="password" name="password">

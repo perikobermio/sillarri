@@ -26,7 +26,15 @@
             @auth
                 <details class="user-menu">
                     <summary class="user-chip">
-                        <img src="/images/default-avatar.svg" alt="Lehenetsitako profileko irudia">
+                        @php
+                            $avatarPath = auth()->user()->avatar_path ?? '';
+                            $avatarUrl = $avatarPath !== ''
+                                ? (\Illuminate\Support\Str::startsWith($avatarPath, ['http://', 'https://', '/'])
+                                    ? $avatarPath
+                                    : '/storage/'.$avatarPath)
+                                : '/images/default-avatar.svg';
+                        @endphp
+                        <img src="{{ $avatarUrl }}" alt="Lehenetsitako profileko irudia">
                         <span>{{ auth()->user()->username ?? auth()->user()->name }}</span>
                         @if((bool) auth()->user()->is_admin)
                             <span class="admin-pill admin-pill-icon" title="Administratzailea" aria-label="Administratzailea">🛡️</span>

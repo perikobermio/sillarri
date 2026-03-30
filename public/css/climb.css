@@ -606,6 +606,36 @@ main {
   padding: 0.68rem 0.8rem;
 }
 
+.avatar-field {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.avatar-preview {
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  object-fit: cover;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.public-profile-head {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.public-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  object-fit: cover;
+  background: rgba(255, 255, 255, 0.06);
+}
+
 .check-row {
   display: flex;
   align-items: center;

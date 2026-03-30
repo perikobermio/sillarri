@@ -8,6 +8,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -69,6 +70,7 @@ class UserController extends Controller
                 Rule::unique('users', 'email')->ignore($user->id),
             ],
             'password' => ['nullable', 'string', 'confirmed'],
+            'avatar' => ['nullable', 'image', 'max:20480'],
         ]);
 
         $user->name = trim((string) $data['name']);
@@ -76,6 +78,13 @@ class UserController extends Controller
 
         if (filled($data['password'] ?? null)) {
             $user->password = Hash::make((string) $data['password']);
+        }
+
+        if ($request->hasFile('avatar')) {
+            if ($user->avatar_path) {
+                Storage::disk('public')->delete($user->avatar_path);
+            }
+            $user->avatar_path = $request->file('avatar')->store('avatars', 'public');
         }
 
         $user->save();

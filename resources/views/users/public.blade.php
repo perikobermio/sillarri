@@ -4,7 +4,18 @@
 <section class="dashboard">
     <div class="panel user-public-hero">
         <p class="eyebrow">Profil publikoa</p>
-        <h1>{{ $userProfile->username ?? $userProfile->name }}</h1>
+        @php
+            $avatarPath = $userProfile->avatar_path ?? '';
+            $avatarUrl = $avatarPath !== ''
+                ? (\Illuminate\Support\Str::startsWith($avatarPath, ['http://', 'https://', '/'])
+                    ? $avatarPath
+                    : '/storage/'.$avatarPath)
+                : '/images/default-avatar.svg';
+        @endphp
+        <div class="public-profile-head">
+            <img class="public-avatar" src="{{ $avatarUrl }}" alt="Erabiltzailearen avatarra">
+            <h1>{{ $userProfile->username ?? $userProfile->name }}</h1>
+        </div>
         <p>KILTER jardueraren laburpena: egindako blokeak, zailtasuna eta datu nagusiak.</p>
     </div>
 
