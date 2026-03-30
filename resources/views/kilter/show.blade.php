@@ -121,6 +121,10 @@
 
         function renderOverlay() {
             if (!image.naturalWidth || !image.naturalHeight) return;
+            const currentWidth = image.clientWidth || 0;
+            const naturalWidth = image.naturalWidth || currentWidth || 1;
+            const pointScale = currentWidth / naturalWidth;
+            layer.style.setProperty('--point-scale', String(Math.max(0.5, Math.min(1.2, pointScale))));
             layer.innerHTML = '';
 
             if (state.mode === 'line') {
