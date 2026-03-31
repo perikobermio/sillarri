@@ -35,6 +35,7 @@
                                     data-name="{{ $user->name }}"
                                     data-username="{{ $user->username }}"
                                     data-email="{{ $user->email }}"
+                                    data-avatar="{{ $user->avatar_path ? (\Illuminate\Support\Str::startsWith($user->avatar_path, ['http://', 'https://', '/']) ? $user->avatar_path : '/storage/'.$user->avatar_path) : '' }}"
                                     data-admin="{{ $user->is_admin ? '1' : '0' }}"
                                     aria-label="Editatu"
                                     title="Editatu"
@@ -173,6 +174,9 @@
         <form method="POST" action="#" class="auth-form" id="admin-user-edit-form">
             @csrf
             @method('PUT')
+            <div class="admin-avatar-preview">
+                <img id="admin-edit-avatar" alt="Avatar" src="/images/default-avatar.svg">
+            </div>
             <label>Izena</label>
             <input type="text" name="name" id="admin-edit-name" required>
             <label>Username</label>
@@ -244,6 +248,7 @@
         const editUsername = document.getElementById('admin-edit-username');
         const editEmail = document.getElementById('admin-edit-email');
         const editAdmin = document.getElementById('admin-edit-admin');
+        const editAvatar = document.getElementById('admin-edit-avatar');
 
         function openModal(modal) {
             modal?.classList.remove('hidden-modal');
@@ -269,6 +274,9 @@
                 editUsername.value = button.dataset.username || '';
                 editEmail.value = button.dataset.email || '';
                 editAdmin.checked = button.dataset.admin === '1';
+                if (editAvatar) {
+                    editAvatar.src = button.dataset.avatar || '/images/default-avatar.svg';
+                }
                 openModal(editModal);
             });
         });
