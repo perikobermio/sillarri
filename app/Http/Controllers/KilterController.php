@@ -150,7 +150,8 @@ class KilterController extends Controller
                     ->selectRaw('count(*)')
                     ->whereColumn('kilter_block_completions.kilter_block_id', 'kilter_blocks.id'),
                 'rating_avg' => DB::table('kilter_block_votes')
-                    ->selectRaw('coalesce(avg(value), 0)'),
+                    ->selectRaw('coalesce(avg(value), 0)')
+                    ->whereColumn('kilter_block_votes.kilter_block_id', 'kilter_blocks.id'),
             ])
             ->with(['map', 'creator'])
             ->when($search !== '', function ($query) use ($search): void {
