@@ -110,6 +110,10 @@
                         </div>
                     </details>
 
+                    <details class="extra-filter-box order-filter-box">
+                        <summary class="order-filter-trigger" id="open-order-modal">⇅</summary>
+                    </details>
+
                     <a
                         class="btn btn-secondary clear-filters-btn {{ $filtersActive ? '' : 'is-disabled' }}"
                         href="{{ route('kilter', ['clear' => 1]) }}"
@@ -122,6 +126,8 @@
                     <button type="submit" class="btn btn-primary search-submit-btn" aria-label="Bilatu">
                         <span class="search-submit-label">Bilatu</span>
                     </button>
+                    <input type="hidden" name="order_field" id="order-field-input" value="{{ $selectedOrderField }}">
+                    <input type="hidden" name="order_dir" id="order-dir-input" value="{{ $selectedOrderDir }}">
                 </form>
             </div>
         </div>
@@ -211,9 +217,46 @@
     </div>
 </div>
 
+<div class="modal-shell hidden-modal" id="order-modal" role="dialog" aria-modal="true" aria-labelledby="order-modal-title">
+    <div class="modal-card">
+        <div class="modal-head">
+            <h2 id="order-modal-title">Ordenatu</h2>
+            <button type="button" class="icon-btn" id="close-order-modal" aria-label="Itxi leihoa">×</button>
+        </div>
+        <div class="kilter-form">
+            <label for="order-field-select">Eremua</label>
+            <select id="order-field-select">
+                <option value="">--</option>
+                <option value="rating" @selected($selectedOrderField === 'rating')>Balorazioa</option>
+                <option value="completed" @selected($selectedOrderField === 'completed')>Egindakoak</option>
+                <option value="grade" @selected($selectedOrderField === 'grade')>Gradua</option>
+                <option value="created_at" @selected($selectedOrderField === 'created_at')>Sorrera data</option>
+            </select>
+            <label for="order-dir-select">Noranzkoa</label>
+            <select id="order-dir-select">
+                <option value="desc" @selected($selectedOrderDir === 'desc')>Beherantz</option>
+                <option value="asc" @selected($selectedOrderDir === 'asc')>Gorantz</option>
+            </select>
+            <div class="kilter-form-actions">
+                <button type="button" class="btn btn-primary" id="apply-order">Aplikatu</button>
+                <button type="button" class="btn btn-secondary" id="cancel-order">Utzi</button>
+            </div>
+        </div>
+    </div>
+</div>
+
     <script>
         (function () {
             const filterDetails = document.querySelectorAll('.grade-filter-box, .extra-filter-box');
+            const orderModal = document.getElementById('order-modal');
+            const openOrder = document.getElementById('open-order-modal');
+            const closeOrder = document.getElementById('close-order-modal');
+            const cancelOrder = document.getElementById('cancel-order');
+            const applyOrder = document.getElementById('apply-order');
+            const orderFieldSelect = document.getElementById('order-field-select');
+            const orderDirSelect = document.getElementById('order-dir-select');
+            const orderFieldInput = document.getElementById('order-field-input');
+            const orderDirInput = document.getElementById('order-dir-input');
 
             document.addEventListener('click', (event) => {
                 filterDetails.forEach((detailsEl) => {
@@ -222,6 +265,41 @@
                     detailsEl.open = false;
                 });
             });
+
+            function openModal(modal) {
+                modal?.classList.remove('hidden-modal');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeModal(modal) {
+                modal?.classList.add('hidden-modal');
+                document.body.style.overflow = '';
+            }
+
+            if (openOrder && orderModal) {
+                openOrder.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    if (openOrder.closest('details')) {
+                        openOrder.closest('details').open = false;
+                    }
+                    openModal(orderModal);
+                });
+                closeOrder?.addEventListener('click', () => closeModal(orderModal));
+                cancelOrder?.addEventListener('click', () => closeModal(orderModal));
+                orderModal.addEventListener('click', (event) => {
+                    if (event.target === orderModal) closeModal(orderModal);
+                });
+                applyOrder?.addEventListener('click', () => {
+                    if (orderFieldInput && orderFieldSelect) {
+                        orderFieldInput.value = orderFieldSelect.value;
+                    }
+                    if (orderDirInput && orderDirSelect) {
+                        orderDirInput.value = orderDirSelect.value;
+                    }
+                    document.getElementById('kilter-filter-form')?.dispatchEvent(new Event('submit', { cancelable: true }));
+                    document.getElementById('kilter-filter-form')?.submit();
+                });
+            }
 
             const viewer = document.getElementById('boulder-viewer');
             const closeBtn = document.getElementById('close-boulder-viewer');

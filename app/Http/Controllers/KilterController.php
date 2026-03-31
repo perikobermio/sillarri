@@ -86,13 +86,17 @@ class KilterController extends Controller
             'completed' => trim((string) $request->query('completed', 'all')),
             'location' => trim((string) $request->query('location', '')),
             'grades' => $request->query('grade', []),
+            'order_field' => trim((string) $request->query('order_field', '')),
+            'order_dir' => trim((string) $request->query('order_dir', '')),
         ];
 
         $hasIncomingFilters = $incoming['q'] !== ''
             || $incoming['creator'] !== ''
             || $incoming['location'] !== ''
             || ($incoming['completed'] !== '' && $incoming['completed'] !== 'all')
-            || (is_array($incoming['grades']) ? count($incoming['grades']) > 0 : (string) $incoming['grades'] !== '');
+            || (is_array($incoming['grades']) ? count($incoming['grades']) > 0 : (string) $incoming['grades'] !== '')
+            || $incoming['order_field'] !== ''
+            || $incoming['order_dir'] !== '';
 
         if ($hasIncomingFilters) {
             $request->session()->put('kilterFilters', $incoming);
@@ -116,11 +120,17 @@ class KilterController extends Controller
             return strtolower(trim((string) $value));
         }, $gradeList))));
         $selectedGrades = array_values(array_intersect($selectedGrades, $grades));
+        $allowedOrderFields = ['rating', 'completed', 'grade', 'created_at'];
+        $orderField = $hasIncomingFilters ? $incoming['order_field'] : ($stored['order_field'] ?? '');
+        $orderField = in_array($orderField, $allowedOrderFields, true) ? $orderField : '';
+        $orderDir = $hasIncomingFilters ? $incoming['order_dir'] : ($stored['order_dir'] ?? 'desc');
+        $orderDir = strtolower($orderDir) === 'asc' ? 'asc' : 'desc';
         $filtersActive = $search !== ''
             || $creatorQuery !== ''
             || $locationQuery !== ''
             || $selectedCompletedFilter !== 'all'
-            || count($selectedGrades) > 0;
+            || count($selectedGrades) > 0
+            || $orderField !== '';
 
         $user = $request->user();
 
@@ -134,6 +144,14 @@ class KilterController extends Controller
             ->all();
 
         $blocks = KilterBlock::query()
+            ->select('kilter_blocks.*')
+            ->addSelect([
+                'completed_count' => DB::table('kilter_block_completions')
+                    ->selectRaw('count(*)')
+                    ->whereColumn('kilter_block_completions.kilter_block_id', 'kilter_blocks.id'),
+                'rating_avg' => DB::table('kilter_block_votes')
+                    ->selectRaw('coalesce(avg(value), 0)'),
+            ])
             ->with(['map', 'creator'])
             ->when($search !== '', function ($query) use ($search): void {
                 $query->where('name', 'like', "%{$search}%");
@@ -164,9 +182,27 @@ class KilterController extends Controller
                         ->whereColumn('kilter_block_completions.kilter_block_id', 'kilter_blocks.id')
                         ->where('kilter_block_completions.user_id', $user->id);
                 });
-            })
-            ->orderByDesc('created_at')
-            ->get();
+            });
+
+        if ($orderField === 'rating') {
+            $blocks->orderBy('rating_avg', $orderDir);
+        } elseif ($orderField === 'completed') {
+            $blocks->orderBy('completed_count', $orderDir);
+        } elseif ($orderField === 'grade') {
+            $cases = [];
+            foreach ($grades as $index => $grade) {
+                $gradeValue = strtolower($grade);
+                $cases[] = "WHEN LOWER(grade) = '{$gradeValue}' THEN {$index}";
+            }
+            $orderExpr = 'CASE '.implode(' ', $cases).' ELSE 999 END';
+            $blocks->orderByRaw($orderExpr.' '.$orderDir);
+        } elseif ($orderField === 'created_at') {
+            $blocks->orderBy('created_at', $orderDir);
+        } else {
+            $blocks->orderByDesc('created_at');
+        }
+
+        $blocks = $blocks->get();
 
         $creators = User::query()
             ->select('users.id', 'users.name')
@@ -208,6 +244,8 @@ class KilterController extends Controller
             'selectedLocation' => $locationQuery,
             'completedBlockIds' => $completedBlockIds,
             'selectedCompletedFilter' => $selectedCompletedFilter,
+            'selectedOrderField' => $orderField,
+            'selectedOrderDir' => $orderDir,
             'ratingsByBlock' => $ratingsByBlock,
             'recotationCountsByBlock' => $recotationCountsByBlock,
             'filtersActive' => $filtersActive,
