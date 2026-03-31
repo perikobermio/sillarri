@@ -2,13 +2,13 @@
 
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\KilterController;
+use App\Http\Controllers\MultimediaController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\RankingController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('home');
-})->name('home');
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Route::get('/kilter', [KilterController::class, 'index'])->name('kilter');
 Route::get('/sailkapena', [RankingController::class, 'index'])->name('ranking');
@@ -29,6 +29,8 @@ Route::middleware('guest')->group(function (): void {
 Route::middleware('auth')->group(function (): void {
     Route::get('/settings', [UserController::class, 'settings'])->name('settings');
     Route::put('/settings', [UserController::class, 'updateSettings'])->name('settings.update');
+    Route::get('/multimedia', [MultimediaController::class, 'index'])->name('multimedia');
+    Route::post('/multimedia', [MultimediaController::class, 'store'])->name('multimedia.store');
 
     Route::get('/kilter/create', [KilterController::class, 'create'])->name('kilter.create');
     Route::get('/kilter/blokea/{block}/edit', [KilterController::class, 'edit'])->name('kilter.edit');

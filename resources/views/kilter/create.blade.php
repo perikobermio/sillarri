@@ -100,7 +100,7 @@
             <small class="error hidden-error" id="map-modal-error"></small>
 
             <div class="kilter-form-actions">
-                <button type="submit" class="btn btn-primary" id="save-map-btn">Mapa gorde</button>
+                <button type="submit" class="btn btn-primary" id="save-map-btn"><span class="btn-text">Mapa gorde</span></button>
                 <button type="button" class="btn btn-secondary" id="cancel-map-modal">Utzi</button>
             </div>
         </form>
@@ -294,6 +294,8 @@
             mapError.classList.add('hidden-error');
             mapError.textContent = '';
             saveMapBtn.disabled = true;
+            saveMapBtn.classList.add('is-loading');
+            saveMapBtn.setAttribute('aria-busy', 'true');
 
             const payload = new FormData();
             payload.append('_token', mapForm.querySelector('input[name="_token"]').value);
@@ -307,6 +309,8 @@
                 mapError.classList.remove('hidden-error');
                 showSnackbar('Irudi bat hautatu behar duzu.');
                 saveMapBtn.disabled = false;
+                saveMapBtn.classList.remove('is-loading');
+                saveMapBtn.removeAttribute('aria-busy');
                 return;
             }
 
@@ -315,6 +319,8 @@
                 mapError.classList.remove('hidden-error');
                 showSnackbar('Irudia handiegia da. Gehienez 20MB onartzen dira.');
                 saveMapBtn.disabled = false;
+                saveMapBtn.classList.remove('is-loading');
+                saveMapBtn.removeAttribute('aria-busy');
                 return;
             }
 
@@ -360,6 +366,8 @@
                     mapError.classList.remove('hidden-error');
                     showSnackbar(msg);
                     saveMapBtn.disabled = false;
+                    saveMapBtn.classList.remove('is-loading');
+                    saveMapBtn.removeAttribute('aria-busy');
                     return;
                 }
 
@@ -379,6 +387,8 @@
                 showSnackbar(`Sareko errorea mapa gordetzean${detail}.`);
             } finally {
                 saveMapBtn.disabled = false;
+                saveMapBtn.classList.remove('is-loading');
+                saveMapBtn.removeAttribute('aria-busy');
             }
         });
 

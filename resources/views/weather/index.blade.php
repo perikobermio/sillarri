@@ -40,7 +40,9 @@
             </thead>
             <tbody id="weatherDetailBody">
                 <tr>
-                    <td colspan="9" class="weather-detail-loading">Eguraldia kargatzen...</td>
+                    <td colspan="9" class="weather-detail-loading">
+                        <span class="loading-inline"><span class="spinner"></span>Eguraldia kargatzen...</span>
+                    </td>
                 </tr>
             </tbody>
         </table>

@@ -16,7 +16,9 @@
         <div class="header-topline">
             <a class="brand" href="{{ route('home') }}">Sillarri Climb</a>
             <div class="header-live-weather" aria-live="polite">
-                <a id="headerWeatherTicker" class="header-live-text" href="{{ route('home') }}#home-weather">Eguraldia kargatzen...</a>
+                <a id="headerWeatherTicker" class="header-live-text" href="{{ route('home') }}#home-weather">
+                    <span class="loading-inline"><span class="spinner"></span>Eguraldia kargatzen...</span>
+                </a>
             </div>
         </div>
 
@@ -47,6 +49,7 @@
                         @if(\Illuminate\Support\Facades\Route::has('users.public'))
                             <a href="{{ route('users.public', auth()->user()) }}">Estatistikak</a>
                         @endif
+                        <a href="{{ route('multimedia') }}">Multimedia</a>
                         <a href="{{ route('settings') }}">Ezarpenak</a>
                         <hr>
                         <form method="POST" action="{{ route('logout') }}">

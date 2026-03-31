@@ -20,14 +20,44 @@
         </div>
     </div>
 
-    <div class="hero-card">
-        <img src="https://images.unsplash.com/photo-1522163182402-834f871fd851?auto=format&fit=crop&w=1200&q=80" alt="Eskalatzailea harkaitz horman">
+    <div class="hero-card" id="home-hero-card">
+        @php
+            $heroPath = $heroPhoto?->image_path ?? '';
+            $heroUrl = $heroPath !== ''
+                ? (\Illuminate\Support\Str::startsWith($heroPath, ['http://', 'https://', '/'])
+                    ? $heroPath
+                    : '/storage/'.$heroPath)
+                : 'https://images.unsplash.com/photo-1522163182402-834f871fd851?auto=format&fit=crop&w=1200&q=80';
+            $heroAlt = $heroPhoto?->title ?? 'Eskalatzailea harkaitz horman';
+        @endphp
+        <img id="home-hero-image" src="{{ $heroUrl }}" alt="{{ $heroAlt }}">
         <div class="card-overlay">
-            <h2>Asteko bidea</h2>
-            <p>"Aresta del Vent" · 6c · 38m · Kareharri teknikoa</p>
+            @if($heroPhoto)
+                <h2>{{ $heroPhoto->title }}</h2>
+                <p>{{ $heroPhoto->description ?? 'Sillarri komunitateko argazkia' }}</p>
+            @else
+                <h2>Asteko bidea</h2>
+                <p>"Aresta del Vent" · 6c · 38m · Kareharri teknikoa</p>
+            @endif
         </div>
     </div>
 </section>
+
+@php
+    $heroGallery = \App\Models\MultimediaPhoto::query()->latest()->get();
+    $heroGalleryPayload = $heroGallery->map(function ($photo) {
+        $path = $photo->image_path;
+        $url = \Illuminate\Support\Str::startsWith($path, ['http://', 'https://', '/'])
+            ? $path
+            : '/storage/'.$path;
+        return [
+            'id' => $photo->id,
+            'title' => $photo->title,
+            'description' => $photo->description,
+            'url' => $url,
+        ];
+    })->values();
+@endphp
 
 <a class="kilter-spotlight" href="{{ route('kilter') }}">
     <p class="eyebrow">Atal nagusia</p>
@@ -54,15 +84,104 @@
             </thead>
             <tbody id="weatherTableBody">
                 <tr>
-                    <td colspan="5" class="weather-loading-cell">Eguraldia kargatzen...</td>
+                    <td colspan="5" class="weather-loading-cell">
+                        <span class="loading-inline"><span class="spinner"></span>Eguraldia kargatzen...</span>
+                    </td>
                 </tr>
             </tbody>
         </table>
     </div>
 </section>
 
+<div class="modal-shell hidden-modal" id="hero-gallery-modal" role="dialog" aria-modal="true" aria-labelledby="hero-gallery-title">
+    <div class="modal-card modal-card-xl">
+        <div class="modal-head">
+            <h2 id="hero-gallery-title">Argazkia</h2>
+            <button type="button" class="btn btn-secondary" id="hero-gallery-close">Itzuli</button>
+        </div>
+        <div class="media-lightbox-body">
+            <img id="hero-gallery-image" alt="Argazkia">
+            <div class="media-lightbox-text">
+                <p id="hero-gallery-desc"></p>
+                <div class="hero-gallery-controls">
+                    <button type="button" class="btn btn-secondary" id="hero-gallery-prev">Aurrekoa</button>
+                    <button type="button" class="btn btn-secondary" id="hero-gallery-next">Hurrengoa</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     (function () {
+        const heroImages = @json($heroGalleryPayload);
+        const heroCard = document.getElementById('home-hero-card');
+        const heroImage = document.getElementById('home-hero-image');
+        let heroIndex = 0;
+
+        function pickRandomIndex(exclude) {
+            if (heroImages.length <= 1) return 0;
+            let next = Math.floor(Math.random() * heroImages.length);
+            while (next === exclude) {
+                next = Math.floor(Math.random() * heroImages.length);
+            }
+            return next;
+        }
+
+        function swapHero(index) {
+            if (!heroImage || !heroImages.length) return;
+            heroImage.classList.remove('is-visible');
+            window.setTimeout(() => {
+                heroImage.src = heroImages[index].url;
+                heroImage.alt = heroImages[index].title || 'Argazkia';
+                heroImage.classList.add('is-visible');
+            }, 260);
+        }
+
+        if (heroImages.length > 0 && heroImage) {
+            heroImage.classList.add('is-visible');
+            window.setInterval(() => {
+                heroIndex = pickRandomIndex(heroIndex);
+                swapHero(heroIndex);
+            }, 7000);
+        }
+
+        const heroModal = document.getElementById('hero-gallery-modal');
+        const heroModalImage = document.getElementById('hero-gallery-image');
+        const heroModalTitle = document.getElementById('hero-gallery-title');
+        const heroModalDesc = document.getElementById('hero-gallery-desc');
+        const heroPrev = document.getElementById('hero-gallery-prev');
+        const heroNext = document.getElementById('hero-gallery-next');
+        const heroClose = document.getElementById('hero-gallery-close');
+
+        function openHeroModal(index) {
+            if (!heroModal || !heroModalImage || !heroImages.length) return;
+            heroIndex = index;
+            const item = heroImages[heroIndex];
+            heroModalImage.src = item.url;
+            heroModalTitle.textContent = item.title || 'Argazkia';
+            heroModalDesc.textContent = item.description || '';
+            heroModal.classList.remove('hidden-modal');
+        }
+
+        function closeHeroModal() {
+            heroModal?.classList.add('hidden-modal');
+        }
+
+        function stepHero(direction) {
+            if (!heroImages.length) return;
+            heroIndex = (heroIndex + direction + heroImages.length) % heroImages.length;
+            openHeroModal(heroIndex);
+        }
+
+        heroCard?.addEventListener('click', () => openHeroModal(heroIndex));
+        heroPrev?.addEventListener('click', () => stepHero(-1));
+        heroNext?.addEventListener('click', () => stepHero(1));
+        heroClose?.addEventListener('click', closeHeroModal);
+        heroModal?.addEventListener('click', (event) => {
+            if (event.target === heroModal) closeHeroModal();
+        });
+
         const weatherBaseUrl = "{{ route('weather') }}";
         const locations = [
             { name: 'Ereño', lat: 43.357, lon: -2.625 },
