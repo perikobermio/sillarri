@@ -93,6 +93,54 @@
     </div>
 </section>
 
+<section class="utilities-home">
+    <div class="utilities-head">
+        <p class="eyebrow">Utilitateak</p>
+        <h3>Bideoak eta baliabideak</h3>
+    </div>
+    <div class="utilities-grid">
+        @php
+            $utilities = [
+                [
+                    'title' => 'Entrenamendu (PasoClave)',
+                    'url' => 'https://www.pasoclave.com/entrenamiento/',
+                    'note' => 'Entrenamendu gida eta aholkuak.',
+                ],
+                [
+                    'title' => 'LeoMoves (YouTube)',
+                    'url' => 'https://www.youtube.com/leomoves',
+                    'note' => 'Mugimendu eta entreno bideoak.',
+                ],
+                [
+                    'title' => 'Jordan Yeoh Fitness (YouTube)',
+                    'url' => 'https://www.youtube.com/@jordanyeohfitness',
+                    'note' => 'Indarra eta kondizio fisikoa.',
+                ],
+                [
+                    'title' => 'Goma2 · Avereparazioa',
+                    'url' => 'https://goma2.net/es/module/avereparacio/form',
+                    'note' => 'Materialen berrikuntza eta konponketa.',
+                ],
+            ];
+        @endphp
+        @foreach($utilities as $utility)
+            <a class="utilities-card" href="{{ $utility['url'] }}" target="_blank" rel="noopener noreferrer">
+                <div class="utilities-thumb" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                        <path d="M4 6h16v12H4z"></path>
+                        <path d="M10 9l5 3-5 3z"></path>
+                    </svg>
+                </div>
+                <div class="utilities-text">
+                    <h4>{{ $utility['title'] }}</h4>
+                    <p>{{ $utility['note'] }}</p>
+                    <span class="utilities-link">{{ parse_url($utility['url'], PHP_URL_HOST) }}</span>
+                </div>
+            </a>
+        @endforeach
+    </div>
+</section>
+
 <div class="modal-shell hidden-modal" id="hero-gallery-modal" role="dialog" aria-modal="true" aria-labelledby="hero-gallery-title">
     <div class="modal-card modal-card-xl">
         <div class="modal-head">
