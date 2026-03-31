@@ -124,6 +124,7 @@
                             $ratingAvg = (float) ($rating['avg'] ?? 5.0);
                             $showRatingTint = $ratingAvg >= 7 || $ratingAvg <= 3;
                             $ratingColor = $ratingToColor($ratingAvg);
+                            $hasRecotes = (($recotationCountsByBlock[(int) $block->id] ?? 0) > 0);
                             $mapImageUrl = '';
                             if ($block->map?->image) {
                                 $mapImageUrl = \Illuminate\Support\Str::startsWith($block->map->image, ['http://', 'https://', '/'])
@@ -153,7 +154,14 @@
                                 >⋮</a>
                             </td>
                             <td class="col-name">{{ $block->name }}</td>
-                            <td class="col-grade">{{ $block->grade }}</td>
+                            <td class="col-grade">
+                                <span class="grade-value">
+                                    {{ $block->grade }}
+                                    @if($hasRecotes)
+                                        <span class="recote-flag" title="Recotazioak daude" aria-label="Recotazioak daude">!</span>
+                                    @endif
+                                </span>
+                            </td>
                         </tr>
                     @empty
                         <tr>

@@ -41,6 +41,8 @@ Route::middleware('auth')->group(function (): void {
     Route::put('/kilter/blokea/{block}', [KilterController::class, 'update'])->name('kilter.update');
     Route::post('/kilter/blokea/{block}/toggle-completed', [KilterController::class, 'toggleCompleted'])->name('kilter.toggleCompleted');
     Route::post('/kilter/blokea/{block}/vote', [KilterController::class, 'vote'])->name('kilter.vote');
+    Route::post('/kilter/blokea/{block}/recote', [KilterController::class, 'recote'])->name('kilter.recote');
+    Route::post('/kilter/blokea/{block}/recote/resolve', [KilterController::class, 'resolveRecote'])->name('kilter.recote.resolve');
     Route::delete('/kilter/blokea/{block}', [KilterController::class, 'destroy'])->name('kilter.destroy');
 
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');

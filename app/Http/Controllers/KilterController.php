@@ -22,6 +22,7 @@ class KilterController extends Controller
         $user = $request->user();
         $isCompleted = false;
         $userVote = null;
+        $userRecote = null;
 
         if ($user) {
             $isCompleted = DB::table('kilter_block_completions')
@@ -34,16 +35,41 @@ class KilterController extends Controller
                 ->where('kilter_block_id', $block->id)
                 ->value('value');
             $userVote = is_numeric($userVoteValue) ? (float) $userVoteValue : null;
+
+            $userRecoteValue = DB::table('kilter_block_recotations')
+                ->where('user_id', $user->id)
+                ->where('kilter_block_id', $block->id)
+                ->value('grade');
+            $userRecote = is_string($userRecoteValue) ? $userRecoteValue : null;
         }
 
         $rating = $this->ratingForBlocks([(int) $block->id])[(int) $block->id] ?? ['avg' => 5.0, 'count' => 0];
+        $grades = $this->grades();
+        $recotationSummary = $this->recotationSummary((int) $block->id, $grades);
+        $recotationEntries = DB::table('kilter_block_recotations as r')
+            ->join('users as u', 'u.id', '=', 'r.user_id')
+            ->where('r.kilter_block_id', $block->id)
+            ->select('r.grade', 'u.username')
+            ->orderBy('r.created_at')
+            ->get()
+            ->map(static function ($row): array {
+                return [
+                    'grade' => (string) $row->grade,
+                    'username' => (string) $row->username,
+                ];
+            })
+            ->all();
 
         return view('kilter.show', [
             'block' => $block,
             'isCompleted' => $isCompleted,
             'userVote' => $userVote,
+            'userRecote' => $userRecote,
             'ratingAverage' => (float) $rating['avg'],
             'ratingCount' => (int) $rating['count'],
+            'grades' => $grades,
+            'recotationSummary' => $recotationSummary,
+            'recotationEntries' => $recotationEntries,
         ]);
     }
 
@@ -116,6 +142,16 @@ class KilterController extends Controller
 
         $blockIds = $blocks->pluck('id')->map(static fn ($id): int => (int) $id)->all();
         $ratingsByBlock = $this->ratingForBlocks($blockIds);
+        $recotationCountsByBlock = [];
+        if (count($blockIds) > 0) {
+            $recotationCountsByBlock = DB::table('kilter_block_recotations')
+                ->whereIn('kilter_block_id', $blockIds)
+                ->select('kilter_block_id', DB::raw('count(*) as total'))
+                ->groupBy('kilter_block_id')
+                ->pluck('total', 'kilter_block_id')
+                ->map(static fn ($value): int => (int) $value)
+                ->all();
+        }
 
         return view('kilter.index', [
             'blocks' => $blocks,
@@ -127,6 +163,7 @@ class KilterController extends Controller
             'completedBlockIds' => $completedBlockIds,
             'selectedCompletedFilter' => $selectedCompletedFilter,
             'ratingsByBlock' => $ratingsByBlock,
+            'recotationCountsByBlock' => $recotationCountsByBlock,
         ]);
     }
 
@@ -229,6 +266,9 @@ class KilterController extends Controller
             ->where('kilter_block_id', $block->id)
             ->delete();
         DB::table('kilter_block_votes')
+            ->where('kilter_block_id', $block->id)
+            ->delete();
+        DB::table('kilter_block_recotations')
             ->where('kilter_block_id', $block->id)
             ->delete();
 
@@ -342,6 +382,72 @@ class KilterController extends Controller
         );
 
         return back()->with('status', 'Bozka ondo gorde da.');
+    }
+
+    public function recote(Request $request, KilterBlock $block): RedirectResponse
+    {
+        $user = $request->user();
+        if (! $user) {
+            abort(403);
+        }
+
+        if ((int) $block->user_id === (int) $user->id) {
+            abort(403, 'Ezin duzu zure blokea berriz graduatu.');
+        }
+
+        $data = $request->validate([
+            'grade' => ['required', Rule::in($this->grades())],
+        ]);
+
+        DB::table('kilter_block_recotations')->updateOrInsert(
+            [
+                'user_id' => $user->id,
+                'kilter_block_id' => $block->id,
+            ],
+            [
+                'grade' => (string) $data['grade'],
+                'updated_at' => now(),
+                'created_at' => now(),
+            ]
+        );
+
+        return back()->with('status', 'Recotazioa ondo gorde da.');
+    }
+
+    public function resolveRecote(Request $request, KilterBlock $block): RedirectResponse
+    {
+        $user = $request->user();
+        if (! $user) {
+            abort(403);
+        }
+
+        $isOwner = (int) $block->user_id === (int) $user->id;
+        $isAdmin = (bool) $user->is_admin;
+        if (! $isOwner && ! $isAdmin) {
+            abort(403);
+        }
+
+        $data = $request->validate([
+            'decision' => ['required', Rule::in(['accept', 'reject'])],
+        ]);
+
+        $grades = $this->grades();
+        $summary = $this->recotationSummary((int) $block->id, $grades);
+        $topGrade = $summary['top'] ?? null;
+
+        if (! $topGrade) {
+            return back()->with('status', 'Ez dago recotaziorik berrikusteko.');
+        }
+
+        if ($data['decision'] === 'accept') {
+            $block->update(['grade' => $topGrade]);
+        }
+
+        DB::table('kilter_block_recotations')
+            ->where('kilter_block_id', $block->id)
+            ->delete();
+
+        return back()->with('status', 'Recotazioak eguneratu dira.');
     }
 
     /**
@@ -535,6 +641,45 @@ class KilterController extends Controller
         }
 
         return $normalizedBoulder;
+    }
+
+    /**
+     * @param list<string> $grades
+     * @return array{counts:array<string,int>,top:?string,total:int}
+     */
+    private function recotationSummary(int $blockId, array $grades): array
+    {
+        $rows = DB::table('kilter_block_recotations')
+            ->select('grade', DB::raw('count(*) as total'))
+            ->where('kilter_block_id', $blockId)
+            ->groupBy('grade')
+            ->get();
+
+        $counts = [];
+        $total = 0;
+        foreach ($rows as $row) {
+            $grade = (string) $row->grade;
+            $count = (int) $row->total;
+            $counts[$grade] = $count;
+            $total += $count;
+        }
+
+        if ($total === 0) {
+            return ['counts' => [], 'top' => null, 'total' => 0];
+        }
+
+        $order = array_flip($grades);
+        uksort($counts, function (string $a, string $b) use ($counts, $order): int {
+            $countDiff = $counts[$b] <=> $counts[$a];
+            if ($countDiff !== 0) {
+                return $countDiff;
+            }
+            return ($order[$a] ?? 0) <=> ($order[$b] ?? 0);
+        });
+
+        $top = array_key_first($counts);
+
+        return ['counts' => $counts, 'top' => $top, 'total' => $total];
     }
 
     /**

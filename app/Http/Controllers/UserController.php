@@ -16,6 +16,9 @@ class UserController extends Controller
 {
     public function showPublic(User $user): View
     {
+        $viewer = auth()->user();
+        $isOwnProfile = $viewer && (int) $viewer->id === (int) $user->id;
+
         $completedIds = DB::table('kilter_block_completions')
             ->where('user_id', $user->id)
             ->orderByDesc('created_at')
@@ -40,12 +43,74 @@ class UserController extends Controller
         $bestGrade = $this->resolveBestGrade($completedGrades->all());
         $difficultyPercent = $this->averageDifficultyPercent($completedGrades->all());
 
+        $createdBlocks = KilterBlock::query()
+            ->with('map')
+            ->where('user_id', $user->id)
+            ->orderByDesc('created_at')
+            ->get();
+
+        $pendingRecotes = collect();
+        if ($isOwnProfile) {
+            $rows = DB::table('kilter_block_recotations as r')
+                ->join('kilter_blocks as b', 'b.id', '=', 'r.kilter_block_id')
+                ->where('b.user_id', $user->id)
+                ->select('r.kilter_block_id', 'r.grade', DB::raw('count(*) as total'))
+                ->groupBy('r.kilter_block_id', 'r.grade')
+                ->get();
+
+            $countsByBlock = [];
+            foreach ($rows as $row) {
+                $blockId = (int) $row->kilter_block_id;
+                $grade = strtolower(trim((string) $row->grade));
+                $countsByBlock[$blockId][$grade] = (int) $row->total;
+            }
+
+            $blockIds = array_keys($countsByBlock);
+            if (!empty($blockIds)) {
+                $blocksById = KilterBlock::query()
+                    ->whereIn('id', $blockIds)
+                    ->get()
+                    ->keyBy('id');
+
+                $order = $this->orderedGrades();
+                $weights = array_flip($order);
+
+                $pendingRecotes = collect($countsByBlock)->map(function (array $counts, int $blockId) use ($blocksById, $weights) {
+                    $block = $blocksById->get($blockId);
+                    if (!$block) {
+                        return null;
+                    }
+
+                    $top = null;
+                    $topCount = -1;
+                    $topWeight = PHP_INT_MAX;
+                    foreach ($counts as $grade => $count) {
+                        $weight = $weights[$grade] ?? PHP_INT_MAX;
+                        if ($count > $topCount || ($count === $topCount && $weight < $topWeight)) {
+                            $topCount = $count;
+                            $topWeight = $weight;
+                            $top = $grade;
+                        }
+                    }
+
+                    return [
+                        'block' => $block,
+                        'suggested_grade' => $top ? strtoupper($top) : null,
+                        'current_grade' => strtoupper((string) $block->grade),
+                    ];
+                })->filter()->values();
+            }
+        }
+
         return view('users.public', [
             'userProfile' => $user,
             'completedBlocks' => $completedBlocks,
             'totalCompletedBlocks' => $completedBlocks->count(),
             'bestGrade' => $bestGrade,
             'difficultyPercent' => $difficultyPercent,
+            'createdBlocks' => $createdBlocks,
+            'pendingRecotes' => $pendingRecotes,
+            'isOwnProfile' => $isOwnProfile,
         ]);
     }
 

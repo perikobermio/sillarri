@@ -20,13 +20,22 @@
             ? $block->map->image
             : '/storage/'.$block->map->image;
     }
+    $recotationCounts = $recotationSummary['counts'] ?? [];
+    $recotationTop = $recotationSummary['top'] ?? null;
+    $recotationTotal = (int) ($recotationSummary['total'] ?? 0);
+    $recotationEntries = $recotationEntries ?? [];
+    $canSuggestRecote = $viewerUser && ((int) $viewerUser->id !== (int) $block->user_id);
+    $canResolveRecote = $viewerUser && (((int) $viewerUser->id === (int) $block->user_id) || (bool) $viewerUser->is_admin);
 @endphp
 
 <section class="kilter-page">
     <div class="kilter-table-head">
         <div>
             <p class="eyebrow">Kilter Board Hub</p>
-            <h1>{{ $block->name }}</h1>
+            <h1>
+                {{ $block->name }}
+                <span class="recote-top-grade">{{ strtoupper($block->grade) }}</span>
+            </h1>
         </div>
         <a class="btn btn-secondary" href="{{ route('kilter') }}">Itzuli zerrendara</a>
     </div>
@@ -64,6 +73,29 @@
                         <span class="action-icon" aria-hidden="true">
                             <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
                                 <path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2-5.5-2.9-5.5 2.9 1-6.2-4.5-4.4 6.2-.9z"></path>
+                            </svg>
+                        </span>
+                    </button>
+                @endif
+
+                @if($canSuggestRecote)
+                    <button
+                        type="button"
+                        class="btn btn-secondary detail-action-btn {{ $userRecote ? 'is-active' : '' }}"
+                        id="open-recote-modal"
+                        title="Rekotazioa {{ $userRecote ? strtoupper($userRecote) : '' }}"
+                        aria-label="Rekotazioa {{ $userRecote ? strtoupper($userRecote) : '' }}"
+                    >
+                        <span class="action-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                                <path d="M12 3v3"></path>
+                                <path d="M12 18v3"></path>
+                                <path d="M4.2 7l2.1 2.1"></path>
+                                <path d="M17.7 17.7l2.1 2.1"></path>
+                                <path d="M3 12h3"></path>
+                                <path d="M18 12h3"></path>
+                                <path d="M4.2 17l2.1-2.1"></path>
+                                <path d="M17.7 6.3l2.1-2.1"></path>
                             </svg>
                         </span>
                     </button>
@@ -125,6 +157,55 @@
             <p><strong>Sortua:</strong> {{ $block->created_at?->format('Y-m-d') ?? '-' }}</p>
         </article>
 
+        @if($recotationTotal > 0)
+        <article class="panel">
+            <h3>
+                Rekotazioa
+                @if($recotationTop)
+                    <span class="recote-top-grade">{{ strtoupper((string) $recotationTop) }}</span>
+                @endif
+            </h3>
+            <div class="recote-section-head">
+                <p><strong>Proposamenak:</strong></p>
+                @if($canResolveRecote && $recotationTop)
+                    <div class="recote-actions">
+                        <form method="POST" action="{{ route('kilter.recote.resolve', $block) }}" class="detail-action-form">
+                            @csrf
+                            <input type="hidden" name="decision" value="accept">
+                            <button type="submit" class="btn btn-primary detail-action-btn" title="Onartu gradua" aria-label="Onartu gradua">
+                                <span class="action-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                                        <path d="M5 12l4 4 10-10"></path>
+                                    </svg>
+                                </span>
+                            </button>
+                        </form>
+                        <form method="POST" action="{{ route('kilter.recote.resolve', $block) }}" class="detail-action-form">
+                            @csrf
+                            <input type="hidden" name="decision" value="reject">
+                            <button type="submit" class="btn btn-secondary detail-action-btn" title="Baztertu rekotazioak" aria-label="Baztertu rekotazioak">
+                                <span class="action-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                                        <path d="M6 6l12 12"></path>
+                                        <path d="M18 6l-12 12"></path>
+                                    </svg>
+                                </span>
+                            </button>
+                        </form>
+                    </div>
+                @endif
+            </div>
+            <ul class="recote-list">
+                @foreach($recotationEntries as $entry)
+                    <li>
+                        <span class="recote-user">{{ $entry['username'] ?? '-' }}</span>
+                        <span class="recote-grade">{{ strtoupper((string) ($entry['grade'] ?? '')) }}</span>
+                    </li>
+                @endforeach
+            </ul>
+        </article>
+        @endif
+
         @if($mapImageUrl !== '')
             <article class="panel">
                 <h3>Mapa</h3>
@@ -173,6 +254,30 @@
             <div class="kilter-form-actions">
                 <button type="submit" class="btn btn-primary">Gorde bozka</button>
                 <button type="button" class="btn btn-secondary" id="cancel-vote-modal">Utzi</button>
+            </div>
+        </form>
+    </div>
+</div>
+@endif
+
+@if($canSuggestRecote)
+<div class="modal-shell hidden-modal" id="recote-modal" role="dialog" aria-modal="true" aria-labelledby="recote-modal-title">
+    <div class="modal-card">
+        <div class="modal-head">
+            <h2 id="recote-modal-title">Recotatu blokea</h2>
+            <button type="button" class="icon-btn" id="close-recote-modal" aria-label="Itxi leihoa">×</button>
+        </div>
+        <form method="POST" action="{{ route('kilter.recote', $block) }}" class="kilter-form">
+            @csrf
+            <label for="recote-grade">Gradu berria</label>
+            <select name="grade" id="recote-grade" required>
+                @foreach($grades as $grade)
+                    <option value="{{ $grade }}" @selected($userRecote === $grade)>{{ $grade }}</option>
+                @endforeach
+            </select>
+            <div class="kilter-form-actions">
+                <button type="submit" class="btn btn-primary">Rekotatu</button>
+                <button type="button" class="btn btn-secondary" id="cancel-recote-modal">Utzi</button>
             </div>
         </form>
     </div>
@@ -370,6 +475,32 @@
     })();
 </script>
 @endif
+
+@if($canSuggestRecote)
+<script>
+    (function () {
+        const modal = document.getElementById('recote-modal');
+        const openBtn = document.getElementById('open-recote-modal');
+        const closeBtn = document.getElementById('close-recote-modal');
+        const cancelBtn = document.getElementById('cancel-recote-modal');
+
+        if (!modal || !openBtn || !closeBtn || !cancelBtn) return;
+
+        function setModalOpen(isOpen) {
+            modal.classList.toggle('hidden-modal', !isOpen);
+            document.body.style.overflow = isOpen ? 'hidden' : '';
+        }
+
+        openBtn.addEventListener('click', () => setModalOpen(true));
+        closeBtn.addEventListener('click', () => setModalOpen(false));
+        cancelBtn.addEventListener('click', () => setModalOpen(false));
+        modal.addEventListener('click', (event) => {
+            if (event.target === modal) setModalOpen(false);
+        });
+    })();
+</script>
+@endif
+
 
 @if($canDelete)
 <script>
