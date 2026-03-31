@@ -16,7 +16,7 @@
                     </a>
                 @endauth
 
-                <form method="GET" action="{{ route('kilter') }}" class="kilter-search">
+                <form method="GET" action="{{ route('kilter') }}" class="kilter-search" id="kilter-filter-form">
                     @php
                         $romanMap = [
                             '5' => 'V',
@@ -110,7 +110,13 @@
                         </div>
                     </details>
 
-                    <a class="btn btn-secondary clear-filters-btn" href="{{ route('kilter') }}" aria-label="Garbitu">
+                    <a
+                        class="btn btn-secondary clear-filters-btn {{ $filtersActive ? '' : 'is-disabled' }}"
+                        href="{{ route('kilter', ['clear' => 1]) }}"
+                        aria-label="Garbitu"
+                        id="clear-filters-btn"
+                        aria-disabled="{{ $filtersActive ? 'false' : 'true' }}"
+                    >
                         <span class="clear-filters-label">Garbitu</span>
                     </a>
                     <button type="submit" class="btn btn-primary search-submit-btn" aria-label="Bilatu">
@@ -205,20 +211,20 @@
     </div>
 </div>
 
-<script>
-    (function () {
-        const filterDetails = document.querySelectorAll('.grade-filter-box, .extra-filter-box');
+    <script>
+        (function () {
+            const filterDetails = document.querySelectorAll('.grade-filter-box, .extra-filter-box');
 
-        document.addEventListener('click', (event) => {
-            filterDetails.forEach((detailsEl) => {
-                if (!detailsEl?.open) return;
-                if (detailsEl.contains(event.target)) return;
-                detailsEl.open = false;
+            document.addEventListener('click', (event) => {
+                filterDetails.forEach((detailsEl) => {
+                    if (!detailsEl?.open) return;
+                    if (detailsEl.contains(event.target)) return;
+                    detailsEl.open = false;
+                });
             });
-        });
 
-        const viewer = document.getElementById('boulder-viewer');
-        const closeBtn = document.getElementById('close-boulder-viewer');
+            const viewer = document.getElementById('boulder-viewer');
+            const closeBtn = document.getElementById('close-boulder-viewer');
         const viewerTitle = document.getElementById('boulder-viewer-title');
         const viewerImage = document.getElementById('viewer-image');
         const viewerLayer = document.getElementById('viewer-layer');

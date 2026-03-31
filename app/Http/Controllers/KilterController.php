@@ -75,21 +75,52 @@ class KilterController extends Controller
 
     public function index(Request $request): View
     {
-        $search = trim((string) $request->query('q', ''));
-        $creatorQuery = trim((string) $request->query('creator', ''));
+        $clearRequested = $request->query('clear') === '1';
+        if ($clearRequested) {
+            $request->session()->forget('kilterFilters');
+        }
+
+        $incoming = [
+            'q' => trim((string) $request->query('q', '')),
+            'creator' => trim((string) $request->query('creator', '')),
+            'completed' => trim((string) $request->query('completed', 'all')),
+            'location' => trim((string) $request->query('location', '')),
+            'grades' => $request->query('grade', []),
+        ];
+
+        $hasIncomingFilters = $incoming['q'] !== ''
+            || $incoming['creator'] !== ''
+            || $incoming['location'] !== ''
+            || ($incoming['completed'] !== '' && $incoming['completed'] !== 'all')
+            || (is_array($incoming['grades']) ? count($incoming['grades']) > 0 : (string) $incoming['grades'] !== '');
+
+        if ($hasIncomingFilters) {
+            $request->session()->put('kilterFilters', $incoming);
+        }
+
+        $stored = $hasIncomingFilters || $clearRequested ? null : $request->session()->get('kilterFilters');
+        $stored = is_array($stored) ? $stored : [];
+
+        $search = trim((string) ($hasIncomingFilters ? $incoming['q'] : ($stored['q'] ?? '')));
+        $creatorQuery = trim((string) ($hasIncomingFilters ? $incoming['creator'] : ($stored['creator'] ?? '')));
         $selectedCreator = ctype_digit($creatorQuery) ? (int) $creatorQuery : null;
-        $locationQuery = trim((string) $request->query('location', ''));
-        $completedFilterQuery = trim((string) $request->query('completed', 'all'));
+        $locationQuery = trim((string) ($hasIncomingFilters ? $incoming['location'] : ($stored['location'] ?? '')));
+        $completedFilterQuery = trim((string) ($hasIncomingFilters ? $incoming['completed'] : ($stored['completed'] ?? 'all')));
         $selectedCompletedFilter = in_array($completedFilterQuery, ['all', 'done', 'pending'], true)
             ? $completedFilterQuery
             : 'all';
         $grades = $this->grades();
-        $gradeQuery = $request->query('grade', []);
+        $gradeQuery = $hasIncomingFilters ? $incoming['grades'] : ($stored['grades'] ?? []);
         $gradeList = is_array($gradeQuery) ? $gradeQuery : [$gradeQuery];
         $selectedGrades = array_values(array_unique(array_filter(array_map(function ($value): string {
             return strtolower(trim((string) $value));
         }, $gradeList))));
         $selectedGrades = array_values(array_intersect($selectedGrades, $grades));
+        $filtersActive = $search !== ''
+            || $creatorQuery !== ''
+            || $locationQuery !== ''
+            || $selectedCompletedFilter !== 'all'
+            || count($selectedGrades) > 0;
 
         $user = $request->user();
 
@@ -179,6 +210,7 @@ class KilterController extends Controller
             'selectedCompletedFilter' => $selectedCompletedFilter,
             'ratingsByBlock' => $ratingsByBlock,
             'recotationCountsByBlock' => $recotationCountsByBlock,
+            'filtersActive' => $filtersActive,
         ]);
     }
 

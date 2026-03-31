@@ -2483,6 +2483,11 @@ main {
   color: var(--text);
 }
 
+.clear-filters-btn.is-disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
 .clear-filters-label {
   display: none;
 }
