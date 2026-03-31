@@ -151,6 +151,7 @@
             <p><strong>ID:</strong> {{ $block->id }}</p>
             <p><strong>Deskribapena:</strong> {{ $block->description }}</p>
             <p><strong>Gradua:</strong> {{ $block->grade }}</p>
+            <p><strong>Kokapena:</strong> {{ $block->kokapena ?? '-' }}</p>
             <p><strong>Balorazioa:</strong> {{ number_format($ratingAverage, 1) }}/10 ({{ $ratingCount }} bozka)</p>
             <p><strong>Mapa:</strong> {{ $block->map?->name ?? '-' }}</p>
             <p><strong>Sortzailea:</strong> {{ $block->creator?->name ?? '-' }}</p>

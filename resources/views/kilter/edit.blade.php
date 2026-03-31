@@ -36,6 +36,24 @@
                 <small class="error">{{ $message }}</small>
             @enderror
 
+            <label>Kokapena</label>
+            <input
+                type="text"
+                name="kokapena"
+                value="{{ old('kokapena', $block->kokapena) }}"
+                list="kokapena-options"
+                placeholder="Adib. Gernika, Rocodromo, Bilbao..."
+                required
+            >
+            <datalist id="kokapena-options">
+                @foreach($locations as $location)
+                    <option value="{{ $location }}"></option>
+                @endforeach
+            </datalist>
+            @error('kokapena')
+                <small class="error">{{ $message }}</small>
+            @enderror
+
             <label>Mapa</label>
             <div class="map-picker-row">
                 <select name="map_id" id="map-select" required>

@@ -71,6 +71,21 @@
                                 placeholder="Bilatu blokea izenaren arabera..."
                             >
 
+                            <label for="location-filter">Kokapena</label>
+                            <input
+                                id="location-filter"
+                                type="text"
+                                name="location"
+                                value="{{ $selectedLocation }}"
+                                list="kokapena-filter-options"
+                                placeholder="Aukeratu kokapena..."
+                            >
+                            <datalist id="kokapena-filter-options">
+                                @foreach($locations as $location)
+                                    <option value="{{ $location }}"></option>
+                                @endforeach
+                            </datalist>
+
                             <label for="creator-filter">Erabiltzailea</label>
                             <select id="creator-filter" name="creator">
                                 <option value="">Denak</option>

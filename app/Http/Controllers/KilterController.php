@@ -78,6 +78,7 @@ class KilterController extends Controller
         $search = trim((string) $request->query('q', ''));
         $creatorQuery = trim((string) $request->query('creator', ''));
         $selectedCreator = ctype_digit($creatorQuery) ? (int) $creatorQuery : null;
+        $locationQuery = trim((string) $request->query('location', ''));
         $completedFilterQuery = trim((string) $request->query('completed', 'all'));
         $selectedCompletedFilter = in_array($completedFilterQuery, ['all', 'done', 'pending'], true)
             ? $completedFilterQuery
@@ -92,10 +93,22 @@ class KilterController extends Controller
 
         $user = $request->user();
 
+        $locations = KilterBlock::query()
+            ->whereNotNull('kokapena')
+            ->where('kokapena', '!=', '')
+            ->select('kokapena')
+            ->distinct()
+            ->orderBy('kokapena')
+            ->pluck('kokapena')
+            ->all();
+
         $blocks = KilterBlock::query()
             ->with(['map', 'creator'])
             ->when($search !== '', function ($query) use ($search): void {
                 $query->where('name', 'like', "%{$search}%");
+            })
+            ->when($locationQuery !== '', function ($query) use ($locationQuery): void {
+                $query->where('kokapena', $locationQuery);
             })
             ->when(count($selectedGrades) > 0, function ($query) use ($selectedGrades): void {
                 $query->whereIn(DB::raw('LOWER(grade)'), $selectedGrades);
@@ -160,6 +173,8 @@ class KilterController extends Controller
             'selectedGrades' => $selectedGrades,
             'creators' => $creators,
             'selectedCreator' => $selectedCreator,
+            'locations' => $locations,
+            'selectedLocation' => $locationQuery,
             'completedBlockIds' => $completedBlockIds,
             'selectedCompletedFilter' => $selectedCompletedFilter,
             'ratingsByBlock' => $ratingsByBlock,
@@ -170,10 +185,19 @@ class KilterController extends Controller
     public function create(Request $request): View
     {
         $maps = KilterMap::query()->orderBy('name')->get();
+        $locations = KilterBlock::query()
+            ->whereNotNull('kokapena')
+            ->where('kokapena', '!=', '')
+            ->select('kokapena')
+            ->distinct()
+            ->orderBy('kokapena')
+            ->pluck('kokapena')
+            ->all();
 
         return view('kilter.create', [
             'maps' => $maps,
             'grades' => $this->grades(),
+            'locations' => $locations,
             'isMobileClient' => $this->isMobileRequest($request),
         ]);
     }
@@ -192,11 +216,20 @@ class KilterController extends Controller
         }
 
         $maps = KilterMap::query()->orderBy('name')->get();
+        $locations = KilterBlock::query()
+            ->whereNotNull('kokapena')
+            ->where('kokapena', '!=', '')
+            ->select('kokapena')
+            ->distinct()
+            ->orderBy('kokapena')
+            ->pluck('kokapena')
+            ->all();
 
         return view('kilter.edit', [
             'block' => $block,
             'maps' => $maps,
             'grades' => $this->grades(),
+            'locations' => $locations,
             'isMobileClient' => $this->isMobileRequest($request),
         ]);
     }
@@ -213,6 +246,7 @@ class KilterController extends Controller
             'name' => $payload['name'],
             'description' => $payload['description'],
             'grade' => $payload['grade'],
+            'kokapena' => $payload['kokapena'],
             'map_id' => $payload['map_id'],
             'user_id' => $request->user()->id,
             'boulder' => $payload['boulder'],
@@ -254,35 +288,47 @@ class KilterController extends Controller
             return back()->withErrors(['boulder' => $e->getMessage()])->withInput();
         }
 
+        $originalBoulder = (string) $block->boulder;
+        $newBoulder = (string) $payload['boulder'];
+
         $block->update([
             'name' => $payload['name'],
             'description' => $payload['description'],
             'grade' => $payload['grade'],
+            'kokapena' => $payload['kokapena'],
             'map_id' => $payload['map_id'],
-            'boulder' => $payload['boulder'],
+            'boulder' => $newBoulder,
         ]);
 
-        DB::table('kilter_block_completions')
-            ->where('kilter_block_id', $block->id)
-            ->delete();
-        DB::table('kilter_block_votes')
-            ->where('kilter_block_id', $block->id)
-            ->delete();
-        DB::table('kilter_block_recotations')
-            ->where('kilter_block_id', $block->id)
-            ->delete();
+        $coordinatesChanged = trim($originalBoulder) !== trim($newBoulder);
 
-        DB::table('kilter_block_votes')->insert([
-            'user_id' => $block->user_id,
-            'kilter_block_id' => $block->id,
-            'value' => 5.0,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        if ($coordinatesChanged) {
+            DB::table('kilter_block_completions')
+                ->where('kilter_block_id', $block->id)
+                ->delete();
+            DB::table('kilter_block_votes')
+                ->where('kilter_block_id', $block->id)
+                ->delete();
+            DB::table('kilter_block_recotations')
+                ->where('kilter_block_id', $block->id)
+                ->delete();
+
+            DB::table('kilter_block_votes')->insert([
+                'user_id' => $block->user_id,
+                'kilter_block_id' => $block->id,
+                'value' => 5.0,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        $message = $coordinatesChanged
+            ? 'Blokea editatu da. Realizazio eta bozka guztiak berrabiarazi dira.'
+            : 'Blokea editatu da.';
 
         return redirect()
             ->route('kilter.show', $block)
-            ->with('status', 'Blokea editatu da. Realizazio eta bozka guztiak berrabiarazi dira.');
+            ->with('status', $message);
     }
 
     public function storeMap(Request $request): JsonResponse
@@ -554,6 +600,7 @@ class KilterController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string'],
             'grade' => ['required', Rule::in($this->grades())],
+            'kokapena' => ['required', 'string', 'max:120'],
             'map_id' => ['required', 'integer', 'exists:kilter_maps,id'],
             'boulder' => ['required', 'json'],
         ]);
@@ -564,6 +611,7 @@ class KilterController extends Controller
             'name' => (string) $data['name'],
             'description' => (string) $data['description'],
             'grade' => (string) $data['grade'],
+            'kokapena' => (string) $data['kokapena'],
             'map_id' => (int) $data['map_id'],
             'boulder' => $normalizedBoulder,
         ];

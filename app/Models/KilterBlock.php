@@ -13,6 +13,7 @@ class KilterBlock extends Model
         'name',
         'description',
         'grade',
+        'kokapena',
         'map_id',
         'user_id',
         'boulder',
