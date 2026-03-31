@@ -106,17 +106,12 @@
         </div>
 
         <div class="table-scroll">
-            <table class="kilter-table">
+            <table class="kilter-table kilter-blocks-table">
                 <thead>
                     <tr>
-                        <th class="col-detail">Xehet.</th>
-                        <th class="col-id">ID</th>
-                        <th>Izena</th>
-                        <th class="col-description">Deskribapena</th>
-                        <th>Gradua</th>
-                        <th>Mapa</th>
-                        <th>Sortzailea</th>
-                        <th class="col-created">Sortua</th>
+                        <th class="col-detail"></th>
+                        <th class="col-name">Izena</th>
+                        <th class="col-grade">Gradua</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -136,43 +131,33 @@
                                     : '/storage/'.$block->map->image;
                             }
                         @endphp
-                        <tr>
-                            <td colspan="8" class="row-padding-none">
-                                <div class="block-row-wrap">
-                                    <a
-                                        class="block-detail-link {{ $showRatingTint ? 'is-rated' : '' }}"
-                                        href="{{ route('kilter.show', $block) }}"
-                                        aria-label="Blokearen xehetasunak ikusi"
-                                        title="Xehetasunak · Balorazioa {{ number_format($ratingAvg, 1) }}"
-                                        @if($showRatingTint)
-                                            style="--rating-color: {{ $ratingColor }}"
-                                        @endif
-                                    >⋮</a>
-                                    <button
-                                        type="button"
-                                        class="block-row-btn {{ $mapImageUrl !== '' ? 'is-clickable' : '' }} {{ $isCompleted ? 'is-completed' : '' }}"
-                                        @if($mapImageUrl !== '')
-                                            data-image-url="{{ $mapImageUrl }}"
-                                            data-points='@json($boulderData)'
-                                            data-title="{{ $block->name }}"
-                                        @else
-                                            disabled
-                                        @endif
-                                    >
-                                        <span class="col-id">{{ $block->id }}</span>
-                                        <span>{{ $block->name }}</span>
-                                        <span class="col-description">{{ $block->description }}</span>
-                                        <span>{{ $block->grade }}</span>
-                                        <span>{{ $block->map?->name ?? '-' }}</span>
-                                        <span>{{ $block->creator?->name ?? '-' }}</span>
-                                        <span class="col-created">{{ $block->created_at?->format('Y-m-d') }}</span>
-                                    </button>
-                                </div>
+                        <tr
+                            class="block-row {{ $mapImageUrl !== '' ? 'is-clickable' : '' }} {{ $isCompleted ? 'is-completed' : '' }}"
+                            @if($mapImageUrl !== '')
+                                data-image-url="{{ $mapImageUrl }}"
+                                data-points='@json($boulderData)'
+                                data-title="{{ $block->name }}"
+                                tabindex="0"
+                                role="button"
+                            @endif
+                        >
+                            <td class="col-detail">
+                                <a
+                                    class="block-detail-link {{ $showRatingTint ? 'is-rated' : '' }}"
+                                    href="{{ route('kilter.show', $block) }}"
+                                    aria-label="Blokearen xehetasunak ikusi"
+                                    title="Xehetasunak · Balorazioa {{ number_format($ratingAvg, 1) }}"
+                                    @if($showRatingTint)
+                                        style="--rating-color: {{ $ratingColor }}"
+                                    @endif
+                                >⋮</a>
                             </td>
+                            <td class="col-name">{{ $block->name }}</td>
+                            <td class="col-grade">{{ $block->grade }}</td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8">Ez dago blokerik uneko iragazkiarekin.</td>
+                            <td colspan="3">Ez dago blokerik uneko iragazkiarekin.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -217,7 +202,7 @@
         const viewerStage = document.getElementById('viewer-stage');
         const viewerWrap = document.getElementById('viewer-wrap');
         const viewerMapError = document.getElementById('viewer-map-error');
-        const buttons = document.querySelectorAll('.block-row-btn.is-clickable');
+        const buttons = document.querySelectorAll('.block-row.is-clickable');
 
         if (!viewer || !viewerImage || !viewerLayer || !viewerStage || !viewerWrap) return;
 

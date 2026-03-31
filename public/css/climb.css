@@ -746,13 +746,13 @@ main {
 .dashboard .table-scroll {
   width: 100%;
   max-width: 100%;
-  overflow-x: hidden;
+  overflow-x: auto;
 }
 
 .table-scroll {
   width: 100%;
   max-width: 100%;
-  overflow-x: hidden;
+  overflow-x: auto;
 }
 
 .table-scroll table {
@@ -1395,8 +1395,8 @@ main {
 
 .kilter-table th,
 .kilter-table td {
-  text-align: left;
-  padding: 0.75rem 0.6rem;
+  text-align: center;
+  padding: 0.75rem 0.85rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   vertical-align: top;
 }
@@ -1408,35 +1408,59 @@ main {
   text-transform: uppercase;
 }
 
+.kilter-blocks-table {
+  width: 100%;
+  min-width: 0;
+  table-layout: auto;
+}
+
+.kilter-blocks-table thead th.col-detail {
+  border-bottom-color: transparent;
+}
+
 .kilter-table code {
   color: #ffd6b4;
   white-space: nowrap;
 }
 
-.row-padding-none {
-  padding: 0 !important;
+.kilter-blocks-table th.col-detail,
+.kilter-blocks-table td.col-detail {
+  width: 35px;
+  padding: 0;
 }
 
-.col-detail {
-  width: 48px;
+.kilter-blocks-table th.col-grade,
+.kilter-blocks-table td.col-grade {
+  width: 90px;
+  white-space: nowrap;
 }
 
-.block-row-wrap {
-  display: grid;
-  grid-template-columns: 42px 1fr;
-  align-items: stretch;
+.kilter-blocks-table td {
+  padding: 0;
+}
+
+.kilter-blocks-table td.col-name {
+  white-space: normal;
+  padding: 0.65rem 0.85rem;
+}
+
+.kilter-blocks-table td.col-grade {
+  padding: 0.65rem 0.85rem;
 }
 
 .block-detail-link {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  width: 100%;
+  height: 100%;
   color: var(--sand);
   text-decoration: none;
   border-right: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.03);
   font-size: 1.35rem;
   line-height: 1;
+  padding: 0.55rem 0;
 }
 
 .block-detail-link:hover {
@@ -1452,35 +1476,27 @@ main {
   background: color-mix(in srgb, var(--rating-color, #4e79d1) 92%, #111 8%);
 }
 
-.block-row-btn {
-  width: 100%;
-  border: 0;
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  text-align: left;
-  display: grid;
-  grid-template-columns: 70px 200px 1fr 90px 170px 140px 130px;
-  gap: 0.6rem;
-  align-items: start;
-  padding: 0.7rem 0.6rem;
-}
-
-.block-row-btn.is-clickable {
+.block-row.is-clickable {
   cursor: pointer;
 }
 
-.block-row-btn.is-clickable:hover {
+.block-row.is-clickable:hover {
   background: rgba(255, 255, 255, 0.06);
 }
 
-.block-row-btn.is-completed {
-  background: transparent;
-  box-shadow: inset 4px 0 0 rgba(255, 255, 255, 0.9);
+.block-row.is-completed td.col-name {
+  position: relative;
 }
 
-.block-row-btn.is-completed.is-clickable:hover {
-  background: rgba(255, 255, 255, 0.06);
+.block-row.is-completed td.col-name::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 4px;
+  background: rgba(255, 255, 255, 0.9);
+  pointer-events: none;
 }
 
 .kilter-detail-grid {
@@ -2266,14 +2282,6 @@ main {
   .grade-group-title {
     width: 100%;
     max-width: 100%;
-  }
-
-  .block-row-btn {
-    grid-template-columns: minmax(170px, 1.1fr) minmax(75px, 0.7fr) minmax(110px, 0.9fr) minmax(120px, 1fr);
-  }
-
-  .block-row-wrap {
-    grid-template-columns: 38px 1fr;
   }
 
   .kilter-table {
