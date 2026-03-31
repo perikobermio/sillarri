@@ -168,11 +168,23 @@
             const clouds = Array.isArray(hourly.cloudcover) ? hourly.cloudcover : [];
 
             const rows = [];
+            const now = new Date();
+            const windowStart = new Date(`${date}T00:00:00`);
+            const windowEnd = new Date(windowStart);
+            windowEnd.setDate(windowEnd.getDate() + 1);
+            const dateIsToday = formatDateKey(now) === date;
+            if (dateIsToday) {
+                windowStart.setHours(now.getHours(), 0, 0, 0);
+            }
+
             for (let i = 0; i < times.length; i++) {
-                if (!times[i].startsWith(date)) continue;
+                const iso = times[i];
+                const stamp = new Date(iso);
+                if (Number.isNaN(stamp.getTime())) continue;
+                if (stamp < windowStart || stamp >= windowEnd) continue;
                 rows.push(`
                     <tr>
-                        <td>${formatHourLabel(times[i])}</td>
+                        <td>${formatHourLabel(iso)}</td>
                         <td>${iconFromWmo(codes[i])}</td>
                         <td>${Math.round(temps[i] ?? 0)}°</td>
                         <td>${Math.round(feels[i] ?? 0)}°</td>

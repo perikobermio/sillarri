@@ -578,15 +578,16 @@ main {
 
 .weather-detail-table-wrap {
   width: 100%;
-  overflow-x: hidden;
+  overflow-x: auto;
   border-radius: 12px;
   position: relative;
 }
 
 .weather-detail-table {
-  width: 100%;
+  width: max-content;
+  min-width: 100%;
   border-collapse: collapse;
-  table-layout: fixed;
+  table-layout: auto;
 }
 
 .weather-detail-table th,
