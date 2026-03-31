@@ -33,11 +33,11 @@
         <img id="home-hero-image" src="{{ $heroUrl }}" alt="{{ $heroAlt }}">
         <div class="card-overlay">
             @if($heroPhoto)
-                <h2>{{ $heroPhoto->title }}</h2>
-                <p>{{ $heroPhoto->description ?? 'Sillarri komunitateko argazkia' }}</p>
+                <h2 id="home-hero-title">{{ $heroPhoto->title }}</h2>
+                <p id="home-hero-desc">{{ $heroPhoto->description ?? 'Sillarri komunitateko argazkia' }}</p>
             @else
-                <h2>Asteko bidea</h2>
-                <p>"Aresta del Vent" · 6c · 38m · Kareharri teknikoa</p>
+                <h2 id="home-hero-title">Asteko bidea</h2>
+                <p id="home-hero-desc">"Aresta del Vent" · 6c · 38m · Kareharri teknikoa</p>
             @endif
         </div>
     </div>
@@ -117,6 +117,9 @@
         const heroImages = @json($heroGalleryPayload);
         const heroCard = document.getElementById('home-hero-card');
         const heroImage = document.getElementById('home-hero-image');
+        const heroTitle = document.getElementById('home-hero-title');
+        const heroDesc = document.getElementById('home-hero-desc');
+        const initialHeroId = @json($heroPhoto?->id);
         let heroIndex = 0;
 
         function pickRandomIndex(exclude) {
@@ -132,13 +135,27 @@
             if (!heroImage || !heroImages.length) return;
             heroImage.classList.remove('is-visible');
             window.setTimeout(() => {
-                heroImage.src = heroImages[index].url;
-                heroImage.alt = heroImages[index].title || 'Argazkia';
+                const item = heroImages[index];
+                heroImage.src = item.url;
+                heroImage.alt = item.title || 'Argazkia';
+                if (heroTitle) heroTitle.textContent = item.title || 'Argazkia';
+                if (heroDesc) heroDesc.textContent = item.description || 'Sillarri komunitateko argazkia';
                 heroImage.classList.add('is-visible');
             }, 260);
         }
 
         if (heroImages.length > 0 && heroImage) {
+            if (initialHeroId !== null) {
+                const initialIndex = heroImages.findIndex((item) => item.id === initialHeroId);
+                if (initialIndex >= 0) {
+                    heroIndex = initialIndex;
+                }
+            }
+            if (heroImages[heroIndex]) {
+                const current = heroImages[heroIndex];
+                if (heroTitle) heroTitle.textContent = current.title || 'Argazkia';
+                if (heroDesc) heroDesc.textContent = current.description || 'Sillarri komunitateko argazkia';
+            }
             heroImage.classList.add('is-visible');
             window.setInterval(() => {
                 heroIndex = pickRandomIndex(heroIndex);
