@@ -121,6 +121,7 @@
         const heroDesc = document.getElementById('home-hero-desc');
         const initialHeroId = @json($heroPhoto?->id);
         let heroIndex = 0;
+        const preloadCache = new Map();
 
         function buildRotationQueue(currentIndex) {
             const indices = heroImages.map((_, idx) => idx).filter((idx) => idx !== currentIndex);
@@ -146,6 +147,12 @@
 
         if (heroImages.length > 0 && heroImage) {
             let rotationQueue = [];
+            const preloadImage = (index) => {
+                if (!heroImages[index] || preloadCache.has(index)) return;
+                const img = new Image();
+                img.src = heroImages[index].url;
+                preloadCache.set(index, img);
+            };
             if (initialHeroId !== null) {
                 const initialIndex = heroImages.findIndex((item) => item.id === initialHeroId);
                 if (initialIndex >= 0) {
@@ -158,12 +165,22 @@
                 if (heroDesc) heroDesc.textContent = current.description || 'Sillarri komunitateko argazkia';
             }
             heroImage.classList.add('is-visible');
+            if (!rotationQueue.length) {
+                rotationQueue = buildRotationQueue(heroIndex);
+            }
+            if (rotationQueue.length) {
+                preloadImage(rotationQueue[0]);
+            }
             window.setInterval(() => {
                 if (heroImages.length <= 1) return;
                 if (!rotationQueue.length) {
                     rotationQueue = buildRotationQueue(heroIndex);
                 }
-                heroIndex = rotationQueue.shift();
+                const nextIndex = rotationQueue.shift();
+                if (rotationQueue.length) {
+                    preloadImage(rotationQueue[0]);
+                }
+                heroIndex = nextIndex;
                 swapHero(heroIndex);
             }, 7000);
         }
