@@ -1396,7 +1396,7 @@ main {
 
 .kilter-table th,
 .kilter-table td {
-  text-align: center;
+  text-align: left;
   padding: 0.75rem 0.85rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   vertical-align: top;
@@ -2295,7 +2295,7 @@ main {
 
   .user-public-table th:nth-child(3),
   .user-public-table td:nth-child(3) {
-    width: 15px;
+    width: 65px;
   }
 
   .user-public-table th:nth-child(4),
