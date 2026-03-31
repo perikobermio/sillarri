@@ -122,13 +122,13 @@
         const initialHeroId = @json($heroPhoto?->id);
         let heroIndex = 0;
 
-        function pickRandomIndex(exclude) {
-            if (heroImages.length <= 1) return 0;
-            let next = Math.floor(Math.random() * heroImages.length);
-            while (next === exclude) {
-                next = Math.floor(Math.random() * heroImages.length);
+        function buildRotationQueue(currentIndex) {
+            const indices = heroImages.map((_, idx) => idx).filter((idx) => idx !== currentIndex);
+            for (let i = indices.length - 1; i > 0; i -= 1) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [indices[i], indices[j]] = [indices[j], indices[i]];
             }
-            return next;
+            return indices;
         }
 
         function swapHero(index) {
@@ -145,6 +145,7 @@
         }
 
         if (heroImages.length > 0 && heroImage) {
+            let rotationQueue = [];
             if (initialHeroId !== null) {
                 const initialIndex = heroImages.findIndex((item) => item.id === initialHeroId);
                 if (initialIndex >= 0) {
@@ -158,7 +159,11 @@
             }
             heroImage.classList.add('is-visible');
             window.setInterval(() => {
-                heroIndex = pickRandomIndex(heroIndex);
+                if (heroImages.length <= 1) return;
+                if (!rotationQueue.length) {
+                    rotationQueue = buildRotationQueue(heroIndex);
+                }
+                heroIndex = rotationQueue.shift();
                 swapHero(heroIndex);
             }, 7000);
         }
