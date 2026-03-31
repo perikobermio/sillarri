@@ -578,7 +578,7 @@ main {
 
 .weather-detail-table-wrap {
   width: 100%;
-  overflow-x: auto;
+  overflow-x: hidden;
   border-radius: 12px;
   position: relative;
 }
@@ -586,7 +586,7 @@ main {
 .weather-detail-table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 680px;
+  table-layout: fixed;
 }
 
 .weather-detail-table th,
@@ -595,6 +595,7 @@ main {
   border-bottom: 1px solid rgba(255, 255, 255, 0.12);
   text-align: left;
   font-size: 0.9rem;
+  word-break: break-word;
 }
 
 .weather-detail-table thead th {
@@ -748,6 +749,27 @@ main {
   overflow-x: hidden;
 }
 
+.table-scroll {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.table-scroll table {
+  width: 100%;
+  min-width: 0;
+  table-layout: fixed;
+}
+
+.table-scroll th,
+.table-scroll td {
+  word-break: break-word;
+}
+
+.kilter-table {
+  width: 100%;
+}
+
 .stats-grid {
   display: grid;
   gap: 1rem;
@@ -800,21 +822,6 @@ main {
     justify-content: space-between;
   }
 
-  .weather-detail-table-wrap::after {
-    content: "← mugitu →";
-    position: sticky;
-    bottom: 0.25rem;
-    right: 0.4rem;
-    float: right;
-    font-size: 0.7rem;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.65);
-    background: rgba(18, 17, 15, 0.7);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 999px;
-    padding: 0.2rem 0.5rem;
-  }
 
   .hero-card img {
     height: 320px;
@@ -912,6 +919,83 @@ main {
 
 .media-lightbox-text h3 {
   margin: 0 0 0.4rem;
+}
+
+.admin-page .admin-section h3 {
+  margin-top: 0;
+}
+
+.admin-actions {
+  display: inline-flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  width: 100%;
+}
+
+.btn-icon {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border-radius: 10px;
+}
+
+.btn-icon svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+.btn-icon svg path {
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+
+.admin-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.6rem;
+}
+
+.admin-map-thumb {
+  width: 96px;
+  height: 64px;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.admin-confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  margin-top: 0.9rem;
+}
+
+.admin-location-form {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.admin-location-form input {
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  padding: 0.55rem 0.6rem;
+}
+
+@media (max-width: 920px) {
+  .admin-location-form {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 920px) {

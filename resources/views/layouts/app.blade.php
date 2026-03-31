@@ -51,6 +51,9 @@
                         @endif
                         <a href="{{ route('multimedia') }}">Multimedia</a>
                         <a href="{{ route('settings') }}">Ezarpenak</a>
+                        @if((bool) auth()->user()->is_admin)
+                            <a href="{{ route('admin') }}">Admin</a>
+                        @endif
                         <hr>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
@@ -97,16 +100,7 @@
             const ticker = document.getElementById('headerWeatherTicker');
             if (!ticker) return;
             const weatherBaseUrl = "{{ route('weather') }}";
-
-            const locations = [
-                { name: 'Ereño', lat: 43.357, lon: -2.625 },
-                { name: 'Urkiola', lat: 43.103, lon: -2.646 },
-                { name: 'Mañaria', lat: 43.137, lon: -2.661 },
-                { name: 'Atauri', lat: 42.736, lon: -2.455 },
-                { name: 'Gernika', lat: 43.317, lon: -2.678 },
-                { name: 'Turtzioz', lat: 43.272, lon: -3.255 },
-                { name: 'Ramales', lat: 43.257, lon: -3.465 },
-            ];
+            const locations = @json(\App\Models\WeatherLocation::query()->orderBy('name')->get()->values());
 
             function formatDateKey(date) {
                 const y = date.getFullYear();
@@ -170,9 +164,10 @@
                     const today = dates[0];
                     const item = byDate.get(today.key);
                     if (!item) continue;
+                    const placeLabel = location.label || location.name;
                     entries.push({
-                        text: `${location.name} · ${iconFromWmo(item.code)} ${Math.round(item.max)}°/${Math.round(item.min)}°`,
-                        href: `${weatherBaseUrl}?place=${encodeURIComponent(location.name)}&date=${today.key}`,
+                        text: `${placeLabel} · ${iconFromWmo(item.code)} ${Math.round(item.max)}°/${Math.round(item.min)}°`,
+                        href: `${weatherBaseUrl}?place=${encodeURIComponent(placeLabel)}&date=${today.key}`,
                     });
                 }
 

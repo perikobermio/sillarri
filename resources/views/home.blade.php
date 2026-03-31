@@ -183,15 +183,7 @@
         });
 
         const weatherBaseUrl = "{{ route('weather') }}";
-        const locations = [
-            { name: 'Ereño', lat: 43.357, lon: -2.625 },
-            { name: 'Urkiola', lat: 43.103, lon: -2.646 },
-            { name: 'Mañaria', lat: 43.137, lon: -2.661 },
-            { name: 'Atauri', lat: 42.736, lon: -2.455 },
-            { name: 'Gernika', lat: 43.317, lon: -2.678 },
-            { name: 'Turtzioz', lat: 43.272, lon: -3.255 },
-            { name: 'Ramales', lat: 43.257, lon: -3.465 },
-        ];
+        const locations = @json($weatherLocations->values());
 
         const weatherTableBody = document.getElementById('weatherTableBody');
         if (!weatherTableBody) return;
@@ -225,17 +217,40 @@
         function targetDates() {
             const now = new Date();
             const today = new Date(now);
-            const next = new Date(now);
-            next.setDate(now.getDate() + 1);
-            const saturday = nextWeekday(now, 6);
-            const sunday = nextWeekday(now, 0);
+            const tomorrow = new Date(now);
+            tomorrow.setDate(now.getDate() + 1);
 
-            return [
-                { key: 'today', date: today },
-                { key: 'next', date: next },
-                { key: 'saturday', date: saturday },
-                { key: 'sunday', date: sunday },
-            ];
+            const results = [];
+            const seen = new Set();
+
+            function pushDate(date) {
+                const key = formatDateKey(date);
+                if (seen.has(key)) return;
+                seen.add(key);
+                results.push(date);
+            }
+
+            pushDate(today);
+            pushDate(tomorrow);
+
+            const todayDay = today.getDay();
+            const tomorrowDay = tomorrow.getDay();
+            const hasWeekend = todayDay === 6 || todayDay === 0 || tomorrowDay === 6 || tomorrowDay === 0;
+
+            if (!hasWeekend) {
+                const saturday = nextWeekday(today, 6);
+                const sunday = nextWeekday(today, 0);
+                pushDate(saturday);
+                pushDate(sunday);
+            }
+
+            while (results.length < 4) {
+                const next = new Date(results[results.length - 1]);
+                next.setDate(next.getDate() + 1);
+                pushDate(next);
+            }
+
+            return results.map((date, index) => ({ key: `d${index}`, date }));
         }
 
         function buildDayCell(daySpec, weatherByDate) {
@@ -283,13 +298,14 @@
             }
 
             const dates = targetDates();
+            const placeLabel = location.label || location.name;
             const daysMarkup = dates
-                .map((daySpec) => `<td>${buildDayCell({ ...daySpec, place: location.name }, weatherByDate)}</td>`)
+                .map((daySpec) => `<td>${buildDayCell({ ...daySpec, place: placeLabel }, weatherByDate)}</td>`)
                 .join('');
 
             return `
                 <tr class="weather-row">
-                    <th scope="row" class="weather-place">${location.name}</th>
+                    <th scope="row" class="weather-place">${placeLabel}</th>
                     ${daysMarkup}
                 </tr>
             `;

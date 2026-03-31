@@ -51,15 +51,7 @@
 
 <script>
     (function () {
-        const locations = [
-            { name: 'Ereño', lat: 43.357, lon: -2.625 },
-            { name: 'Urkiola', lat: 43.103, lon: -2.646 },
-            { name: 'Mañaria', lat: 43.137, lon: -2.661 },
-            { name: 'Atauri', lat: 42.736, lon: -2.455 },
-            { name: 'Gernika', lat: 43.317, lon: -2.678 },
-            { name: 'Turtzioz', lat: 43.272, lon: -3.255 },
-            { name: 'Ramales', lat: 43.257, lon: -3.465 },
-        ];
+        const locations = @json(collect($weatherLocations)->values());
 
         const placeSelect = document.getElementById('weatherPlaceSelect');
         const dateSelect = document.getElementById('weatherDateSelect');
@@ -125,7 +117,7 @@
         }
 
         function getLocationByName(name) {
-            return locations.find((loc) => loc.name === name) || locations[0];
+            return locations.find((loc) => (loc.label || loc.name) === name) || locations[0];
         }
 
         function updateQuery(place, date) {
@@ -199,10 +191,11 @@
                 : '<tr><td colspan="9" class="weather-detail-loading">Ez dago daturik egun honetarako.</td></tr>';
         }
 
-        const placeValue = params.get('place') || locations[0].name;
+        const defaultLabel = locations[0]?.label || locations[0]?.name;
+        const placeValue = params.get('place') || defaultLabel;
         const dateValue = params.get('date') || formatDateKey(today);
 
-        fillSelect(placeSelect, locations.map((l) => ({ label: l.name, value: l.name })), placeValue);
+        fillSelect(placeSelect, locations.map((l) => ({ label: l.label || l.name, value: l.label || l.name })), placeValue);
         fillSelect(dateSelect, buildDateOptions(), dateValue);
         updateQuery(placeValue, dateValue);
         loadWeather(placeValue, dateValue);

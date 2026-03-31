@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\KilterController;
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\MultimediaController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\RankingController;
@@ -13,7 +14,8 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/kilter', [KilterController::class, 'index'])->name('kilter');
 Route::get('/sailkapena', [RankingController::class, 'index'])->name('ranking');
 Route::get('/eguraldia', function () {
-    return view('weather.index');
+    $locations = \App\Models\WeatherLocation::query()->orderBy('name')->get();
+    return view('weather.index', ['weatherLocations' => $locations]);
 })->name('weather');
 Route::get('/kilter/blokea/{block}', [KilterController::class, 'show'])->name('kilter.show');
 Route::get('/usuarios/{user}', [UserController::class, 'showPublic'])->name('users.public');
@@ -42,4 +44,14 @@ Route::middleware('auth')->group(function (): void {
     Route::delete('/kilter/blokea/{block}', [KilterController::class, 'destroy'])->name('kilter.destroy');
 
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+});
+
+Route::middleware(['auth', 'admin'])->group(function (): void {
+    Route::get('/admin', [AdminController::class, 'index'])->name('admin');
+    Route::post('/admin/users', [AdminController::class, 'storeUser'])->name('admin.users.store');
+    Route::put('/admin/users/{user}', [AdminController::class, 'updateUser'])->name('admin.users.update');
+    Route::delete('/admin/users/{user}', [AdminController::class, 'deleteUser'])->name('admin.users.delete');
+    Route::delete('/admin/maps/{map}', [AdminController::class, 'deleteMap'])->name('admin.maps.delete');
+    Route::post('/admin/locations', [AdminController::class, 'storeLocation'])->name('admin.locations.store');
+    Route::delete('/admin/locations/{location}', [AdminController::class, 'deleteLocation'])->name('admin.locations.delete');
 });

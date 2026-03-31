@@ -1,0 +1,142 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\KilterMap;
+use App\Models\User;
+use App\Models\WeatherLocation;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
+use Illuminate\View\View;
+
+class AdminController extends Controller
+{
+    public function index(): View
+    {
+        $users = User::query()->orderBy('name')->get();
+        $maps = KilterMap::query()->orderBy('created_at', 'desc')->get();
+        $locations = WeatherLocation::query()->orderBy('name')->get();
+
+        return view('admin.index', [
+            'users' => $users,
+            'maps' => $maps,
+            'locations' => $locations,
+        ]);
+    }
+
+    public function storeUser(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'username' => ['required', 'string', 'min:3', 'max:30', 'alpha_dash', 'unique:users,username'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            'password' => ['required', 'string'],
+            'is_admin' => ['nullable', 'boolean'],
+        ]);
+
+        User::create([
+            'name' => trim((string) $data['name']),
+            'username' => strtolower(trim((string) $data['username'])),
+            'email' => strtolower(trim((string) $data['email'])),
+            'password' => Hash::make($data['password']),
+            'is_admin' => (bool) ($data['is_admin'] ?? false),
+        ]);
+
+        return redirect()->route('admin')->with('status', 'Erabiltzailea sortuta.');
+    }
+
+    public function updateUser(Request $request, User $user): RedirectResponse
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'username' => [
+                'required',
+                'string',
+                'min:3',
+                'max:30',
+                'alpha_dash',
+                Rule::unique('users', 'username')->ignore($user->id),
+            ],
+            'email' => [
+                'required',
+                'string',
+                'email',
+                'max:255',
+                Rule::unique('users', 'email')->ignore($user->id),
+            ],
+            'password' => ['nullable', 'string'],
+            'is_admin' => ['nullable', 'boolean'],
+        ]);
+
+        $user->name = trim((string) $data['name']);
+        $user->username = strtolower(trim((string) $data['username']));
+        $user->email = strtolower(trim((string) $data['email']));
+        $user->is_admin = (bool) ($data['is_admin'] ?? false);
+
+        if (! empty($data['password'])) {
+            $user->password = Hash::make($data['password']);
+        }
+
+        $user->save();
+
+        return redirect()->route('admin')->with('status', 'Erabiltzailea eguneratuta.');
+    }
+
+    public function deleteUser(User $user): RedirectResponse
+    {
+        $user->delete();
+
+        return redirect()->route('admin')->with('status', 'Erabiltzailea ezabatuta.');
+    }
+
+    public function deleteMap(KilterMap $map): RedirectResponse
+    {
+        if ($map->image) {
+            Storage::disk('public')->delete($map->image);
+        }
+        $map->delete();
+
+        return redirect()->route('admin')->with('status', 'Mapa ezabatuta.');
+    }
+
+    public function storeLocation(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:120', 'unique:weather_locations,name'],
+            'label' => ['required', 'string', 'max:120', 'unique:weather_locations,label'],
+        ]);
+
+        $geoResponse = Http::get('https://geocoding-api.open-meteo.com/v1/search', [
+            'name' => $data['name'],
+            'count' => 1,
+            'language' => 'es',
+            'format' => 'json',
+        ]);
+
+        $geoJson = $geoResponse->json();
+        $first = is_array($geoJson) ? ($geoJson['results'][0] ?? null) : null;
+        if (! $first || ! isset($first['latitude'], $first['longitude'])) {
+            return redirect()->route('admin')->with('status', 'Ez da kokapena aurkitu. Saiatu izenarekin.');
+        }
+
+        WeatherLocation::create([
+            'name' => trim((string) $data['name']),
+            'label' => trim((string) $data['label']),
+            'lat' => (float) $first['latitude'],
+            'lon' => (float) $first['longitude'],
+        ]);
+
+        return redirect()->route('admin')->with('status', 'Herria gehituta.');
+    }
+
+    public function deleteLocation(WeatherLocation $location): RedirectResponse
+    {
+        $location->delete();
+
+        return redirect()->route('admin')->with('status', 'Herria ezabatuta.');
+    }
+}
