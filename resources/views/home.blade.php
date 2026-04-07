@@ -274,6 +274,10 @@
 
         const weatherTableBody = document.getElementById('weatherTableBody');
         if (!weatherTableBody) return;
+        if (!Array.isArray(locations) || locations.length === 0) {
+            weatherTableBody.innerHTML = '<tr><td colspan="5" class="weather-error-cell">Ez dago kokapenik eguraldirako.</td></tr>';
+            return;
+        }
 
         function formatDateKey(date) {
             const year = date.getFullYear();
@@ -355,6 +359,16 @@
             `;
         }
 
+        async function fetchWithTimeout(url, timeoutMs = 8000) {
+            const controller = new AbortController();
+            const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
+            try {
+                return await fetch(url, { method: 'GET', signal: controller.signal });
+            } finally {
+                window.clearTimeout(timeoutId);
+            }
+        }
+
         async function fetchLocationForecast(location) {
             const apiUrl = new URL('https://api.open-meteo.com/v1/forecast');
             apiUrl.searchParams.set('latitude', String(location.lat));
@@ -363,7 +377,7 @@
             apiUrl.searchParams.set('forecast_days', '10');
             apiUrl.searchParams.set('timezone', 'Europe/Madrid');
 
-            const response = await fetch(apiUrl.toString(), { method: 'GET' });
+            const response = await fetchWithTimeout(apiUrl.toString());
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}`);
             }
@@ -400,8 +414,19 @@
 
         async function paintWeather() {
             try {
-                const rows = await Promise.all(locations.map((location) => fetchLocationForecast(location)));
-                weatherTableBody.innerHTML = rows.join('');
+                const results = await Promise.allSettled(
+                    locations.map((location) => fetchLocationForecast(location))
+                );
+                const rows = results
+                    .filter((result) => result.status === 'fulfilled' && result.value)
+                    .map((result) => result.value);
+
+                if (rows.length > 0) {
+                    weatherTableBody.innerHTML = rows.join('');
+                    return;
+                }
+
+                weatherTableBody.innerHTML = '<tr><td colspan="5" class="weather-error-cell">Ez dago eguraldi daturik eskuragarri.</td></tr>';
             } catch (error) {
                 weatherTableBody.innerHTML = '<tr><td colspan="5" class="weather-error-cell">Ezin izan da eguraldia kargatu. Saiatu berriro minutu batzuk barru.</td></tr>';
             }

@@ -128,50 +128,64 @@
                 return '🌤️';
             }
 
+            async function fetchWithTimeout(url, timeoutMs = 8000) {
+                const controller = new AbortController();
+                const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
+                try {
+                    return await fetch(url, { method: 'GET', signal: controller.signal });
+                } finally {
+                    window.clearTimeout(timeoutId);
+                }
+            }
+
             async function buildEntries() {
                 const dates = targetDates();
-                const entries = [];
-
-                for (const location of locations) {
-                    const apiUrl = new URL('https://api.open-meteo.com/v1/forecast');
-                    apiUrl.searchParams.set('latitude', String(location.lat));
-                    apiUrl.searchParams.set('longitude', String(location.lon));
-                    apiUrl.searchParams.set('daily', 'weathercode,temperature_2m_max,temperature_2m_min');
-                    apiUrl.searchParams.set('forecast_days', '10');
-                    apiUrl.searchParams.set('timezone', 'Europe/Madrid');
-
-                    const response = await fetch(apiUrl.toString(), { method: 'GET' });
-                    if (!response.ok) {
-                        continue;
-                    }
-
-                    const json = await response.json();
-                    const daily = json.daily || {};
-                    const times = Array.isArray(daily.time) ? daily.time : [];
-                    const codes = Array.isArray(daily.weathercode) ? daily.weathercode : [];
-                    const maxes = Array.isArray(daily.temperature_2m_max) ? daily.temperature_2m_max : [];
-                    const mins = Array.isArray(daily.temperature_2m_min) ? daily.temperature_2m_min : [];
-
-                    const byDate = new Map();
-                    for (let i = 0; i < times.length; i++) {
-                        byDate.set(times[i], {
-                            code: Number(codes[i] ?? 0),
-                            max: Number(maxes[i] ?? 0),
-                            min: Number(mins[i] ?? 0),
-                        });
-                    }
-
-                    const today = dates[0];
-                    const item = byDate.get(today.key);
-                    if (!item) continue;
-                    const placeLabel = location.label || location.name;
-                    entries.push({
-                        text: `${placeLabel} · ${iconFromWmo(item.code)} ${Math.round(item.max)}°/${Math.round(item.min)}°`,
-                        href: `${weatherBaseUrl}?place=${encodeURIComponent(placeLabel)}&date=${today.key}`,
-                    });
+                if (!Array.isArray(locations) || locations.length === 0) {
+                    return [];
                 }
 
-                return entries;
+                const results = await Promise.allSettled(
+                    locations.map(async (location) => {
+                        const apiUrl = new URL('https://api.open-meteo.com/v1/forecast');
+                        apiUrl.searchParams.set('latitude', String(location.lat));
+                        apiUrl.searchParams.set('longitude', String(location.lon));
+                        apiUrl.searchParams.set('daily', 'weathercode,temperature_2m_max,temperature_2m_min');
+                        apiUrl.searchParams.set('forecast_days', '10');
+                        apiUrl.searchParams.set('timezone', 'Europe/Madrid');
+
+                        const response = await fetchWithTimeout(apiUrl.toString());
+                        if (!response.ok) return null;
+
+                        const json = await response.json();
+                        const daily = json.daily || {};
+                        const times = Array.isArray(daily.time) ? daily.time : [];
+                        const codes = Array.isArray(daily.weathercode) ? daily.weathercode : [];
+                        const maxes = Array.isArray(daily.temperature_2m_max) ? daily.temperature_2m_max : [];
+                        const mins = Array.isArray(daily.temperature_2m_min) ? daily.temperature_2m_min : [];
+
+                        const byDate = new Map();
+                        for (let i = 0; i < times.length; i++) {
+                            byDate.set(times[i], {
+                                code: Number(codes[i] ?? 0),
+                                max: Number(maxes[i] ?? 0),
+                                min: Number(mins[i] ?? 0),
+                            });
+                        }
+
+                        const today = dates[0];
+                        const item = byDate.get(today.key);
+                        if (!item) return null;
+                        const placeLabel = location.label || location.name;
+                        return {
+                            text: `${placeLabel} · ${iconFromWmo(item.code)} ${Math.round(item.max)}°/${Math.round(item.min)}°`,
+                            href: `${weatherBaseUrl}?place=${encodeURIComponent(placeLabel)}&date=${today.key}`,
+                        };
+                    })
+                );
+
+                return results
+                    .filter((result) => result.status === 'fulfilled' && result.value)
+                    .map((result) => result.value);
             }
 
             function showWithFade(entry) {
