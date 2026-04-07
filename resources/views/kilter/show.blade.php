@@ -434,12 +434,25 @@
             starsFill.style.width = `${(vote / 10) * 100}%`;
         }
 
+        function getStarWidth() {
+            const rect = stars.getBoundingClientRect();
+            const baseRect = stars.querySelector('.vote-stars-base')?.getBoundingClientRect();
+            const width = baseRect?.width || rect.width;
+            return Math.max(1, width);
+        }
+
+        function syncStarWidth() {
+            const width = getStarWidth();
+            stars.style.width = `${width}px`;
+        }
+
         function voteFromPointer(clientX) {
             const rect = stars.getBoundingClientRect();
-            const x = Math.max(0, Math.min(rect.width, clientX - rect.left));
+            const width = getStarWidth();
+            const x = Math.max(0, Math.min(width, clientX - rect.left));
             if (rect.width <= 0) return 5;
-            if (x >= rect.width - 1) return 10;
-            const step = Math.max(1, Math.min(20, Math.ceil((x / rect.width) * 20)));
+            if (x >= width - 1) return 10;
+            const step = Math.max(1, Math.min(20, Math.ceil((x / width) * 20)));
             return clampVote(step / 2);
         }
 
@@ -481,6 +494,9 @@
             if (!touch) return;
             handlePointer(touch.clientX, false);
         }, { passive: true });
+
+        syncStarWidth();
+        window.addEventListener('resize', syncStarWidth);
         stars.addEventListener('keydown', (event) => {
             const current = parseFloat(valueInput.value) || 5;
             if (event.key === 'ArrowRight') {
