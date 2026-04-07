@@ -249,7 +249,7 @@
             <input type="hidden" name="value" id="vote-value-input" value="{{ number_format((float) ($userVote ?? 5), 1, '.', '') }}">
             <div class="vote-stars" id="vote-stars" role="button" tabindex="0" aria-label="Balorazioa hautatu">
                 <span class="vote-stars-base" aria-hidden="true">☆☆☆☆☆☆☆☆☆☆</span>
-                <span class="vote-stars-fill" id="vote-stars-fill" aria-hidden="true">★★★★★★★★★★</span>
+                <span class="vote-stars-fill" id="vote-stars-fill" aria-hidden="true" style="width: {{ (float) ($userVote ?? 5) * 10 }}%;">★★★★★★★★★★</span>
             </div>
             <p class="vote-value-text"><strong id="vote-value-label">{{ number_format((float) ($userVote ?? 5), 1) }}</strong> / 10</p>
             <div class="kilter-form-actions">
@@ -431,7 +431,8 @@
             const vote = clampVote(value);
             valueInput.value = vote.toFixed(1);
             valueLabel.textContent = vote.toFixed(1);
-            starsFill.style.width = `${(vote / 10) * 100}%`;
+            const width = getStarWidth();
+            starsFill.style.width = `${(vote / 10) * width}px`;
         }
 
         function getStarWidth() {
@@ -444,6 +445,8 @@
         function syncStarWidth() {
             const width = getStarWidth();
             stars.style.width = `${width}px`;
+            const current = parseFloat(valueInput.value) || 5;
+            starsFill.style.width = `${(current / 10) * width}px`;
         }
 
         function voteFromPointer(clientX) {
@@ -457,8 +460,11 @@
         }
 
         openBtn.addEventListener('click', () => {
-            applyVote(parseFloat(valueInput.value) || 5);
             setModalOpen(true);
+            requestAnimationFrame(() => {
+                syncStarWidth();
+                applyVote(parseFloat(valueInput.value) || 5);
+            });
         });
         closeBtn.addEventListener('click', () => setModalOpen(false));
         cancelBtn.addEventListener('click', () => setModalOpen(false));
@@ -471,7 +477,8 @@
             if (commit) {
                 applyVote(value);
             } else {
-                starsFill.style.width = `${(value / 10) * 100}%`;
+                const width = getStarWidth();
+                starsFill.style.width = `${(value / 10) * width}px`;
             }
         }
 
@@ -497,6 +504,7 @@
 
         syncStarWidth();
         window.addEventListener('resize', syncStarWidth);
+        applyVote(parseFloat(valueInput.value) || 5);
         stars.addEventListener('keydown', (event) => {
             const current = parseFloat(valueInput.value) || 5;
             if (event.key === 'ArrowRight') {
