@@ -453,15 +453,34 @@
             if (event.target === modal) setModalOpen(false);
         });
 
+        function handlePointer(clientX, commit) {
+            const value = voteFromPointer(clientX);
+            if (commit) {
+                applyVote(value);
+            } else {
+                starsFill.style.width = `${(value / 10) * 100}%`;
+            }
+        }
+
         stars.addEventListener('click', (event) => {
-            applyVote(voteFromPointer(event.clientX));
+            handlePointer(event.clientX, true);
         });
         stars.addEventListener('mousemove', (event) => {
-            starsFill.style.width = `${(voteFromPointer(event.clientX) / 10) * 100}%`;
+            handlePointer(event.clientX, false);
         });
         stars.addEventListener('mouseleave', () => {
             applyVote(parseFloat(valueInput.value) || 5);
         });
+        stars.addEventListener('touchstart', (event) => {
+            const touch = event.touches[0];
+            if (!touch) return;
+            handlePointer(touch.clientX, true);
+        }, { passive: true });
+        stars.addEventListener('touchmove', (event) => {
+            const touch = event.touches[0];
+            if (!touch) return;
+            handlePointer(touch.clientX, false);
+        }, { passive: true });
         stars.addEventListener('keydown', (event) => {
             const current = parseFloat(valueInput.value) || 5;
             if (event.key === 'ArrowRight') {

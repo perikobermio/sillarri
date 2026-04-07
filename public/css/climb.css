@@ -1796,6 +1796,7 @@ main {
   cursor: pointer;
   user-select: none;
   outline: none;
+  touch-action: none;
 }
 
 .vote-stars-base {
