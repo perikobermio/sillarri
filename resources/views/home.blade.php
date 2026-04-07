@@ -13,9 +13,6 @@
         <div class="cta-row">
             @auth
                 <a class="btn btn-primary" href="{{ route('users.public', auth()->user()) }}">Nire profilera joan</a>
-            @else
-                <a class="btn btn-primary" href="{{ route('register') }}">Hasi doan</a>
-                <a class="btn btn-secondary" href="{{ route('login') }}">Dagoeneko kontua dut</a>
             @endauth
         </div>
     </div>
