@@ -150,6 +150,14 @@ class KilterController extends Controller
             || $orderField !== '';
 
         $user = $request->user();
+        $perPageSetting = DB::table('app_settings')
+            ->where('key', 'kilter_blocks_per_page')
+            ->value('value');
+        $perPage = is_numeric($perPageSetting) ? (int) $perPageSetting : 50;
+        if ($perPage <= 0) {
+            $perPage = 50;
+        }
+        $perPage = max(10, min(200, $perPage));
 
         $locations = KilterBlock::query()
             ->whereNotNull('kokapena')
@@ -220,7 +228,7 @@ class KilterController extends Controller
             $blocks->orderByDesc('created_at');
         }
 
-        $blocks = $blocks->get();
+        $blocks = $blocks->paginate($perPage)->withQueryString();
 
         $creators = User::query()
             ->select('users.id', 'users.name')
@@ -238,7 +246,7 @@ class KilterController extends Controller
                 ->all();
         }
 
-        $blockIds = $blocks->pluck('id')->map(static fn ($id): int => (int) $id)->all();
+        $blockIds = $blocks->getCollection()->pluck('id')->map(static fn ($id): int => (int) $id)->all();
         $ratingsByBlock = $this->ratingForBlocks($blockIds);
         $recotationCountsByBlock = [];
         if (count($blockIds) > 0) {

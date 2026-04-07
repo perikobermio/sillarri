@@ -1179,6 +1179,41 @@ main {
   flex-wrap: nowrap;
 }
 
+.kilter-pagination {
+  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  color: rgba(255, 247, 235, 0.75);
+  font-size: 0.95rem;
+}
+
+.pagination-actions {
+  display: inline-flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.pagination-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.pagination-btn.is-disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
 .kilter-search input:not([type="checkbox"]) {
   min-width: 200px;
   border-radius: 10px;

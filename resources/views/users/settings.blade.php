@@ -57,6 +57,24 @@
             <label>Errepikatu pasahitz berria</label>
             <input type="password" name="password_confirmation">
 
+            @if((bool) $userProfile->is_admin)
+                <hr class="detail-separator">
+                <h4>Administratzaileen ezarpenak</h4>
+
+                <label>Blokeen zerrendako orriko kopurua</label>
+                <input
+                    type="number"
+                    name="kilter_blocks_per_page"
+                    min="10"
+                    max="200"
+                    value="{{ old('kilter_blocks_per_page', $blockListPageSize ?? 50) }}"
+                    required
+                >
+                @error('kilter_blocks_per_page')
+                    <small class="error">{{ $message }}</small>
+                @enderror
+            @endif
+
             <button type="submit" class="btn btn-primary">Gorde aldaketak</button>
         </form>
     </div>

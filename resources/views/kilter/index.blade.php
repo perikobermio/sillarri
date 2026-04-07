@@ -198,6 +198,27 @@
                 </tbody>
             </table>
         </div>
+
+        @if($blocks->hasPages())
+            <div class="kilter-pagination" role="navigation" aria-label="Blokeen orriak">
+                <div class="pagination-summary">
+                    Orria {{ $blocks->currentPage() }} / {{ $blocks->lastPage() }}
+                </div>
+                <div class="pagination-actions">
+                    @if($blocks->onFirstPage())
+                        <span class="pagination-btn is-disabled">Aurrekoa</span>
+                    @else
+                        <a class="pagination-btn" href="{{ $blocks->previousPageUrl() }}">Aurrekoa</a>
+                    @endif
+
+                    @if($blocks->hasMorePages())
+                        <a class="pagination-btn" href="{{ $blocks->nextPageUrl() }}">Hurrengoa</a>
+                    @else
+                        <span class="pagination-btn is-disabled">Hurrengoa</span>
+                    @endif
+                </div>
+            </div>
+        @endif
     </div>
 </section>
 

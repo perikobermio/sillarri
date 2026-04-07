@@ -116,8 +116,18 @@ class UserController extends Controller
 
     public function settings(Request $request): View
     {
+        $perPageSetting = \Illuminate\Support\Facades\DB::table('app_settings')
+            ->where('key', 'kilter_blocks_per_page')
+            ->value('value');
+        $blockListPageSize = is_numeric($perPageSetting) ? (int) $perPageSetting : 50;
+        if ($blockListPageSize <= 0) {
+            $blockListPageSize = 50;
+        }
+        $blockListPageSize = max(10, min(200, $blockListPageSize));
+
         return view('users.settings', [
             'userProfile' => $request->user(),
+            'blockListPageSize' => $blockListPageSize,
         ]);
     }
 
@@ -125,7 +135,7 @@ class UserController extends Controller
     {
         $user = $request->user();
 
-        $data = $request->validate([
+        $rules = [
             'name' => ['required', 'string', 'max:255'],
             'email' => [
                 'required',
@@ -136,7 +146,13 @@ class UserController extends Controller
             ],
             'password' => ['nullable', 'string', 'confirmed'],
             'avatar' => ['nullable', 'image', 'max:20480'],
-        ]);
+        ];
+
+        if ((bool) $user->is_admin) {
+            $rules['kilter_blocks_per_page'] = ['required', 'integer', 'min:10', 'max:200'];
+        }
+
+        $data = $request->validate($rules);
 
         $user->name = trim((string) $data['name']);
         $user->email = strtolower(trim((string) $data['email']));
@@ -153,6 +169,14 @@ class UserController extends Controller
         }
 
         $user->save();
+
+        if ((bool) $user->is_admin) {
+            \Illuminate\Support\Facades\DB::table('app_settings')
+                ->updateOrInsert(
+                    ['key' => 'kilter_blocks_per_page'],
+                    ['value' => (string) $data['kilter_blocks_per_page'], 'updated_at' => now(), 'created_at' => now()]
+                );
+        }
 
         return redirect()
             ->route('settings')
