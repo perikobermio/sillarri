@@ -9,6 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -20,11 +21,20 @@ class AdminController extends Controller
         $users = User::query()->orderBy('name')->get();
         $maps = KilterMap::query()->orderBy('created_at', 'desc')->get();
         $locations = WeatherLocation::query()->orderBy('name')->get();
+        $perPageSetting = DB::table('app_settings')
+            ->where('key', 'kilter_blocks_per_page')
+            ->value('value');
+        $blockListPageSize = is_numeric($perPageSetting) ? (int) $perPageSetting : 50;
+        if ($blockListPageSize <= 0) {
+            $blockListPageSize = 50;
+        }
+        $blockListPageSize = max(2, min(100, $blockListPageSize));
 
         return view('admin.index', [
             'users' => $users,
             'maps' => $maps,
             'locations' => $locations,
+            'blockListPageSize' => $blockListPageSize,
         ]);
     }
 
@@ -138,5 +148,19 @@ class AdminController extends Controller
         $location->delete();
 
         return redirect()->route('admin')->with('status', 'Herria ezabatuta.');
+    }
+
+    public function updateSettings(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'kilter_blocks_per_page' => ['required', 'integer', 'min:2', 'max:100'],
+        ]);
+
+        DB::table('app_settings')->updateOrInsert(
+            ['key' => 'kilter_blocks_per_page'],
+            ['value' => (string) $data['kilter_blocks_per_page'], 'updated_at' => now(), 'created_at' => now()]
+        );
+
+        return redirect()->route('admin')->with('status', 'Ezarpenak ondo gorde dira.');
     }
 }

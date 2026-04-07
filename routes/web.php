@@ -50,6 +50,7 @@ Route::middleware('auth')->group(function (): void {
 
 Route::middleware(['auth', 'admin'])->group(function (): void {
     Route::get('/admin', [AdminController::class, 'index'])->name('admin');
+    Route::put('/admin/settings', [AdminController::class, 'updateSettings'])->name('admin.settings.update');
     Route::post('/admin/users', [AdminController::class, 'storeUser'])->name('admin.users.store');
     Route::put('/admin/users/{user}', [AdminController::class, 'updateUser'])->name('admin.users.update');
     Route::delete('/admin/users/{user}', [AdminController::class, 'deleteUser'])->name('admin.users.delete');

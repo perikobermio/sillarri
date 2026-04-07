@@ -9,6 +9,27 @@
     </div>
 
     <div class="panel admin-section">
+        <h3>Blokeen ezarpenak</h3>
+        <form method="POST" action="{{ route('admin.settings.update') }}" class="auth-form">
+            @csrf
+            @method('PUT')
+            <label>Blokeen zerrendako orriko kopurua</label>
+            <input
+                type="number"
+                name="kilter_blocks_per_page"
+                min="2"
+                max="100"
+                value="{{ old('kilter_blocks_per_page', $blockListPageSize ?? 50) }}"
+                required
+            >
+            @error('kilter_blocks_per_page')
+                <small class="error">{{ $message }}</small>
+            @enderror
+            <button type="submit" class="btn btn-primary">Gorde</button>
+        </form>
+    </div>
+
+    <div class="panel admin-section">
         <div class="admin-section-head">
             <h3>Erabiltzaileak</h3>
             <button type="button" class="btn btn-primary btn-icon" id="open-user-create" aria-label="Erabiltzaile berria" title="Erabiltzaile berria">
