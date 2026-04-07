@@ -65,8 +65,8 @@
                 <input
                     type="number"
                     name="kilter_blocks_per_page"
-                    min="10"
-                    max="200"
+                    min="2"
+                    max="100"
                     value="{{ old('kilter_blocks_per_page', $blockListPageSize ?? 50) }}"
                     required
                 >

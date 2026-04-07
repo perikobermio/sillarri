@@ -157,7 +157,7 @@ class KilterController extends Controller
         if ($perPage <= 0) {
             $perPage = 50;
         }
-        $perPage = max(10, min(200, $perPage));
+        $perPage = max(2, min(100, $perPage));
 
         $locations = KilterBlock::query()
             ->whereNotNull('kokapena')

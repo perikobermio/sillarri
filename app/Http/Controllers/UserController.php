@@ -123,7 +123,7 @@ class UserController extends Controller
         if ($blockListPageSize <= 0) {
             $blockListPageSize = 50;
         }
-        $blockListPageSize = max(10, min(200, $blockListPageSize));
+        $blockListPageSize = max(2, min(100, $blockListPageSize));
 
         return view('users.settings', [
             'userProfile' => $request->user(),
@@ -149,7 +149,7 @@ class UserController extends Controller
         ];
 
         if ((bool) $user->is_admin) {
-            $rules['kilter_blocks_per_page'] = ['required', 'integer', 'min:10', 'max:200'];
+            $rules['kilter_blocks_per_page'] = ['required', 'integer', 'min:2', 'max:100'];
         }
 
         $data = $request->validate($rules);
