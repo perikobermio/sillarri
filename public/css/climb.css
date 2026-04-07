@@ -1788,7 +1788,6 @@ main {
 .vote-stars {
   position: relative;
   display: inline-block;
-  width: 10ch;
   font-size: clamp(1.6rem, 4.5vw, 2.2rem);
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   line-height: 1;
@@ -1801,12 +1800,14 @@ main {
 
 .vote-stars-base {
   color: rgba(255, 255, 255, 0.28);
+  display: block;
 }
 
 .vote-stars-fill {
   position: absolute;
   left: 0;
   top: 0;
+  display: block;
   white-space: nowrap;
   overflow: hidden;
   color: #ffcc4d;
