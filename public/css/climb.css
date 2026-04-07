@@ -1645,6 +1645,21 @@ main {
   color: rgba(255, 247, 235, 0.85);
 }
 
+.completed-users-panel .recote-user,
+.completed-users-panel .recote-user a {
+  color: #fff;
+}
+
+.completed-users-panel .recote-user a {
+  text-decoration: none;
+}
+
+.completed-users-panel .completed-rating {
+  color: rgba(255, 255, 255, 0.75);
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
 .recote-grade {
   font-weight: 600;
   letter-spacing: 0.5px;

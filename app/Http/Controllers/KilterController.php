@@ -59,6 +59,22 @@ class KilterController extends Controller
                 ];
             })
             ->all();
+        $completedUsers = DB::table('kilter_block_completions as c')
+            ->join('users as u', 'u.id', '=', 'c.user_id')
+            ->leftJoin('kilter_block_votes as v', function ($join) use ($block): void {
+                $join->on('v.user_id', '=', 'u.id')
+                    ->where('v.kilter_block_id', '=', $block->id);
+            })
+            ->where('c.kilter_block_id', $block->id)
+            ->select('u.id', 'u.username', 'v.value as vote')
+            ->orderByDesc('c.created_at')
+            ->get()
+            ->map(static fn ($row): array => [
+                'id' => (int) $row->id,
+                'username' => (string) $row->username,
+                'vote' => is_numeric($row->vote) ? (float) $row->vote : null,
+            ])
+            ->all();
 
         return view('kilter.show', [
             'block' => $block,
@@ -70,6 +86,7 @@ class KilterController extends Controller
             'grades' => $grades,
             'recotationSummary' => $recotationSummary,
             'recotationEntries' => $recotationEntries,
+            'completedUsers' => $completedUsers,
         ]);
     }
 

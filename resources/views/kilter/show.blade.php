@@ -24,6 +24,7 @@
     $recotationTop = $recotationSummary['top'] ?? null;
     $recotationTotal = (int) ($recotationSummary['total'] ?? 0);
     $recotationEntries = $recotationEntries ?? [];
+    $completedUsers = $completedUsers ?? [];
     $canSuggestRecote = $viewerUser && ((int) $viewerUser->id !== (int) $block->user_id);
     $canResolveRecote = $viewerUser && (((int) $viewerUser->id === (int) $block->user_id) || (bool) $viewerUser->is_admin);
 @endphp
@@ -156,6 +157,30 @@
             <p><strong>Mapa:</strong> {{ $block->map?->name ?? '-' }}</p>
             <p><strong>Sortzailea:</strong> {{ $block->creator?->name ?? '-' }}</p>
             <p><strong>Sortua:</strong> {{ $block->created_at?->format('Y-m-d') ?? '-' }}</p>
+        </article>
+
+        <article class="panel completed-users-panel">
+            <h3>Egin dutenak</h3>
+            @if(empty($completedUsers))
+                <p>Oraindik ez dago erabiltzailek blokea eginda.</p>
+            @else
+                <ul class="recote-list">
+                    @foreach($completedUsers as $completedUser)
+                        <li>
+                            <span class="recote-user">
+                                <a href="{{ route('users.public', $completedUser['id']) }}">{{ $completedUser['username'] }}</a>
+                            </span>
+                            <span class="completed-rating">
+                                @if(is_numeric($completedUser['vote'] ?? null))
+                                    {{ rtrim(rtrim(number_format((float) $completedUser['vote'], 1, '.', ''), '0'), '.') }}/10
+                                @else
+                                    -
+                                @endif
+                            </span>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
         </article>
 
         @if($recotationTotal > 0)
