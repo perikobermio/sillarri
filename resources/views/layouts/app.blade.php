@@ -20,6 +20,17 @@
                     <span class="loading-inline"><span class="spinner"></span>Eguraldia kargatzen...</span>
                 </a>
             </div>
+            <div class="net-status" id="netStatus" aria-live="polite" aria-hidden="true">
+                <span class="net-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" role="img" aria-label="Konexiorik ez">
+                        <path d="M2.7 6.4c5-4 13.6-4 18.6 0l-2.1 2.1c-4-3-10.4-3-14.4 0L2.7 6.4z" fill="currentColor"/>
+                        <path d="M6.9 10.6c2.9-2.3 7.3-2.3 10.2 0l-2.1 2.1c-1.7-1.3-4.3-1.3-6 0l-2.1-2.1z" fill="currentColor"/>
+                        <path d="M11.3 15l-2.3 2.3 3 3 3-3-2.3-2.3c-.2-.2-.6-.2-.8 0z" fill="currentColor"/>
+                        <path d="M3 3l18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </span>
+                <span class="net-label">Konexiorik ez</span>
+            </div>
         </div>
 
         <nav class="nav-links">
@@ -216,6 +227,61 @@
                     ticker.textContent = 'Eguraldi daturik ez une honetan';
                     ticker.classList.add('is-visible');
                 });
+        })();
+
+        (function () {
+            const statusEl = document.getElementById('netStatus');
+            if (!statusEl) return;
+            const labelEl = statusEl.querySelector('.net-label');
+            const iconEl = statusEl.querySelector('.net-icon');
+
+            function collectSubmitters() {
+                const submitters = [];
+                document.querySelectorAll('form').forEach((form) => {
+                    const method = (form.getAttribute('method') || 'GET').toUpperCase();
+                    if (method === 'GET') return;
+                    form.querySelectorAll('button[type="submit"], input[type="submit"]').forEach((el) => {
+                        submitters.push(el);
+                    });
+                });
+                return submitters;
+            }
+
+            function setOfflineDisabled(isOffline) {
+                document.documentElement.classList.toggle('is-offline', isOffline);
+
+                const submitters = collectSubmitters();
+                submitters.forEach((el) => {
+                    if (isOffline) {
+                        if (!el.disabled) {
+                            el.dataset.offlineDisabled = 'true';
+                            el.disabled = true;
+                            el.setAttribute('title', 'Konexiorik ez');
+                        }
+                    } else if (el.dataset.offlineDisabled === 'true') {
+                        el.disabled = false;
+                        el.removeAttribute('title');
+                        delete el.dataset.offlineDisabled;
+                    }
+                });
+            }
+
+            function updateStatus() {
+                const online = navigator.onLine !== false;
+                statusEl.classList.toggle('is-offline', !online);
+                statusEl.setAttribute('aria-hidden', online ? 'true' : 'false');
+                statusEl.setAttribute('title', online ? '' : 'Konexiorik ez');
+                if (labelEl) labelEl.textContent = 'Konexiorik ez';
+                if (iconEl) iconEl.setAttribute('aria-label', 'Konexiorik ez');
+                setOfflineDisabled(!online);
+            }
+
+            window.addEventListener('online', updateStatus);
+            window.addEventListener('offline', updateStatus);
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden) updateStatus();
+            });
+            updateStatus();
         })();
     </script>
 </body>
