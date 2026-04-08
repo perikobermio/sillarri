@@ -128,7 +128,27 @@
             window.history.replaceState({}, '', newUrl);
         }
 
-        async function loadWeather(place, date) {
+        let retryTimer = null;
+        let retryAttempt = 0;
+
+        function scheduleRetry(place, date) {
+            if (retryTimer) return;
+            retryAttempt = Math.min(retryAttempt + 1, 6);
+            const delay = Math.min(15000 * retryAttempt, 90000);
+            retryTimer = window.setTimeout(() => {
+                retryTimer = null;
+                loadWeather(place, date, true);
+            }, delay);
+        }
+
+        async function loadWeather(place, date, isRetry = false) {
+            if (!isRetry) {
+                retryAttempt = 0;
+                if (retryTimer) {
+                    window.clearTimeout(retryTimer);
+                    retryTimer = null;
+                }
+            }
             const loc = getLocationByName(place);
             const apiUrl = new URL('https://api.open-meteo.com/v1/forecast');
             apiUrl.searchParams.set('latitude', String(loc.lat));
@@ -148,41 +168,43 @@
 
             body.innerHTML = '<tr><td colspan="9" class="weather-detail-loading">Eguraldia kargatzen...</td></tr>';
 
-            const response = await fetch(apiUrl.toString(), { method: 'GET' });
-            if (!response.ok) {
-                body.innerHTML = '<tr><td colspan="9" class="weather-detail-loading">Ezin izan da eguraldia kargatu.</td></tr>';
-                return;
-            }
+            try {
+                const response = await fetch(apiUrl.toString(), { method: 'GET' });
+                if (!response.ok) {
+                    body.innerHTML = '<tr><td colspan="9" class="weather-detail-loading">Ezin izan da eguraldia kargatu.</td></tr>';
+                    scheduleRetry(place, date);
+                    return;
+                }
 
-            const json = await response.json();
-            const hourly = json.hourly || {};
-            const times = Array.isArray(hourly.time) ? hourly.time : [];
-            const codes = Array.isArray(hourly.weathercode) ? hourly.weathercode : [];
-            const temps = Array.isArray(hourly.temperature_2m) ? hourly.temperature_2m : [];
-            const feels = Array.isArray(hourly.apparent_temperature) ? hourly.apparent_temperature : [];
-            const rain = Array.isArray(hourly.precipitation) ? hourly.precipitation : [];
-            const rainProb = Array.isArray(hourly.precipitation_probability) ? hourly.precipitation_probability : [];
-            const wind = Array.isArray(hourly.windspeed_10m) ? hourly.windspeed_10m : [];
-            const windDir = Array.isArray(hourly.winddirection_10m) ? hourly.winddirection_10m : [];
-            const humidity = Array.isArray(hourly.relativehumidity_2m) ? hourly.relativehumidity_2m : [];
-            const clouds = Array.isArray(hourly.cloudcover) ? hourly.cloudcover : [];
+                const json = await response.json();
+                const hourly = json.hourly || {};
+                const times = Array.isArray(hourly.time) ? hourly.time : [];
+                const codes = Array.isArray(hourly.weathercode) ? hourly.weathercode : [];
+                const temps = Array.isArray(hourly.temperature_2m) ? hourly.temperature_2m : [];
+                const feels = Array.isArray(hourly.apparent_temperature) ? hourly.apparent_temperature : [];
+                const rain = Array.isArray(hourly.precipitation) ? hourly.precipitation : [];
+                const rainProb = Array.isArray(hourly.precipitation_probability) ? hourly.precipitation_probability : [];
+                const wind = Array.isArray(hourly.windspeed_10m) ? hourly.windspeed_10m : [];
+                const windDir = Array.isArray(hourly.winddirection_10m) ? hourly.winddirection_10m : [];
+                const humidity = Array.isArray(hourly.relativehumidity_2m) ? hourly.relativehumidity_2m : [];
+                const clouds = Array.isArray(hourly.cloudcover) ? hourly.cloudcover : [];
 
-            const rows = [];
-            const now = new Date();
-            const windowStart = new Date(`${date}T00:00:00`);
-            const windowEnd = new Date(windowStart);
-            windowEnd.setDate(windowEnd.getDate() + 1);
-            const dateIsToday = formatDateKey(now) === date;
-            if (dateIsToday) {
-                windowStart.setHours(now.getHours(), 0, 0, 0);
-            }
+                const rows = [];
+                const now = new Date();
+                const windowStart = new Date(`${date}T00:00:00`);
+                const windowEnd = new Date(windowStart);
+                windowEnd.setDate(windowEnd.getDate() + 1);
+                const dateIsToday = formatDateKey(now) === date;
+                if (dateIsToday) {
+                    windowStart.setHours(now.getHours(), 0, 0, 0);
+                }
 
-            for (let i = 0; i < times.length; i++) {
-                const iso = times[i];
-                const stamp = new Date(iso);
-                if (Number.isNaN(stamp.getTime())) continue;
-                if (stamp < windowStart || stamp >= windowEnd) continue;
-                rows.push(`
+                for (let i = 0; i < times.length; i++) {
+                    const iso = times[i];
+                    const stamp = new Date(iso);
+                    if (Number.isNaN(stamp.getTime())) continue;
+                    if (stamp < windowStart || stamp >= windowEnd) continue;
+                    rows.push(`
                     <tr>
                         <td>${formatHourLabel(iso)}</td>
                         <td>${iconFromWmo(codes[i])}</td>
@@ -196,11 +218,16 @@
                         <td>${Math.round(clouds[i] ?? 0)}%</td>
                     </tr>
                 `);
-            }
+                }
 
-            body.innerHTML = rows.length
-                ? rows.join('')
-                : '<tr><td colspan="9" class="weather-detail-loading">Ez dago daturik egun honetarako.</td></tr>';
+                body.innerHTML = rows.length
+                    ? rows.join('')
+                    : '<tr><td colspan="9" class="weather-detail-loading">Ez dago daturik egun honetarako.</td></tr>';
+                retryAttempt = 0;
+            } catch (error) {
+                body.innerHTML = '<tr><td colspan="9" class="weather-detail-loading">Ezin izan da eguraldia kargatu.</td></tr>';
+                scheduleRetry(place, date);
+            }
         }
 
         const defaultLabel = locations[0]?.label || locations[0]?.name;

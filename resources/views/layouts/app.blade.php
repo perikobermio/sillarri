@@ -208,25 +208,51 @@
                 }, 220);
             }
 
-            buildEntries()
-                .then((entries) => {
-                    if (!entries.length) {
+            let retryTimer = null;
+            let rotationTimer = null;
+            let retryAttempt = 0;
+
+            function scheduleRetry() {
+                if (retryTimer) return;
+                retryAttempt = Math.min(retryAttempt + 1, 6);
+                const delay = Math.min(15000 * retryAttempt, 90000);
+                retryTimer = window.setTimeout(() => {
+                    retryTimer = null;
+                    loadTicker();
+                }, delay);
+            }
+
+            function loadTicker() {
+                buildEntries()
+                    .then((entries) => {
+                        if (!entries.length) {
+                            ticker.textContent = 'Eguraldi daturik ez une honetan';
+                            ticker.classList.add('is-visible');
+                            scheduleRetry();
+                            return;
+                        }
+
+                        retryAttempt = 0;
+                        if (rotationTimer) {
+                            window.clearInterval(rotationTimer);
+                            rotationTimer = null;
+                        }
+
+                        let index = 0;
+                        showWithFade(entries[index]);
+                        rotationTimer = window.setInterval(() => {
+                            index = (index + 1) % entries.length;
+                            showWithFade(entries[index]);
+                        }, 6000);
+                    })
+                    .catch(() => {
                         ticker.textContent = 'Eguraldi daturik ez une honetan';
                         ticker.classList.add('is-visible');
-                        return;
-                    }
+                        scheduleRetry();
+                    });
+            }
 
-                    let index = 0;
-                    showWithFade(entries[index]);
-                    window.setInterval(() => {
-                        index = (index + 1) % entries.length;
-                        showWithFade(entries[index]);
-                    }, 6000);
-                })
-                .catch(() => {
-                    ticker.textContent = 'Eguraldi daturik ez une honetan';
-                    ticker.classList.add('is-visible');
-                });
+            loadTicker();
         })();
 
         (function () {

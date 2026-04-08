@@ -409,6 +409,19 @@
             `;
         }
 
+        let weatherRetryTimer = null;
+        let weatherRetryAttempt = 0;
+
+        function scheduleWeatherRetry() {
+            if (weatherRetryTimer) return;
+            weatherRetryAttempt = Math.min(weatherRetryAttempt + 1, 6);
+            const delay = Math.min(15000 * weatherRetryAttempt, 90000);
+            weatherRetryTimer = window.setTimeout(() => {
+                weatherRetryTimer = null;
+                paintWeather();
+            }, delay);
+        }
+
         async function paintWeather() {
             try {
                 const results = await Promise.allSettled(
@@ -420,12 +433,15 @@
 
                 if (rows.length > 0) {
                     weatherTableBody.innerHTML = rows.join('');
+                    weatherRetryAttempt = 0;
                     return;
                 }
 
                 weatherTableBody.innerHTML = '<tr><td colspan="5" class="weather-error-cell">Ez dago eguraldi daturik eskuragarri.</td></tr>';
+                scheduleWeatherRetry();
             } catch (error) {
                 weatherTableBody.innerHTML = '<tr><td colspan="5" class="weather-error-cell">Ezin izan da eguraldia kargatu. Saiatu berriro minutu batzuk barru.</td></tr>';
+                scheduleWeatherRetry();
             }
         }
 

@@ -140,7 +140,19 @@
                 <tbody>
                     @foreach($locations as $location)
                         <tr>
-                            <td>{{ $location->label ?? $location->name }}</td>
+                            <td>
+                                <span
+                                    class="admin-location-status"
+                                    data-lat="{{ $location->lat }}"
+                                    data-lon="{{ $location->lon }}"
+                                    aria-hidden="true"
+                                >
+                                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                                        <path d="M5 13l4 4L19 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </span>
+                                {{ $location->label ?? $location->name }}
+                            </td>
                             <td class="admin-actions">
                                 <button
                                     type="button"
@@ -311,6 +323,43 @@
                 openModal(confirmModal);
             });
         });
+
+        const statusMarkers = Array.from(document.querySelectorAll('.admin-location-status'));
+        if (statusMarkers.length) {
+            const fetchWithTimeout = async (url, timeoutMs = 7000) => {
+                const controller = new AbortController();
+                const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
+                try {
+                    return await fetch(url, { method: 'GET', signal: controller.signal });
+                } finally {
+                    window.clearTimeout(timeoutId);
+                }
+            };
+
+            const checks = statusMarkers.map(async (marker) => {
+                const lat = marker.dataset.lat;
+                const lon = marker.dataset.lon;
+                if (!lat || !lon) return;
+                const apiUrl = new URL('https://api.open-meteo.com/v1/forecast');
+                apiUrl.searchParams.set('latitude', String(lat));
+                apiUrl.searchParams.set('longitude', String(lon));
+                apiUrl.searchParams.set('daily', 'weathercode');
+                apiUrl.searchParams.set('forecast_days', '1');
+                apiUrl.searchParams.set('timezone', 'Europe/Madrid');
+
+                try {
+                    const response = await fetchWithTimeout(apiUrl.toString());
+                    if (response.ok) {
+                        marker.classList.add('is-ok');
+                        marker.setAttribute('title', 'Eguraldi API ondo');
+                    }
+                } catch (error) {
+                    // leave hidden on failure
+                }
+            });
+
+            Promise.allSettled(checks);
+        }
 
         [createModal, editModal, confirmModal, locationCreateModal].forEach((modal) => {
             modal?.addEventListener('click', (event) => {
