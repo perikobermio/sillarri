@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Mail\ShopOrderConfirmation;
+use App\Mail\ShopOrderNotification;
 use App\Models\ShopOrder;
 use App\Models\ShopOrderItem;
 use Illuminate\Http\JsonResponse;
@@ -82,6 +83,8 @@ class ShopController extends Controller
         });
 
         Mail::to($user->email)->send(new ShopOrderConfirmation($user, $items, $total));
+        $shopEmail = config('mail.shop_notify', 'erikbasanez@gmail.com');
+        Mail::to($shopEmail)->send(new ShopOrderNotification($order, $items, $total));
 
         return response()->json([
             'message' => 'Erosketa baieztatuta.',
