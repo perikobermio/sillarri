@@ -6,6 +6,8 @@ use App\Models\KilterMap;
 use App\Models\ShopOrder;
 use App\Models\User;
 use App\Models\WeatherLocation;
+use App\Mail\ShopOrderCancelledNotify;
+use App\Mail\ShopOrderCancelledUser;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -26,6 +28,18 @@ class AdminController extends Controller
             ->with(['items', 'user'])
             ->orderBy('created_at', 'desc')
             ->get();
+        $orders->transform(static function (ShopOrder $order): ShopOrder {
+            $order->items_payload = $order->items->map(static function ($item): array {
+                return [
+                    'name' => $item->name,
+                    'color' => $item->color,
+                    'size' => $item->size,
+                    'qty' => $item->qty,
+                    'line_total' => $item->line_total,
+                ];
+            })->values();
+            return $order;
+        });
         $perPageSetting = DB::table('app_settings')
             ->where('key', 'kilter_blocks_per_page')
             ->value('value');
@@ -158,6 +172,22 @@ class AdminController extends Controller
 
     public function deleteOrder(ShopOrder $order): RedirectResponse
     {
+        $order->loadMissing(['items', 'user']);
+        $items = $order->items->map(static function ($item): array {
+            return [
+                'name' => $item->name,
+                'color' => $item->color,
+                'size' => $item->size,
+                'qty' => $item->qty,
+                'line_total' => $item->line_total,
+            ];
+        })->all();
+        $total = (float) $order->total;
+        $shopEmail = config('mail.shop_notify', 'erikbasanez@gmail.com');
+
+        \Illuminate\Support\Facades\Mail::to($order->email)->send(new ShopOrderCancelledUser($order, $items, $total));
+        \Illuminate\Support\Facades\Mail::to($shopEmail)->send(new ShopOrderCancelledNotify($order, $items, $total));
+
         $order->delete();
 
         return redirect()->route('admin')->with('status', 'Eskaria ezabatuta.');

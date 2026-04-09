@@ -358,11 +358,10 @@
                     body: JSON.stringify({ items: cart }),
                 });
 
+                const result = await response.json().catch(() => ({}));
                 if (!response.ok) {
-                    throw new Error('checkout_failed');
+                    throw new Error(result.message || 'checkout_failed');
                 }
-
-                const result = await response.json();
                 cart.length = 0;
                 renderCart();
                 closeModal();
@@ -372,7 +371,7 @@
                     successEl.classList.add('is-visible');
                 }
             } catch (error) {
-                showToast('Ezin izan da erosketa bidali');
+                showToast(error?.message || 'Ezin izan da erosketa bidali');
             } finally {
                 confirmOk.disabled = false;
                 confirmOk.textContent = 'Ados';

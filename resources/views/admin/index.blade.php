@@ -182,40 +182,38 @@
                     <tr>
                         <th>Data</th>
                         <th>Bezeroa</th>
-                        <th>Artikuluak</th>
-                        <th>Guztira</th>
+                        <th>Tot.</th>
                         <th>Ekintzak</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($orders as $order)
                         <tr>
-                            <td>{{ $order->created_at?->format('Y-m-d H:i') ?? '-' }}</td>
+                            <td class="admin-col-date">{{ $order->created_at?->format('Y-m-d') ?? '-' }}</td>
                             <td>{{ $order->user?->username ?? $order->email }}</td>
-                            <td>
-                                <ul class="admin-order-items">
-                                    @foreach($order->items as $item)
-                                        <li>{{ $item->name }} · {{ $item->color }} · {{ $item->size }} · x{{ $item->qty }}</li>
-                                    @endforeach
-                                </ul>
-                            </td>
-                            <td>{{ $order->total }} €</td>
+                            <td class="admin-col-total">{{ $order->total }} €</td>
                             <td class="admin-actions">
                                 <button
                                     type="button"
-                                    class="btn btn-danger btn-icon admin-delete-order"
-                                    data-action="{{ route('admin.orders.delete', $order) }}"
-                                    data-label="Eskaria"
-                                    aria-label="Ezabatu"
-                                    title="Ezabatu"
+                                    class="btn btn-secondary btn-icon admin-view-order"
+                                    data-id="{{ $order->id }}"
+                                    data-user="{{ $order->user?->name ?? $order->user?->username ?? '' }}"
+                                    data-username="{{ $order->user?->username ?? '' }}"
+                                    data-email="{{ $order->email }}"
+                                    data-total="{{ $order->total }}"
+                                    data-created="{{ $order->created_at?->format('Y-m-d H:i') ?? '-' }}"
+                                    data-items='@json($order->items_payload)'
+                                    data-delete="{{ route('admin.orders.delete', $order) }}"
+                                    aria-label="Ikusi"
+                                    title="Ikusi"
                                 >
-                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7h12l-1 14H7L6 7zm3-3h6l1 2H8l1-2z"/></svg>
+                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6-10-6-10-6z"/><circle cx="12" cy="12" r="3"/></svg>
                                 </button>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5">Ez dago eskaririk.</td>
+                            <td colspan="4">Ez dago eskaririk.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -311,6 +309,22 @@
     </div>
 </div>
 
+<div class="modal-shell hidden-modal" id="admin-order-modal" role="dialog" aria-modal="true" aria-labelledby="admin-order-title">
+    <div class="modal-card">
+        <div class="modal-head">
+            <h2 id="admin-order-title">Eskaria</h2>
+            <button type="button" class="icon-btn" id="close-order-modal">×</button>
+        </div>
+        <div class="admin-order-detail" id="admin-order-detail"></div>
+        <form method="POST" action="#" id="admin-order-delete-form" class="admin-confirm-actions">
+            @csrf
+            @method('DELETE')
+            <button type="button" class="btn btn-secondary" id="admin-order-cancel">Utzi</button>
+            <button type="button" class="btn btn-danger" id="admin-order-delete">Ezabatu</button>
+        </form>
+    </div>
+</div>
+
 <script>
     (function () {
         const createModal = document.getElementById('admin-user-create-modal');
@@ -326,6 +340,12 @@
         const locationCreateModal = document.getElementById('admin-location-create-modal');
         const openLocationCreate = document.getElementById('open-location-create');
         const closeLocationCreate = document.getElementById('close-location-create');
+        const orderModal = document.getElementById('admin-order-modal');
+        const orderDetail = document.getElementById('admin-order-detail');
+        const orderClose = document.getElementById('close-order-modal');
+        const orderCancel = document.getElementById('admin-order-cancel');
+        const orderDeleteForm = document.getElementById('admin-order-delete-form');
+        const orderDeleteBtn = document.getElementById('admin-order-delete');
 
         const editForm = document.getElementById('admin-user-edit-form');
         const editName = document.getElementById('admin-edit-name');
@@ -365,7 +385,7 @@
             });
         });
 
-        document.querySelectorAll('.admin-delete-user, .admin-delete-map, .admin-delete-location, .admin-delete-order').forEach((button) => {
+        document.querySelectorAll('.admin-delete-user, .admin-delete-map, .admin-delete-location').forEach((button) => {
             button.addEventListener('click', () => {
                 const action = button.dataset.action;
                 const label = button.dataset.label || 'Elementua';
@@ -373,6 +393,47 @@
                 confirmForm.action = action;
                 openModal(confirmModal);
             });
+        });
+
+        document.querySelectorAll('.admin-view-order').forEach((button) => {
+            button.addEventListener('click', () => {
+                const items = JSON.parse(button.dataset.items || '[]');
+                const itemsMarkup = items.map((item) => `
+                    <li>${item.name} · ${item.color} · ${item.size} · x${item.qty} <strong>${item.line_total} €</strong></li>
+                `).join('');
+                orderDetail.innerHTML = `
+                    <div class="admin-order-detail-grid">
+                        <div>
+                            <div class="admin-order-label">Data</div>
+                            <div class="admin-order-value">${button.dataset.created}</div>
+                        </div>
+                        <div>
+                            <div class="admin-order-label">Bezeroa</div>
+                            <div class="admin-order-value">${button.dataset.user || button.dataset.username || '-'}</div>
+                            <div class="admin-order-sub">${button.dataset.email}</div>
+                        </div>
+                        <div>
+                            <div class="admin-order-label">Guztira</div>
+                            <div class="admin-order-value">${button.dataset.total} €</div>
+                        </div>
+                    </div>
+                    <div class="admin-order-section">
+                        <div class="admin-order-label">Artikuluak</div>
+                        <ul class="admin-order-items">${itemsMarkup}</ul>
+                    </div>
+                `;
+                orderDeleteForm.action = button.dataset.delete;
+                openModal(orderModal);
+            });
+        });
+
+        orderClose?.addEventListener('click', () => closeModal(orderModal));
+        orderCancel?.addEventListener('click', () => closeModal(orderModal));
+        orderDeleteBtn?.addEventListener('click', () => {
+            confirmText.textContent = 'Eskaria ezabatu nahi duzu?';
+            confirmForm.action = orderDeleteForm.action;
+            closeModal(orderModal);
+            openModal(confirmModal);
         });
 
         const statusMarkers = Array.from(document.querySelectorAll('.admin-location-status'));
@@ -412,7 +473,7 @@
             Promise.allSettled(checks);
         }
 
-        [createModal, editModal, confirmModal, locationCreateModal].forEach((modal) => {
+        [createModal, editModal, confirmModal, locationCreateModal, orderModal].forEach((modal) => {
             modal?.addEventListener('click', (event) => {
                 if (event.target === modal) closeModal(modal);
             });

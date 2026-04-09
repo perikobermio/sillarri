@@ -82,9 +82,16 @@ class ShopController extends Controller
             return $order;
         });
 
-        Mail::to($user->email)->send(new ShopOrderConfirmation($user, $items, $total));
-        $shopEmail = config('mail.shop_notify', 'erikbasanez@gmail.com');
-        Mail::to($shopEmail)->send(new ShopOrderNotification($order, $items, $total));
+        try {
+            Mail::to($user->email)->send(new ShopOrderConfirmation($user, $items, $total));
+            $shopEmail = config('mail.shop_notify', 'erikbasanez@gmail.com');
+            Mail::to($shopEmail)->send(new ShopOrderNotification($order, $items, $total));
+        } catch (\Throwable $e) {
+            $order->delete();
+            return response()->json([
+                'message' => 'Ezin izan da erosketa baieztatu. Saiatu berriro.',
+            ], 500);
+        }
 
         return response()->json([
             'message' => 'Erosketa baieztatuta.',

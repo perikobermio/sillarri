@@ -1287,6 +1287,10 @@ input[type="submit"]:disabled {
   overflow-x: auto;
 }
 
+.admin-page .table-scroll {
+  overflow-x: hidden;
+}
+
 .table-scroll {
   width: 100%;
   max-width: 100%;
@@ -1463,12 +1467,43 @@ input[type="submit"]:disabled {
   margin-top: 0;
 }
 
-.admin-actions {
-  display: inline-flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  justify-content: flex-end;
+.admin-table {
   width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.admin-table th,
+.admin-table td {
+  font-size: 0.82rem;
+  vertical-align: middle;
+  overflow-wrap: anywhere;
+}
+
+.admin-table th {
+  white-space: nowrap;
+}
+
+.admin-table td {
+  line-height: 1.2;
+}
+
+.admin-table td:last-child {
+  width: 120px;
+}
+
+.admin-table th:last-child,
+.admin-table td:last-child {
+  text-align: right;
+}
+
+.admin-table .admin-actions {
+  justify-content: flex-end;
+  min-height: 40px;
+}
+
+.admin-map-thumb {
+  display: block;
 }
 
 .admin-order-items {
@@ -1476,6 +1511,72 @@ input[type="submit"]:disabled {
   padding-left: 1.1rem;
   font-size: 0.85rem;
   color: rgba(246, 241, 232, 0.7);
+}
+
+.admin-order-detail p {
+  margin: 0 0 0.5rem;
+}
+
+.admin-order-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.8rem 1.4rem;
+  padding: 0.6rem 0 0.2rem;
+}
+
+.admin-order-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(246, 241, 232, 0.6);
+}
+
+.admin-order-value {
+  font-weight: 700;
+  margin-top: 0.2rem;
+}
+
+.admin-order-sub {
+  font-size: 0.8rem;
+  color: rgba(246, 241, 232, 0.7);
+}
+
+.admin-order-section {
+  margin-top: 0.8rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.admin-col-date {
+  width: 130px;
+  white-space: nowrap;
+}
+
+.admin-col-total {
+  width: 60px;
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .admin-table {
+    table-layout: auto;
+  }
+
+  .admin-table th,
+  .admin-table td {
+    padding: 0.45rem 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .admin-table td:last-child,
+  .admin-col-date,
+  .admin-col-total {
+    width: 100%;
+  }
+
+  .admin-table th {
+    letter-spacing: 0.04em;
+  }
 }
 
 .btn-icon {
