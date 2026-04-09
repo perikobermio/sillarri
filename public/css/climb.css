@@ -703,7 +703,11 @@ input[type="submit"]:disabled {
 }
 
 .shop-page {
-  padding-bottom: 160px;
+  padding-bottom: 140px;
+}
+
+.shop-page.has-cart {
+  padding-bottom: 300px;
 }
 
 .shop-form {

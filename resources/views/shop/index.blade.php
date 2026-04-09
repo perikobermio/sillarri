@@ -1,7 +1,7 @@
 @extends('layouts.app', ['title' => 'Denda | Sillarri Climb'])
 
 @section('content')
-<div class="shop-page">
+<div class="shop-page" id="shopPage">
 @php
     $colors = [
         ['code' => 'BK', 'label' => 'Baltza', 'hex' => '#0d0d0d'],
@@ -220,6 +220,7 @@
         const confirmOk = document.getElementById('shop-confirm-ok');
         const successEl = document.getElementById('shopSuccess');
         const cartCard = document.getElementById('shopCartCard');
+        const shopPage = document.getElementById('shopPage');
 
         const cart = [];
 
@@ -232,6 +233,7 @@
                 cartEl.innerHTML = '<div class="shop-cart-empty">Oraindik ez dago produkturik.</div>';
                 totalEl.textContent = 'Guztira: 0 €';
                 cartCard?.classList.remove('is-fixed');
+                shopPage?.classList.remove('has-cart');
                 return;
             }
 
@@ -257,6 +259,7 @@
 
             totalEl.textContent = `Guztira: ${formatPrice(total)}`;
             cartCard?.classList.add('is-fixed');
+            shopPage?.classList.add('has-cart');
 
             cartEl.querySelectorAll('[data-remove]').forEach((btn) => {
                 btn.addEventListener('click', () => {
