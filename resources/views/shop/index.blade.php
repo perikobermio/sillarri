@@ -1,6 +1,7 @@
 @extends('layouts.app', ['title' => 'Denda | Sillarri Climb'])
 
 @section('content')
+<div class="shop-page">
 @php
     $colors = [
         ['code' => 'BK', 'label' => 'Baltza', 'hex' => '#0d0d0d'],
@@ -165,23 +166,25 @@
 </section>
 
 <section class="shop-form">
-    <div class="shop-form-card">
+    <div class="shop-form-card shop-cart-fixed" id="shopCartCard">
         <h3>Saskia</h3>
         <div id="shopCart" class="shop-cart-list">
             <div class="shop-cart-empty">Oraindik ez dago produkturik.</div>
         </div>
-        <div class="shop-cart-total" id="shopTotal">Guztira: 0 €</div>
-        <div class="shop-success" id="shopSuccess"></div>
-        <div class="shop-form-actions">
-            <button type="button" class="btn btn-secondary shop-action-btn" id="shopClear" aria-label="Saskia hustu">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14l-1 14H6L5 7zm3-3h8l1 2H7l1-2z"/></svg>
-                <span class="btn-text">Saskia hustu</span>
-            </button>
-            <button type="button" class="btn btn-primary shop-action-btn" id="shopCheckout" aria-label="Amaitu erosketa">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6h15l-2 10H8L6 6zm-2-2h2l1 4H3l1-4zM10 20a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm7 0a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"/></svg>
-                <span class="btn-text">Amaitu erosketa</span>
-            </button>
+        <div class="shop-cart-footer">
+            <div class="shop-cart-total" id="shopTotal">Guztira: 0 €</div>
+            <div class="shop-form-actions">
+                <button type="button" class="btn btn-secondary shop-action-btn" id="shopClear" aria-label="Saskia hustu">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14l-1 14H6L5 7zm3-3h8l1 2H7l1-2z"/></svg>
+                    <span class="btn-text">Saskia hustu</span>
+                </button>
+                <button type="button" class="btn btn-primary shop-action-btn" id="shopCheckout" aria-label="Amaitu erosketa">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6h15l-2 10H8L6 6zm-2-2h2l1 4H3l1-4zM10 20a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm7 0a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"/></svg>
+                    <span class="btn-text">Amaitu erosketa</span>
+                </button>
+            </div>
         </div>
+        <div class="shop-success" id="shopSuccess"></div>
     </div>
 </section>
 
@@ -216,6 +219,7 @@
         const confirmCancel = document.getElementById('shop-confirm-cancel');
         const confirmOk = document.getElementById('shop-confirm-ok');
         const successEl = document.getElementById('shopSuccess');
+        const cartCard = document.getElementById('shopCartCard');
 
         const cart = [];
 
@@ -227,6 +231,7 @@
             if (!cart.length) {
                 cartEl.innerHTML = '<div class="shop-cart-empty">Oraindik ez dago produkturik.</div>';
                 totalEl.textContent = 'Guztira: 0 €';
+                cartCard?.classList.remove('is-fixed');
                 return;
             }
 
@@ -234,21 +239,24 @@
             cartEl.innerHTML = cart.map((item, index) => {
                 total += item.price * item.qty;
                 return `
-                    <div class="shop-cart-item">
+                    <div class="shop-cart-item compact">
                         <div class="shop-cart-row">
                             <strong>${item.name}</strong>
                             <span>${formatPrice(item.price * item.qty)}</span>
                         </div>
-                        <div class="shop-cart-meta">Kolorea: ${item.color} · Talla: ${item.size} · Kopurua: ${item.qty}</div>
-                        <button type="button" class="btn btn-secondary shop-action-btn" data-remove="${index}" aria-label="Kendu">
-                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7h12l-1 14H7L6 7zm3-3h6l1 2H8l1-2z"/></svg>
-                            <span class="btn-text">Kendu</span>
-                        </button>
+                        <div class="shop-cart-meta">
+                            Kolorea: ${item.color} · Talla: ${item.size} · Kopurua: ${item.qty}
+                            <button type="button" class="btn btn-secondary shop-action-btn inline-remove" data-remove="${index}" aria-label="Kendu">
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7h12l-1 14H7L6 7zm3-3h6l1 2H8l1-2z"/></svg>
+                                <span class="btn-text">Kendu</span>
+                            </button>
+                        </div>
                     </div>
                 `;
             }).join('');
 
             totalEl.textContent = `Guztira: ${formatPrice(total)}`;
+            cartCard?.classList.add('is-fixed');
 
             cartEl.querySelectorAll('[data-remove]').forEach((btn) => {
                 btn.addEventListener('click', () => {
@@ -398,4 +406,5 @@
         });
     })();
 </script>
+</div>
 @endsection
