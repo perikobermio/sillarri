@@ -345,18 +345,20 @@
                 return;
             }
 
-            confirmOk.disabled = true;
-            confirmOk.textContent = 'Bidaltzen...';
+            window.setButtonLoading?.(confirmOk, true);
 
             try {
-                const response = await fetch('{{ route('shop.checkout') }}', {
+                const requestOptions = {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': '{{ csrf_token() }}',
                     },
                     body: JSON.stringify({ items: cart }),
-                });
+                };
+                const response = window.appFetch
+                    ? await window.appFetch('{{ route('shop.checkout') }}', { ...requestOptions, timeoutMs: 10000, showError: false })
+                    : await fetch('{{ route('shop.checkout') }}', requestOptions);
 
                 const result = await response.json().catch(() => ({}));
                 if (!response.ok) {
@@ -371,10 +373,12 @@
                     successEl.classList.add('is-visible');
                 }
             } catch (error) {
-                showToast(error?.message || 'Ezin izan da erosketa bidali');
+                const message = error?.name === 'AbortError'
+                    ? 'Denbora agortu da. Saiatu berriro.'
+                    : (error?.message || 'Ezin izan da erosketa bidali');
+                showToast(message);
             } finally {
-                confirmOk.disabled = false;
-                confirmOk.textContent = 'Ados';
+                window.setButtonLoading?.(confirmOk, false);
             }
         });
 

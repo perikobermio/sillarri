@@ -169,9 +169,12 @@
             body.innerHTML = '<tr><td colspan="9" class="weather-detail-loading">Eguraldia kargatzen...</td></tr>';
 
             try {
-                const response = await fetch(apiUrl.toString(), { method: 'GET' });
+                const response = window.appFetch
+                    ? await window.appFetch(apiUrl.toString(), { method: 'GET', timeoutMs: 8000, showError: false })
+                    : await fetch(apiUrl.toString(), { method: 'GET' });
                 if (!response.ok) {
                     body.innerHTML = '<tr><td colspan="9" class="weather-detail-loading">Ezin izan da eguraldia kargatu.</td></tr>';
+                    window.showSnackbar?.('Eguraldi datuak ezin izan dira kargatu.');
                     scheduleRetry(place, date);
                     return;
                 }
@@ -226,6 +229,7 @@
                 retryAttempt = 0;
             } catch (error) {
                 body.innerHTML = '<tr><td colspan="9" class="weather-detail-loading">Ezin izan da eguraldia kargatu.</td></tr>';
+                window.showSnackbar?.('Eguraldi datuak ezin izan dira kargatu.');
                 scheduleRetry(place, date);
             }
         }

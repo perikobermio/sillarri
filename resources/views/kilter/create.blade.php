@@ -311,9 +311,7 @@
 
             mapError.classList.add('hidden-error');
             mapError.textContent = '';
-            saveMapBtn.disabled = true;
-            saveMapBtn.classList.add('is-loading');
-            saveMapBtn.setAttribute('aria-busy', 'true');
+            window.setButtonLoading?.(saveMapBtn, true);
 
             const payload = new FormData();
             payload.append('_token', mapForm.querySelector('input[name="_token"]').value);
@@ -326,9 +324,7 @@
                 mapError.textContent = 'Irudi bat hautatu behar duzu.';
                 mapError.classList.remove('hidden-error');
                 showSnackbar('Irudi bat hautatu behar duzu.');
-                saveMapBtn.disabled = false;
-                saveMapBtn.classList.remove('is-loading');
-                saveMapBtn.removeAttribute('aria-busy');
+                window.setButtonLoading?.(saveMapBtn, false);
                 return;
             }
 
@@ -336,16 +332,14 @@
                 mapError.textContent = 'Irudia handiegia da. Gehienez 20MB onartzen dira.';
                 mapError.classList.remove('hidden-error');
                 showSnackbar('Irudia handiegia da. Gehienez 20MB onartzen dira.');
-                saveMapBtn.disabled = false;
-                saveMapBtn.classList.remove('is-loading');
-                saveMapBtn.removeAttribute('aria-busy');
+                window.setButtonLoading?.(saveMapBtn, false);
                 return;
             }
 
             payload.append('image', chosenFile);
 
             try {
-                const response = await fetch('{{ route('kilter.maps.store') }}', {
+                const requestOptions = {
                     method: 'POST',
                     body: payload,
                     credentials: 'same-origin',
@@ -354,7 +348,10 @@
                         'X-Requested-With': 'XMLHttpRequest',
                         'Accept': 'application/json'
                     }
-                });
+                };
+                const response = window.appFetch
+                    ? await window.appFetch('{{ route('kilter.maps.store') }}', { ...requestOptions, timeoutMs: 20000, showError: false })
+                    : await fetch('{{ route('kilter.maps.store') }}', requestOptions);
 
                 const contentType = response.headers.get('content-type') || '';
                 let data = null;
@@ -383,9 +380,7 @@
                     mapError.textContent = msg;
                     mapError.classList.remove('hidden-error');
                     showSnackbar(msg);
-                    saveMapBtn.disabled = false;
-                    saveMapBtn.classList.remove('is-loading');
-                    saveMapBtn.removeAttribute('aria-busy');
+                    window.setButtonLoading?.(saveMapBtn, false);
                     return;
                 }
 
@@ -399,14 +394,16 @@
 
                 closeMapModal();
             } catch (error) {
+                const isTimeout = error?.name === 'AbortError';
                 const detail = error instanceof Error ? ` (${error.message})` : '';
-                mapError.textContent = `Sareko errorea mapa gordetzean${detail}.`;
+                const message = isTimeout
+                    ? 'Denbora agortu da mapa gordetzean. Saiatu berriro.'
+                    : `Sareko errorea mapa gordetzean${detail}.`;
+                mapError.textContent = message;
                 mapError.classList.remove('hidden-error');
-                showSnackbar(`Sareko errorea mapa gordetzean${detail}.`);
+                showSnackbar(message);
             } finally {
-                saveMapBtn.disabled = false;
-                saveMapBtn.classList.remove('is-loading');
-                saveMapBtn.removeAttribute('aria-busy');
+                window.setButtonLoading?.(saveMapBtn, false);
             }
         });
 

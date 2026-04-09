@@ -14,18 +14,22 @@
             @csrf
             @method('PUT')
             <label>Blokeen zerrendako orriko kopurua</label>
-            <input
-                type="number"
-                name="kilter_blocks_per_page"
-                min="2"
-                max="100"
-                value="{{ old('kilter_blocks_per_page', $blockListPageSize ?? 50) }}"
-                required
-            >
+            <div class="admin-inline-row">
+                <input
+                    type="number"
+                    name="kilter_blocks_per_page"
+                    min="2"
+                    max="100"
+                    value="{{ old('kilter_blocks_per_page', $blockListPageSize ?? 50) }}"
+                    required
+                >
+                <button type="submit" class="btn btn-primary btn-icon" aria-label="Gorde" title="Gorde">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4 4L19 6"/></svg>
+                </button>
+            </div>
             @error('kilter_blocks_per_page')
                 <small class="error">{{ $message }}</small>
             @enderror
-            <button type="submit" class="btn btn-primary">Gorde</button>
         </form>
     </div>
 
@@ -439,6 +443,9 @@
         const statusMarkers = Array.from(document.querySelectorAll('.admin-location-status'));
         if (statusMarkers.length) {
             const fetchWithTimeout = async (url, timeoutMs = 7000) => {
+                if (window.appFetch) {
+                    return window.appFetch(url, { method: 'GET', timeoutMs, showError: false });
+                }
                 const controller = new AbortController();
                 const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
                 try {
@@ -448,6 +455,7 @@
                 }
             };
 
+            let hadError = false;
             const checks = statusMarkers.map(async (marker) => {
                 const lat = marker.dataset.lat;
                 const lon = marker.dataset.lon;
@@ -466,11 +474,15 @@
                         marker.setAttribute('title', 'Eguraldi API ondo');
                     }
                 } catch (error) {
-                    // leave hidden on failure
+                    hadError = true;
                 }
             });
 
-            Promise.allSettled(checks);
+            Promise.allSettled(checks).then(() => {
+                if (hadError) {
+                    window.showSnackbar?.('Ezin izan da eguraldi APIa egiaztatu.');
+                }
+            });
         }
 
         [createModal, editModal, confirmModal, locationCreateModal, orderModal].forEach((modal) => {

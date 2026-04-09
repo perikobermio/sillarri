@@ -172,25 +172,29 @@ class AdminController extends Controller
 
     public function deleteOrder(ShopOrder $order): RedirectResponse
     {
-        $order->loadMissing(['items', 'user']);
-        $items = $order->items->map(static function ($item): array {
-            return [
-                'name' => $item->name,
-                'color' => $item->color,
-                'size' => $item->size,
-                'qty' => $item->qty,
-                'line_total' => $item->line_total,
-            ];
-        })->all();
-        $total = (float) $order->total;
-        $shopEmail = config('mail.shop_notify', 'erikbasanez@gmail.com');
+        try {
+            $order->loadMissing(['items', 'user']);
+            $items = $order->items->map(static function ($item): array {
+                return [
+                    'name' => $item->name,
+                    'color' => $item->color,
+                    'size' => $item->size,
+                    'qty' => $item->qty,
+                    'line_total' => $item->line_total,
+                ];
+            })->all();
+            $total = (float) $order->total;
+            $shopEmail = config('mail.shop_notify', 'erikbasanez@gmail.com');
 
-        \Illuminate\Support\Facades\Mail::to($order->email)->send(new ShopOrderCancelledUser($order, $items, $total));
-        \Illuminate\Support\Facades\Mail::to($shopEmail)->send(new ShopOrderCancelledNotify($order, $items, $total));
+            \Illuminate\Support\Facades\Mail::to($order->email)->send(new ShopOrderCancelledUser($order, $items, $total));
+            \Illuminate\Support\Facades\Mail::to($shopEmail)->send(new ShopOrderCancelledNotify($order, $items, $total));
 
-        $order->delete();
+            $order->delete();
 
-        return redirect()->route('admin')->with('status', 'Eskaria ezabatuta.');
+            return redirect()->route('admin')->with('status', 'Eskaria ezabatuta.');
+        } catch (\Throwable $e) {
+            return redirect()->route('admin')->with('error', 'Ezin izan da eskaria ezabatu. Saiatu berriro.');
+        }
     }
 
     public function updateSettings(Request $request): RedirectResponse

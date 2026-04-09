@@ -35,7 +35,13 @@
 
         <nav class="nav-links">
             <a class="kilter-nav" href="{{ route('kilter') }}">KILTER</a>
-            <a href="{{ route('ranking') }}">Sailkapena</a>
+            <a class="desktop-only" href="{{ route('ranking') }}">Sailkapena</a>
+            <a class="desktop-only" href="{{ route('shop') }}">Denda</a>
+            @if(request()->routeIs('kilter*'))
+                <a class="mobile-only" href="{{ route('ranking') }}">Sailkapena</a>
+            @else
+                <a class="mobile-only" href="{{ route('shop') }}">Denda</a>
+            @endif
             @auth
                 <details class="user-menu">
                     <summary class="user-chip">
@@ -89,10 +95,109 @@
         @if(session('status'))
             <div class="flash-ok">{{ session('status') }}</div>
         @endif
+        @if(session('error'))
+            <div class="flash-error">{{ session('error') }}</div>
+        @endif
         @yield('content')
     </main>
 
+    <div class="app-snackbar" id="appSnackbar" role="status" aria-live="polite"></div>
+    <div class="interaction-blocker" id="interactionBlocker" aria-hidden="true"></div>
+
     <script>
+        (function () {
+            const snackbar = document.getElementById('appSnackbar');
+            const blocker = document.getElementById('interactionBlocker');
+            let lastMessage = '';
+            let lastTime = 0;
+            let loadingCount = 0;
+
+            function setGlobalBlocking(active) {
+                if (!blocker) return;
+                blocker.classList.toggle('is-active', active);
+                document.documentElement.classList.toggle('is-busy', active);
+            }
+
+            window.setGlobalLoading = function (isLoading) {
+                if (isLoading) {
+                    loadingCount += 1;
+                } else {
+                    loadingCount = Math.max(0, loadingCount - 1);
+                }
+                setGlobalBlocking(loadingCount > 0);
+            };
+
+            window.setButtonLoading = function (el, isLoading) {
+                if (!el) return;
+                const alreadyActive = el.dataset.loadingActive === 'true';
+                if (isLoading) {
+                    if (!alreadyActive) {
+                        el.dataset.loadingActive = 'true';
+                        window.setGlobalLoading?.(true);
+                    }
+                    if (!el.disabled) {
+                        el.dataset.loadingDisabled = 'true';
+                        el.disabled = true;
+                    }
+                    el.classList.add('is-loading');
+                    el.setAttribute('aria-busy', 'true');
+                } else {
+                    if (alreadyActive) {
+                        delete el.dataset.loadingActive;
+                        window.setGlobalLoading?.(false);
+                    }
+                    el.classList.remove('is-loading');
+                    el.removeAttribute('aria-busy');
+                    if (el.dataset.loadingDisabled === 'true') {
+                        if (el.dataset.offlineDisabled !== 'true') {
+                            el.disabled = false;
+                        }
+                        delete el.dataset.loadingDisabled;
+                    }
+                }
+            };
+
+            window.showSnackbar = function (message, options = {}) {
+                if (!snackbar || !message) return;
+                const now = Date.now();
+                const key = options.key || message;
+                if (lastMessage === key && now - lastTime < 4000) return;
+                lastMessage = key;
+                lastTime = now;
+                snackbar.textContent = message;
+                snackbar.classList.add('is-visible');
+                window.clearTimeout(window.showSnackbar._timer);
+                window.showSnackbar._timer = window.setTimeout(() => {
+                    snackbar.classList.remove('is-visible');
+                }, options.duration || 2400);
+            };
+
+            window.appFetch = async function (url, options = {}) {
+                const timeoutMs = options.timeoutMs ?? 8000;
+                const showError = options.showError ?? true;
+                const errorMessage = options.errorMessage || 'Sareko errorea gertatu da.';
+                const controller = new AbortController();
+                const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
+                const opts = { ...options, signal: controller.signal };
+                const loadingEl = opts.loadingEl || (opts.loadingSelector ? document.querySelector(opts.loadingSelector) : null);
+                delete opts.timeoutMs;
+                delete opts.showError;
+                delete opts.errorMessage;
+                delete opts.loadingEl;
+                delete opts.loadingSelector;
+                if (loadingEl) window.setButtonLoading?.(loadingEl, true);
+                try {
+                    return await fetch(url, opts);
+                } catch (error) {
+                    if (showError) window.showSnackbar?.(errorMessage);
+                    throw error;
+                } finally {
+                    window.clearTimeout(timeoutId);
+                    if (loadingEl) window.setButtonLoading?.(loadingEl, false);
+                }
+            };
+        })();
+
         (function () {
             const menus = document.querySelectorAll('.user-menu');
 
@@ -140,6 +245,9 @@
             }
 
             async function fetchWithTimeout(url, timeoutMs = 8000) {
+                if (window.appFetch) {
+                    return window.appFetch(url, { method: 'GET', timeoutMs, showError: false });
+                }
                 const controller = new AbortController();
                 const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
                 try {
@@ -154,7 +262,7 @@
                 if (!Array.isArray(locations) || locations.length === 0) {
                     return [];
                 }
-
+                let hadError = false;
                 const results = await Promise.allSettled(
                     locations.map(async (location) => {
                         const apiUrl = new URL('https://api.open-meteo.com/v1/forecast');
@@ -164,35 +272,43 @@
                         apiUrl.searchParams.set('forecast_days', '10');
                         apiUrl.searchParams.set('timezone', 'Europe/Madrid');
 
-                        const response = await fetchWithTimeout(apiUrl.toString());
-                        if (!response.ok) return null;
+                        try {
+                            const response = await fetchWithTimeout(apiUrl.toString());
+                            if (!response.ok) return null;
+                            const json = await response.json();
+                            const daily = json.daily || {};
+                            const times = Array.isArray(daily.time) ? daily.time : [];
+                            const codes = Array.isArray(daily.weathercode) ? daily.weathercode : [];
+                            const maxes = Array.isArray(daily.temperature_2m_max) ? daily.temperature_2m_max : [];
+                            const mins = Array.isArray(daily.temperature_2m_min) ? daily.temperature_2m_min : [];
 
-                        const json = await response.json();
-                        const daily = json.daily || {};
-                        const times = Array.isArray(daily.time) ? daily.time : [];
-                        const codes = Array.isArray(daily.weathercode) ? daily.weathercode : [];
-                        const maxes = Array.isArray(daily.temperature_2m_max) ? daily.temperature_2m_max : [];
-                        const mins = Array.isArray(daily.temperature_2m_min) ? daily.temperature_2m_min : [];
+                            const byDate = new Map();
+                            for (let i = 0; i < times.length; i++) {
+                                byDate.set(times[i], {
+                                    code: Number(codes[i] ?? 0),
+                                    max: Number(maxes[i] ?? 0),
+                                    min: Number(mins[i] ?? 0),
+                                });
+                            }
 
-                        const byDate = new Map();
-                        for (let i = 0; i < times.length; i++) {
-                            byDate.set(times[i], {
-                                code: Number(codes[i] ?? 0),
-                                max: Number(maxes[i] ?? 0),
-                                min: Number(mins[i] ?? 0),
-                            });
+                            const today = dates[0];
+                            const item = byDate.get(today.key);
+                            if (!item) return null;
+                            const placeLabel = location.label || location.name;
+                            return {
+                                text: `${placeLabel} · ${iconFromWmo(item.code)} ${Math.round(item.max)}°/${Math.round(item.min)}°`,
+                                href: `${weatherBaseUrl}?place=${encodeURIComponent(placeLabel)}&date=${today.key}`,
+                            };
+                        } catch (error) {
+                            hadError = true;
+                            return null;
                         }
-
-                        const today = dates[0];
-                        const item = byDate.get(today.key);
-                        if (!item) return null;
-                        const placeLabel = location.label || location.name;
-                        return {
-                            text: `${placeLabel} · ${iconFromWmo(item.code)} ${Math.round(item.max)}°/${Math.round(item.min)}°`,
-                            href: `${weatherBaseUrl}?place=${encodeURIComponent(placeLabel)}&date=${today.key}`,
-                        };
                     })
                 );
+
+                if (hadError) {
+                    window.showSnackbar?.('Eguraldiaren datuak ezin izan dira kargatu.');
+                }
 
                 return results
                     .filter((result) => result.status === 'fulfilled' && result.value)
@@ -308,6 +424,21 @@
                 if (!document.hidden) updateStatus();
             });
             updateStatus();
+        })();
+
+        (function () {
+            document.addEventListener('submit', (event) => {
+                const form = event.target;
+                if (!form || !(form instanceof HTMLFormElement)) return;
+                if (form.dataset.noLoading === 'true') return;
+                let submitter = event.submitter;
+                if (!submitter) {
+                    const candidates = form.querySelectorAll('button[type="submit"], input[type="submit"]');
+                    if (candidates.length === 1) submitter = candidates[0];
+                }
+                if (!submitter || submitter.dataset.noLoading === 'true') return;
+                window.setButtonLoading?.(submitter, true);
+            });
         })();
     </script>
 </body>

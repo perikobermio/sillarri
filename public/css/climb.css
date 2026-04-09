@@ -301,6 +301,37 @@ body {
   color: #d8efe4;
 }
 
+.flash-error {
+  margin-bottom: 1rem;
+  border: 1px solid rgba(255, 94, 94, 0.65);
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  background: rgba(120, 22, 22, 0.35);
+  color: #ffd3d3;
+}
+
+.app-snackbar {
+  position: fixed;
+  right: 1.2rem;
+  bottom: 1.2rem;
+  background: rgba(20, 18, 16, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--text);
+  padding: 0.6rem 0.9rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 180ms ease, transform 180ms ease;
+  z-index: 300;
+  pointer-events: none;
+}
+
+.app-snackbar.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 main {
   width: min(1160px, calc(100% - 2rem));
   margin: 1.5rem auto 2rem;
@@ -361,22 +392,49 @@ input[type="submit"]:disabled {
   filter: grayscale(25%);
 }
 
-.btn.is-loading {
+.btn.is-loading,
+button.is-loading,
+input[type="submit"].is-loading {
   position: relative;
   pointer-events: none;
   opacity: 0.85;
+  color: transparent;
+  text-shadow: none;
 }
 
-.btn.is-loading::after {
+.btn.is-loading::after,
+button.is-loading::after,
+input[type="submit"].is-loading::after {
   content: "";
   width: 14px;
   height: 14px;
   border-radius: 999px;
   border: 2px solid rgba(255, 255, 255, 0.35);
   border-top-color: rgba(255, 255, 255, 0.9);
-  animation: spin 0.9s linear infinite;
+  animation: spin-center 0.9s linear infinite;
   position: absolute;
-  right: 0.6rem;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.btn.is-loading > *,
+button.is-loading > * {
+  opacity: 0;
+}
+
+.interaction-blocker {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  opacity: 0;
+  pointer-events: none;
+  cursor: wait;
+}
+
+.interaction-blocker.is-active {
+  opacity: 1;
+  pointer-events: all;
 }
 
 .loading-inline {
@@ -397,6 +455,12 @@ input[type="submit"]:disabled {
 @keyframes spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes spin-center {
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
   }
 }
 
@@ -1041,7 +1105,7 @@ input[type="submit"]:disabled {
 
 .shop-card-form {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
+  grid-template-columns: 1fr;
   gap: 0.6rem;
   align-items: end;
 }
@@ -1069,10 +1133,6 @@ input[type="submit"]:disabled {
 }
 
 @media (max-width: 900px) {
-  .shop-card-form {
-    grid-template-columns: 1fr;
-  }
-
   .shop-card-form .shop-action-btn {
     width: 44px;
     height: 44px;
@@ -1465,6 +1525,17 @@ input[type="submit"]:disabled {
 
 .admin-page .admin-section h3 {
   margin-top: 0;
+}
+
+.admin-inline-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.admin-inline-row input {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .admin-table {

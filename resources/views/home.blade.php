@@ -364,6 +364,9 @@
         }
 
         async function fetchWithTimeout(url, timeoutMs = 8000) {
+            if (window.appFetch) {
+                return window.appFetch(url, { method: 'GET', timeoutMs, showError: false });
+            }
             const controller = new AbortController();
             const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
             try {
@@ -445,9 +448,11 @@
                 }
 
                 weatherTableBody.innerHTML = '<tr><td colspan="5" class="weather-error-cell">Ez dago eguraldi daturik eskuragarri.</td></tr>';
+                window.showSnackbar?.('Eguraldi datuak ezin izan dira kargatu.');
                 scheduleWeatherRetry();
             } catch (error) {
                 weatherTableBody.innerHTML = '<tr><td colspan="5" class="weather-error-cell">Ezin izan da eguraldia kargatu. Saiatu berriro minutu batzuk barru.</td></tr>';
+                window.showSnackbar?.('Eguraldi datuak ezin izan dira kargatu.');
                 scheduleWeatherRetry();
             }
         }
