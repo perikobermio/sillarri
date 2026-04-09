@@ -171,6 +171,57 @@
             </table>
         </div>
     </div>
+
+    <div class="panel admin-section">
+        <div class="admin-section-head">
+            <h3>Denda · Eskariak</h3>
+        </div>
+        <div class="table-scroll">
+            <table class="kilter-table admin-table">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Bezeroa</th>
+                        <th>Artikuluak</th>
+                        <th>Guztira</th>
+                        <th>Ekintzak</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($orders as $order)
+                        <tr>
+                            <td>{{ $order->created_at?->format('Y-m-d H:i') ?? '-' }}</td>
+                            <td>{{ $order->user?->username ?? $order->email }}</td>
+                            <td>
+                                <ul class="admin-order-items">
+                                    @foreach($order->items as $item)
+                                        <li>{{ $item->name }} · {{ $item->color }} · {{ $item->size }} · x{{ $item->qty }}</li>
+                                    @endforeach
+                                </ul>
+                            </td>
+                            <td>{{ $order->total }} €</td>
+                            <td class="admin-actions">
+                                <button
+                                    type="button"
+                                    class="btn btn-danger btn-icon admin-delete-order"
+                                    data-action="{{ route('admin.orders.delete', $order) }}"
+                                    data-label="Eskaria"
+                                    aria-label="Ezabatu"
+                                    title="Ezabatu"
+                                >
+                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7h12l-1 14H7L6 7zm3-3h6l1 2H8l1-2z"/></svg>
+                                </button>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5">Ez dago eskaririk.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
 </section>
 
 <div class="modal-shell hidden-modal" id="admin-user-create-modal" role="dialog" aria-modal="true" aria-labelledby="admin-user-create-title">
@@ -314,7 +365,7 @@
             });
         });
 
-        document.querySelectorAll('.admin-delete-user, .admin-delete-map, .admin-delete-location').forEach((button) => {
+        document.querySelectorAll('.admin-delete-user, .admin-delete-map, .admin-delete-location, .admin-delete-order').forEach((button) => {
             button.addEventListener('click', () => {
                 const action = button.dataset.action;
                 const label = button.dataset.label || 'Elementua';

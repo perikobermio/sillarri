@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\KilterMap;
+use App\Models\ShopOrder;
 use App\Models\User;
 use App\Models\WeatherLocation;
 use Illuminate\Http\RedirectResponse;
@@ -21,6 +22,10 @@ class AdminController extends Controller
         $users = User::query()->orderBy('name')->get();
         $maps = KilterMap::query()->orderBy('created_at', 'desc')->get();
         $locations = WeatherLocation::query()->orderBy('name')->get();
+        $orders = ShopOrder::query()
+            ->with(['items', 'user'])
+            ->orderBy('created_at', 'desc')
+            ->get();
         $perPageSetting = DB::table('app_settings')
             ->where('key', 'kilter_blocks_per_page')
             ->value('value');
@@ -34,6 +39,7 @@ class AdminController extends Controller
             'users' => $users,
             'maps' => $maps,
             'locations' => $locations,
+            'orders' => $orders,
             'blockListPageSize' => $blockListPageSize,
         ]);
     }
@@ -148,6 +154,13 @@ class AdminController extends Controller
         $location->delete();
 
         return redirect()->route('admin')->with('status', 'Herria ezabatuta.');
+    }
+
+    public function deleteOrder(ShopOrder $order): RedirectResponse
+    {
+        $order->delete();
+
+        return redirect()->route('admin')->with('status', 'Eskaria ezabatuta.');
     }
 
     public function updateSettings(Request $request): RedirectResponse

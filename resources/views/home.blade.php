@@ -63,6 +63,13 @@
     <span>KILTER atalera sartu</span>
 </a>
 
+<a class="denda-spotlight" href="{{ route('shop') }}">
+    <p class="eyebrow">Denda</p>
+    <h2>Sillarri Merch</h2>
+    <p>Biserak, kamisetak eta sudaderiak. Estiloa eta eskalada, batera.</p>
+    <span>Dendara joan</span>
+</a>
+
 <section id="home-weather" class="weather-home">
     <div class="weather-home-head">
         <p class="eyebrow">Aurrerapenaren jarraipena</p>

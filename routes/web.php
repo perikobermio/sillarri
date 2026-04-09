@@ -6,6 +6,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\MultimediaController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\RankingController;
+use App\Http\Controllers\ShopController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -13,6 +14,10 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Route::get('/kilter', [KilterController::class, 'index'])->name('kilter');
 Route::get('/sailkapena', [RankingController::class, 'index'])->name('ranking');
+Route::middleware('auth')->group(function (): void {
+    Route::get('/denda', [ShopController::class, 'index'])->name('shop');
+    Route::post('/denda/checkout', [ShopController::class, 'checkout'])->name('shop.checkout');
+});
 Route::get('/eguraldia', function () {
     $locations = \App\Models\WeatherLocation::query()->orderBy('name')->get();
     return view('weather.index', ['weatherLocations' => $locations]);
@@ -57,4 +62,5 @@ Route::middleware(['auth', 'admin'])->group(function (): void {
     Route::delete('/admin/maps/{map}', [AdminController::class, 'deleteMap'])->name('admin.maps.delete');
     Route::post('/admin/locations', [AdminController::class, 'storeLocation'])->name('admin.locations.store');
     Route::delete('/admin/locations/{location}', [AdminController::class, 'deleteLocation'])->name('admin.locations.delete');
+    Route::delete('/admin/orders/{order}', [AdminController::class, 'deleteOrder'])->name('admin.orders.delete');
 });
