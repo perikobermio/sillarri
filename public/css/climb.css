@@ -2784,6 +2784,11 @@ button.is-loading > * {
   font-size: 0.85rem;
 }
 
+#open-boulder-modal.has-points {
+  border-color: rgba(134, 184, 161, 0.85);
+  box-shadow: 0 0 0 2px rgba(134, 184, 161, 0.25);
+}
+
 .hidden-map-upload {
   display: none;
 }

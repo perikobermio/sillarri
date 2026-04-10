@@ -117,20 +117,29 @@
                 <small class="error">{{ $message }}</small>
             @enderror
 
-            <label>Boulder koordenatuak</label>
             <input type="hidden" name="boulder" id="boulder-input" value="{{ old('boulder') }}">
             <div class="boulder-row">
                 <button type="button" class="btn btn-secondary" id="open-boulder-modal">Koordenatuak zehaztu</button>
-                <span id="boulder-summary" class="boulder-summary">Ez dago punturik zehaztuta</span>
             </div>
             @error('boulder')
                 <small class="error">{{ $message }}</small>
             @enderror
 
-            <div class="kilter-form-actions">
-                <button type="submit" class="btn btn-primary">Blokea gorde</button>
-                <a href="{{ route('kilter') }}" class="btn btn-secondary">Utzi</a>
-            </div>
+        <div class="kilter-form-actions">
+            <button type="submit" class="btn btn-primary btn-icon" aria-label="Blokea gorde" title="Blokea gorde">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 4h13l3 3v13H4z"/>
+                    <path d="M8 4v6h8V4"/>
+                    <path d="M7 20v-6h10v6"/>
+                </svg>
+            </button>
+            <a href="{{ route('kilter') }}" class="btn btn-secondary btn-icon" aria-label="Utzi" title="Utzi">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M6 6l12 12"/>
+                    <path d="M18 6l-12 12"/>
+                </svg>
+            </a>
+        </div>
         </form>
     </div>
 </section>
@@ -164,7 +173,7 @@
 <div class="modal-shell hidden-modal" id="boulder-modal" role="dialog" aria-modal="true" aria-labelledby="boulder-modal-title">
     <div class="modal-card modal-card-xl">
         <div class="modal-head">
-            <h2 id="boulder-modal-title">Boulder koordenatuak hautatu</h2>
+            <h2 id="boulder-modal-title">BOULDER-a SORTU</h2>
             <button type="button" class="icon-btn" id="close-boulder-modal" aria-label="Itxi leihoa">×</button>
         </div>
 
@@ -176,7 +185,6 @@
                 <option value="line">Lerroa</option>
             </select>
             </span>
-            <button type="button" class="btn btn-secondary" id="clear-points">Puntuak garbitu</button>
             <span id="point-type-wrap" class="coord-option-wrap">
                 <label for="point-type">Mota</label>
                 <select id="point-type">
@@ -195,7 +203,6 @@
                     <option value="gigante">Erraldoia</option>
                 </select>
             </span>
-            <span id="coord-count" class="coord-count-badge">0 puntu</span>
         </div>
 
         <div class="coord-canvas-wrap" id="coord-canvas-wrap">
@@ -208,8 +215,26 @@
         <small class="error hidden-error" id="boulder-modal-error"></small>
 
         <div class="kilter-form-actions">
-            <button type="button" class="btn btn-primary" id="save-boulder-points">Koordenatuak gorde</button>
-            <button type="button" class="btn btn-secondary" id="cancel-boulder-modal">Utzi</button>
+            <button type="button" class="btn btn-primary btn-icon" id="save-boulder-points" aria-label="Koordenatuak gorde" title="Koordenatuak gorde">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 4h13l3 3v13H4z"/>
+                    <path d="M8 4v6h8V4"/>
+                    <path d="M7 20v-6h10v6"/>
+                </svg>
+            </button>
+            <button type="button" class="btn btn-secondary btn-icon" id="clear-points" aria-label="Puntuak garbitu" title="Puntuak garbitu">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M3 6h18"/>
+                    <path d="M8 6V4h8v2"/>
+                    <path d="M6 6l1 14h10l1-14"/>
+                </svg>
+            </button>
+            <button type="button" class="btn btn-secondary btn-icon" id="cancel-boulder-modal" aria-label="Utzi" title="Utzi">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M6 6l12 12"/>
+                    <path d="M18 6l-12 12"/>
+                </svg>
+            </button>
         </div>
     </div>
 </div>
@@ -225,7 +250,7 @@
         const mapPickerLabel = document.getElementById('map-picker-label');
         const mapPickerThumb = document.getElementById('map-picker-thumb');
         const boulderInput = document.getElementById('boulder-input');
-        const boulderSummary = document.getElementById('boulder-summary');
+        const openBoulderBtn = document.getElementById('open-boulder-modal');
         const validModes = ['points', 'line'];
         const validTypes = ['pie', 'mano_pie', 'comienzo', 'top'];
         const validSizes = ['pequeno', 'mediano', 'grande', 'gigante'];
@@ -350,6 +375,8 @@
             syncMapPickerFromSelect();
         });
 
+        syncBoulderButtonState();
+
         function parseBoulderState() {
             try {
                 const parsed = JSON.parse(boulderInput.value || '[]');
@@ -359,30 +386,19 @@
             }
         }
 
-        function syncBoulderSummary() {
+        function syncBoulderButtonState() {
+            if (!openBoulderBtn) return;
             const state = parseBoulderState();
-            const points = state.points;
-            if (points.length === 0) {
-                boulderSummary.textContent = 'Ez dago punturik zehaztuta';
-                return;
-            }
-
-            if (state.mode === 'line') {
-                boulderSummary.textContent = `${points.length} puntu lotuta (lerroa)`;
-                return;
-            }
-
-            boulderSummary.textContent = points.length > 0
-                ? `${points.length} puntu zehaztuta (zirkuluak)`
-                : 'Ez dago punturik zehaztuta';
+            const hasPoints = Array.isArray(state.points) && state.points.length > 0;
+            openBoulderBtn.classList.toggle('has-points', hasPoints);
         }
+
 
         function syncBodyScrollLock() {
             const hasOpenModal = document.querySelector('.modal-shell:not(.hidden-modal)') !== null;
             document.body.style.overflow = hasOpenModal ? 'hidden' : '';
         }
 
-        syncBoulderSummary();
 
         // Modal de mapa
         const mapModal = document.getElementById('map-modal');
@@ -566,7 +582,6 @@
 
         // Modal de coordenadas
         const boulderModal = document.getElementById('boulder-modal');
-        const openBoulderBtn = document.getElementById('open-boulder-modal');
         const closeBoulderBtn = document.getElementById('close-boulder-modal');
         const cancelBoulderBtn = document.getElementById('cancel-boulder-modal');
         const saveBoulderBtn = document.getElementById('save-boulder-points');
@@ -575,7 +590,6 @@
         const coordLayer = document.getElementById('coord-layer');
         const coordStage = document.getElementById('coord-stage');
         const coordCanvasWrap = document.getElementById('coord-canvas-wrap');
-        const coordCount = document.getElementById('coord-count');
         const coordModeSelect = document.getElementById('coord-mode');
         const pointTypeSelect = document.getElementById('point-type');
         const pointSizeSelect = document.getElementById('point-size');
@@ -711,9 +725,6 @@
                 });
                 coordLayer.appendChild(marker);
             });
-            coordCount.textContent = tempMode === 'line'
-                ? `${tempPoints.length} puntu (lerroa)`
-                : `${tempPoints.length} puntu (zirkuluak)`;
         }
 
         function openBoulderModal() {
@@ -982,7 +993,7 @@
                 mode: tempMode,
                 points: tempPoints,
             });
-            syncBoulderSummary();
+            syncBoulderButtonState();
             closeBoulderModal();
         });
     })();
