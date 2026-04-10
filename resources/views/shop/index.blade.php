@@ -306,6 +306,8 @@
             confirmBody.innerHTML = `
                 <ul class="shop-confirm-list">${lines}</ul>
                 <div class="shop-confirm-total">Guztira: ${formatPrice(total)}</div>
+                <label class="shop-confirm-label" for="shop-confirm-notes">Oharrak (aukerakoa)</label>
+                <textarea id="shop-confirm-notes" class="shop-confirm-notes" rows="3" placeholder="Adibidez: neurriak, koloreari buruzko oharrak..."></textarea>
             `;
         }
 
@@ -351,13 +353,14 @@
             window.setButtonLoading?.(confirmOk, true);
 
             try {
+                const notesValue = document.getElementById('shop-confirm-notes')?.value || '';
                 const requestOptions = {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': '{{ csrf_token() }}',
                     },
-                    body: JSON.stringify({ items: cart }),
+                    body: JSON.stringify({ items: cart, notes: notesValue }),
                 };
                 const response = window.appFetch
                     ? await window.appFetch('{{ route('shop.checkout') }}', { ...requestOptions, timeoutMs: 10000, showError: false })

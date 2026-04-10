@@ -40,6 +40,7 @@ class ShopController extends Controller
             'items.*.color' => ['required', Rule::in($colors)],
             'items.*.size' => ['required', 'string'],
             'items.*.qty' => ['required', 'integer', 'min:1', 'max:10'],
+            'notes' => ['nullable', 'string', 'max:1000'],
         ]);
 
         $items = [];
@@ -66,12 +67,13 @@ class ShopController extends Controller
             ];
         }
 
-        $order = DB::transaction(function () use ($user, $items, $total) {
+        $order = DB::transaction(function () use ($user, $items, $total, $validated) {
             $order = ShopOrder::create([
                 'user_id' => $user->id,
                 'email' => $user->email,
                 'total' => $total,
                 'status' => 'confirmed',
+                'notes' => $validated['notes'] ?? null,
             ]);
 
             foreach ($items as $item) {

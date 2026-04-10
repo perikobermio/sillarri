@@ -60,6 +60,12 @@
                                     <td align="right" style="font-weight:700;">{{ number_format($total, 0) }} €</td>
                                 </tr>
                             </table>
+                            @if(!empty($order->notes))
+                                <div style="margin-top:14px;padding:10px 12px;background:#eef2f4;border-radius:10px;font-size:13px;color:#4e5962;">
+                                    <strong>Oharrak:</strong><br>
+                                    {{ $order->notes }}
+                                </div>
+                            @endif
                             <p style="margin-top:14px;font-size:12px;color:#5f6b75;">Mesedez, prestatu produktuak eta jarri bezeroarekin harremanetan.</p>
                         </td>
                     </tr>

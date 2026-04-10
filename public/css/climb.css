@@ -1006,6 +1006,31 @@ button.is-loading > * {
   color: var(--sun);
 }
 
+.shop-confirm-label {
+  display: block;
+  margin-top: 0.8rem;
+  font-size: 0.9rem;
+  color: #eadccc;
+}
+
+.shop-confirm-notes {
+  width: 100%;
+  margin-top: 0.35rem;
+  padding: 0.6rem 0.7rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(14, 12, 10, 0.55);
+  color: var(--text);
+  font-family: "Barlow", sans-serif;
+  resize: vertical;
+}
+
+.shop-confirm-notes:focus {
+  outline: none;
+  border-color: rgba(134, 184, 161, 0.7);
+  box-shadow: 0 0 0 3px rgba(134, 184, 161, 0.2);
+}
+
 .shop-confirm-note {
   margin-top: 0.8rem;
   color: rgba(246, 241, 232, 0.75);

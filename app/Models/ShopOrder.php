@@ -13,6 +13,7 @@ class ShopOrder extends Model
         'email',
         'total',
         'status',
+        'notes',
     ];
 
     public function user(): BelongsTo
