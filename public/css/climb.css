@@ -2774,7 +2774,7 @@ button.is-loading > * {
 }
 
 .map-picker-option img {
-  width: 56px;
+  width: 76px;
   height: 56px;
   object-fit: cover;
   border-radius: 12px;
