@@ -52,7 +52,7 @@
 
             <label>Mapa</label>
             <div class="map-picker-row">
-                <select name="map_id" id="map-select" required>
+                <select name="map_id" id="map-select" class="map-select-hidden" required>
                     <option value="">Hautatu mapa bat</option>
                     @foreach($maps as $map)
                         @php
@@ -72,6 +72,42 @@
                         </option>
                     @endforeach
                 </select>
+                <div class="map-picker" id="map-picker">
+                    <button type="button" class="map-picker-trigger" id="map-picker-trigger" aria-haspopup="listbox" aria-expanded="false">
+                        <img class="map-picker-thumb is-hidden" id="map-picker-thumb" alt="">
+                        <span id="map-picker-label">Hautatu mapa bat</span>
+                        <span class="map-picker-caret" aria-hidden="true">▾</span>
+                    </button>
+                    <div class="map-picker-list" id="map-picker-list" role="listbox" aria-label="Mapak">
+                        @foreach($maps as $map)
+                            @php
+                                $imageUrl = '';
+                                if ($map->image) {
+                                    $imageUrl = \Illuminate\Support\Str::startsWith($map->image, ['http://', 'https://', '/'])
+                                        ? $map->image
+                                        : '/storage/'.$map->image;
+                                }
+                                $label = $map->name.' (ID '.$map->id.')';
+                            @endphp
+                            <button
+                                type="button"
+                                class="map-picker-option"
+                                data-map-id="{{ $map->id }}"
+                                data-image-url="{{ $imageUrl }}"
+                                data-label="{{ $label }}"
+                                role="option"
+                                aria-selected="{{ (string) old('map_id') === (string) $map->id ? 'true' : 'false' }}"
+                            >
+                                @if($imageUrl)
+                                    <img src="{{ $imageUrl }}" alt="{{ $map->name }}">
+                                @else
+                                    <div class="map-picker-thumb map-picker-placeholder" aria-hidden="true">?</div>
+                                @endif
+                                <span>{{ $label }}</span>
+                            </button>
+                        @endforeach
+                    </div>
+                </div>
 
                 <button type="button" class="btn btn-secondary map-upload-toggle" id="open-map-modal">
                     <span class="map-upload-toggle-label">Mapa gehitu</span>
@@ -183,6 +219,11 @@
 <script>
     (function () {
         const mapSelect = document.getElementById('map-select');
+        const mapPicker = document.getElementById('map-picker');
+        const mapPickerTrigger = document.getElementById('map-picker-trigger');
+        const mapPickerList = document.getElementById('map-picker-list');
+        const mapPickerLabel = document.getElementById('map-picker-label');
+        const mapPickerThumb = document.getElementById('map-picker-thumb');
         const boulderInput = document.getElementById('boulder-input');
         const boulderSummary = document.getElementById('boulder-summary');
         const validModes = ['points', 'line'];
@@ -227,6 +268,87 @@
 
             return { mode: 'points', points: [] };
         }
+
+        function updateMapPicker(label, imageUrl) {
+            if (mapPickerLabel) {
+                mapPickerLabel.textContent = label || 'Hautatu mapa bat';
+            }
+            if (!mapPickerThumb) return;
+            if (imageUrl) {
+                mapPickerThumb.src = imageUrl;
+                mapPickerThumb.classList.remove('is-hidden');
+            } else {
+                mapPickerThumb.removeAttribute('src');
+                mapPickerThumb.classList.add('is-hidden');
+            }
+        }
+
+        function syncMapPickerFromSelect() {
+            if (!mapSelect) return;
+            const selected = mapSelect.options[mapSelect.selectedIndex];
+            if (!selected || !selected.value) {
+                updateMapPicker('Hautatu mapa bat', '');
+                return;
+            }
+            updateMapPicker(selected.textContent?.trim() || 'Hautatu mapa bat', selected.dataset?.imageUrl || '');
+            mapPickerList?.querySelectorAll('.map-picker-option').forEach((btn) => {
+                btn.setAttribute('aria-selected', btn.dataset.mapId === selected.value ? 'true' : 'false');
+            });
+        }
+
+        function closeMapPicker() {
+            if (!mapPickerTrigger || !mapPickerList) return;
+            mapPickerList.classList.remove('is-open');
+            mapPickerTrigger.setAttribute('aria-expanded', 'false');
+        }
+
+        function toggleMapPicker() {
+            if (!mapPickerTrigger || !mapPickerList) return;
+            const isOpen = mapPickerList.classList.contains('is-open');
+            if (isOpen) {
+                closeMapPicker();
+            } else {
+                mapPickerList.classList.add('is-open');
+                mapPickerTrigger.setAttribute('aria-expanded', 'true');
+            }
+        }
+
+        function bindMapPickerOptions(container) {
+            if (!container) return;
+            container.querySelectorAll('.map-picker-option').forEach((option) => {
+                if (option.dataset.bound === 'true') {
+                    return;
+                }
+                option.dataset.bound = 'true';
+                option.addEventListener('click', () => {
+                    const mapId = option.dataset.mapId || '';
+                    if (!mapSelect || !mapId) return;
+                    mapSelect.value = mapId;
+                    mapSelect.dispatchEvent(new Event('change'));
+                    mapPickerList?.querySelectorAll('.map-picker-option').forEach((btn) => {
+                        btn.setAttribute('aria-selected', btn === option ? 'true' : 'false');
+                    });
+                    updateMapPicker(option.dataset.label || option.textContent?.trim(), option.dataset.imageUrl || '');
+                    closeMapPicker();
+                });
+            });
+        }
+
+        mapPickerTrigger?.addEventListener('click', (event) => {
+            event.preventDefault();
+            toggleMapPicker();
+        });
+
+        document.addEventListener('click', (event) => {
+            if (!mapPicker || !mapPickerList) return;
+            if (!mapPicker.contains(event.target)) {
+                closeMapPicker();
+            }
+        });
+
+        mapSelect?.addEventListener('change', () => {
+            syncMapPickerFromSelect();
+        });
 
         function parseBoulderState() {
             try {
@@ -392,6 +514,38 @@
                 mapSelect.appendChild(option);
                 mapSelect.value = String(data.id);
 
+                if (mapPickerList) {
+                    const optionBtn = document.createElement('button');
+                    optionBtn.type = 'button';
+                    optionBtn.className = 'map-picker-option';
+                    optionBtn.dataset.mapId = String(data.id);
+                    optionBtn.dataset.imageUrl = data.image_url || '';
+                    optionBtn.dataset.label = `${data.name} (ID ${data.id})`;
+                    optionBtn.setAttribute('role', 'option');
+                    optionBtn.setAttribute('aria-selected', 'true');
+
+                    if (data.image_url) {
+                        const img = document.createElement('img');
+                        img.src = data.image_url;
+                        img.alt = data.name;
+                        optionBtn.appendChild(img);
+                    } else {
+                        const placeholder = document.createElement('div');
+                        placeholder.className = 'map-picker-thumb map-picker-placeholder';
+                        placeholder.setAttribute('aria-hidden', 'true');
+                        placeholder.textContent = '?';
+                        optionBtn.appendChild(placeholder);
+                    }
+
+                    const label = document.createElement('span');
+                    label.textContent = `${data.name} (ID ${data.id})`;
+                    optionBtn.appendChild(label);
+
+                    mapPickerList.appendChild(optionBtn);
+                    bindMapPickerOptions(mapPickerList);
+                    updateMapPicker(optionBtn.dataset.label, optionBtn.dataset.imageUrl);
+                }
+
                 closeMapModal();
             } catch (error) {
                 const isTimeout = error?.name === 'AbortError';
@@ -406,6 +560,9 @@
                 window.setButtonLoading?.(saveMapBtn, false);
             }
         });
+
+        bindMapPickerOptions(mapPickerList);
+        syncMapPickerFromSelect();
 
         // Modal de coordenadas
         const boulderModal = document.getElementById('boulder-modal');

@@ -2677,8 +2677,111 @@ button.is-loading > * {
   align-items: center;
 }
 
-.map-picker-row select {
+.map-select-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.map-picker {
+  position: relative;
   flex: 1 1 320px;
+  min-width: 240px;
+}
+
+.map-picker-trigger {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.65rem 0.8rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(16, 14, 12, 0.7);
+  color: var(--text);
+  font-family: "Barlow", sans-serif;
+  font-size: 0.95rem;
+  text-align: left;
+}
+
+.map-picker-thumb {
+  width: 44px;
+  height: 44px;
+  object-fit: cover;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 700;
+}
+
+.map-picker-thumb.is-hidden {
+  display: none;
+}
+
+.map-picker-caret {
+  margin-left: auto;
+  opacity: 0.7;
+}
+
+.map-picker-list {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  left: 0;
+  right: 0;
+  display: none;
+  max-height: 320px;
+  overflow: auto;
+  padding: 0.5rem;
+  border-radius: 14px;
+  background: rgba(18, 16, 14, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+  z-index: 30;
+  gap: 0.5rem;
+}
+
+.map-picker-list.is-open {
+  display: grid;
+}
+
+.map-picker-option {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.map-picker-option:hover,
+.map-picker-option[aria-selected="true"] {
+  border-color: rgba(134, 184, 161, 0.6);
+  background: rgba(134, 184, 161, 0.12);
+}
+
+.map-picker-option img {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+.map-picker-placeholder {
+  font-size: 0.85rem;
 }
 
 .hidden-map-upload {
@@ -3260,7 +3363,7 @@ button.is-loading > * {
     align-items: center;
   }
 
-  .map-picker-row select {
+  .map-picker {
     flex: 1 1 auto;
     min-width: 0;
   }
