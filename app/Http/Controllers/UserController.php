@@ -134,6 +134,7 @@ class UserController extends Controller
                 'max:255',
                 Rule::unique('users', 'email')->ignore($user->id),
             ],
+            'phone' => ['nullable', 'string', 'max:30'],
             'password' => ['nullable', 'string', 'confirmed'],
             'avatar' => ['nullable', 'image', 'max:20480'],
         ];
@@ -142,6 +143,9 @@ class UserController extends Controller
 
         $user->name = trim((string) $data['name']);
         $user->email = strtolower(trim((string) $data['email']));
+        $user->phone = filled($data['phone'] ?? null)
+            ? trim((string) $data['phone'])
+            : null;
 
         if (filled($data['password'] ?? null)) {
             $user->password = Hash::make((string) $data['password']);

@@ -365,6 +365,14 @@
 
                 const result = await response.json().catch(() => ({}));
                 if (!response.ok) {
+                    if (result?.code === 'missing_phone' && result?.redirect) {
+                        closeModal();
+                        showToast(result.message || 'Telefonoa beharrezkoa da eskaria egiteko.');
+                        window.setTimeout(() => {
+                            window.location.href = result.redirect;
+                        }, 700);
+                        return;
+                    }
                     throw new Error(result.message || 'checkout_failed');
                 }
                 cart.length = 0;

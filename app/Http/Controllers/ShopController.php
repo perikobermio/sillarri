@@ -23,6 +23,14 @@ class ShopController extends Controller
     {
         $user = $request->user();
 
+        if (! $user || ! filled($user->phone)) {
+            return response()->json([
+                'message' => 'Telefonoa beharrezkoa da eskaria egiteko.',
+                'code' => 'missing_phone',
+                'redirect' => route('settings'),
+            ], 422);
+        }
+
         $catalog = $this->catalog();
         $colors = $this->colors();
 

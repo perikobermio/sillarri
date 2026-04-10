@@ -36,6 +36,12 @@
                 <small class="error">{{ $message }}</small>
             @enderror
 
+            <label>Telefonoa (aukerakoa)</label>
+            <input type="text" name="phone" value="{{ old('phone', $userProfile->phone) }}">
+            @error('phone')
+                <small class="error">{{ $message }}</small>
+            @enderror
+
             <label>Username</label>
             <input type="text" value="{{ $userProfile->username ?? '-' }}" disabled>
 

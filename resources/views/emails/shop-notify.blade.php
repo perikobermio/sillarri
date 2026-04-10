@@ -36,7 +36,8 @@
                                         <strong>Bezeroaren datuak</strong><br>
                                         Izena: {{ $order->user?->name ?? $order->user?->username ?? '—' }}<br>
                                         Erabiltzailea: {{ $order->user?->username ?? '—' }}<br>
-                                        Emaila: {{ $order->email }}
+                                        Emaila: {{ $order->email }}<br>
+                                        Telefonoa: {{ $order->user?->phone ?? '—' }}
                                     </td>
                                 </tr>
                             </table>

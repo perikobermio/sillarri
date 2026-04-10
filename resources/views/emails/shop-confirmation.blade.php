@@ -49,6 +49,7 @@
                                 </tr>
                             </table>
                             <p style="margin-top:16px;font-size:13px;color:#6c655b;">Produktuak prest daudenean email bidez abisatuko zaitugu.</p>
+                            <p style="margin:8px 0 0;font-size:13px;color:#6c655b;">Zalantzarik baduzu, deitu BELAIDXEra: <strong>946 41 77 24</strong>.</p>
                         </td>
                     </tr>
                     <tr>
