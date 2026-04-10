@@ -14,7 +14,7 @@
                             <table width="100%" cellpadding="0" cellspacing="0">
                                 <tr>
                                     <td width="64" valign="middle">
-                                        <img src="{{ asset('images/logo.png') }}" alt="Sillarri Climb" style="width:52px;height:52px;object-fit:contain;border-radius:12px;background:#11100e;padding:6px;box-shadow:0 6px 18px rgba(0,0,0,0.35);">
+                                        <img src="{{ asset('images/logo.png') }}" alt="Sillarri Climb" style="width:76px;height:76px;object-fit:contain;border-radius:14px;background:#11100e;padding:8px;box-shadow:0 8px 22px rgba(0,0,0,0.35);">
                                     </td>
                                     <td valign="middle">
                                         <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#86b8a1;">Sillarri Climb</div>

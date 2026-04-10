@@ -14,7 +14,7 @@
                             <table width="100%" cellpadding="0" cellspacing="0">
                                 <tr>
                                     <td width="60" valign="middle">
-                                        <img src="{{ asset('images/sillarri_belaidxe.png') }}" alt="Sillarri BELAIDXE" style="width:48px;height:48px;object-fit:contain;border-radius:10px;background:#0f1114;padding:6px;">
+                                        <img src="{{ asset('images/sillarri_belaidxe.png') }}" alt="Sillarri BELAIDXE" style="width:72px;height:72px;object-fit:contain;border-radius:12px;background:#0f1114;padding:8px;">
                                     </td>
                                     <td valign="middle">
                                         <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#86b8a1;">Sillarri Merch</div>
