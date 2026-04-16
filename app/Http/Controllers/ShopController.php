@@ -3,9 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Mail\ShopOrderConfirmation;
-use App\Mail\ShopOrderNotification;
+use App\Mail\ShopOrderAdminAlert;
 use App\Models\ShopOrder;
 use App\Models\ShopOrderItem;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -72,7 +73,7 @@ class ShopController extends Controller
                 'user_id' => $user->id,
                 'email' => $user->email,
                 'total' => $total,
-                'status' => 'confirmed',
+                'status' => ShopOrder::STATUS_PENDING_PAYMENT,
                 'notes' => $validated['notes'] ?? null,
             ]);
 
@@ -93,9 +94,22 @@ class ShopController extends Controller
         });
 
         try {
-            Mail::to($user->email)->send(new ShopOrderConfirmation($user, $items, $total));
-            $shopEmail = config('mail.shop_notify', 'erikbasanez@gmail.com');
-            Mail::to($shopEmail)->send(new ShopOrderNotification($order, $items, $total));
+            Mail::to($user->email)->send(new ShopOrderConfirmation($user, $items, $total, $order->id));
+
+            $adminEmails = User::query()
+                ->where('is_admin', true)
+                ->whereNotNull('email')
+                ->pluck('email')
+                ->filter()
+                ->unique()
+                ->values()
+                ->all();
+
+            if (empty($adminEmails)) {
+                $adminEmails = [config('mail.shop_notify', 'erikbasanez@gmail.com')];
+            }
+
+            Mail::to($adminEmails)->send(new ShopOrderAdminAlert($order->loadMissing('user'), $items, $total));
         } catch (\Throwable $e) {
             $order->delete();
             return response()->json([
@@ -104,7 +118,7 @@ class ShopController extends Controller
         }
 
         return response()->json([
-            'message' => 'Erosketa baieztatuta.',
+            'message' => 'Eskaria jasota. Transferentzia egin eta baieztapen emaila begiratu.',
             'order_id' => $order->id,
             'total' => $total,
         ]);
@@ -115,27 +129,27 @@ class ShopController extends Controller
         return [
             'biserak' => [
                 'name' => 'Biserak',
-                'price' => 22,
+                'price' => 15,
                 'sizes' => ['UNI'],
             ],
             'kamiseta-kalekue' => [
                 'name' => 'Kamiseta kalekue',
-                'price' => 22,
+                'price' => 20,
                 'sizes' => ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
             ],
             'kamiseta-teknikue' => [
                 'name' => 'Kamiseta teknikue',
-                'price' => 22,
+                'price' => 20,
                 'sizes' => ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
             ],
             'kamiseta-tirantedune' => [
                 'name' => 'Kamiseta tirantedune',
-                'price' => 22,
+                'price' => 20,
                 'sizes' => ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
             ],
             'sudaderie' => [
                 'name' => 'Sudaderie',
-                'price' => 32,
+                'price' => 25,
                 'sizes' => ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
             ],
         ];

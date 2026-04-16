@@ -186,6 +186,7 @@
                     <tr>
                         <th>Data</th>
                         <th>Bezeroa</th>
+                        <th>Egoera</th>
                         <th>Tot.</th>
                         <th>Ekintzak</th>
                     </tr>
@@ -195,6 +196,7 @@
                         <tr>
                             <td class="admin-col-date">{{ $order->created_at?->format('Y-m-d') ?? '-' }}</td>
                             <td>{{ $order->user?->username ?? $order->email }}</td>
+                            <td>{{ $order->status_label }}</td>
                             <td class="admin-col-total">{{ $order->total }} €</td>
                             <td class="admin-actions">
                                 <button
@@ -205,8 +207,12 @@
                                     data-username="{{ $order->user?->username ?? '' }}"
                                     data-email="{{ $order->email }}"
                                     data-total="{{ $order->total }}"
+                                    data-status="{{ $order->status }}"
+                                    data-status-label="{{ $order->status_label }}"
+                                    data-notes="{{ $order->notes ?? '' }}"
                                     data-created="{{ $order->created_at?->format('Y-m-d H:i') ?? '-' }}"
                                     data-items='@json($order->items_payload)'
+                                    data-confirm="{{ route('admin.orders.confirm', $order) }}"
                                     data-delete="{{ route('admin.orders.delete', $order) }}"
                                     aria-label="Ikusi"
                                     title="Ikusi"
@@ -217,7 +223,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="4">Ez dago eskaririk.</td>
+                            <td colspan="5">Ez dago eskaririk.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -320,12 +326,18 @@
             <button type="button" class="icon-btn" id="close-order-modal">×</button>
         </div>
         <div class="admin-order-detail" id="admin-order-detail"></div>
-        <form method="POST" action="#" id="admin-order-delete-form" class="admin-confirm-actions">
-            @csrf
-            @method('DELETE')
+        <div class="admin-confirm-actions">
             <button type="button" class="btn btn-secondary" id="admin-order-cancel">Utzi</button>
+            <form method="POST" action="#" id="admin-order-confirm-form" hidden>
+                @csrf
+                <button type="submit" class="btn btn-primary" id="admin-order-confirm">Ordainketa baieztatu</button>
+            </form>
+            <form method="POST" action="#" id="admin-order-delete-form">
+                @csrf
+                @method('DELETE')
             <button type="button" class="btn btn-danger" id="admin-order-delete">Ezabatu</button>
-        </form>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -348,6 +360,8 @@
         const orderDetail = document.getElementById('admin-order-detail');
         const orderClose = document.getElementById('close-order-modal');
         const orderCancel = document.getElementById('admin-order-cancel');
+        const orderConfirmForm = document.getElementById('admin-order-confirm-form');
+        const orderConfirmBtn = document.getElementById('admin-order-confirm');
         const orderDeleteForm = document.getElementById('admin-order-delete-form');
         const orderDeleteBtn = document.getElementById('admin-order-delete');
 
@@ -364,6 +378,15 @@
 
         function closeModal(modal) {
             modal?.classList.add('hidden-modal');
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#39;');
         }
 
         openCreate?.addEventListener('click', () => openModal(createModal));
@@ -403,30 +426,47 @@
             button.addEventListener('click', () => {
                 const items = JSON.parse(button.dataset.items || '[]');
                 const itemsMarkup = items.map((item) => `
-                    <li>${item.name} · ${item.color} · ${item.size} · x${item.qty} <strong>${item.line_total} €</strong></li>
+                    <li>${escapeHtml(item.name)} · ${escapeHtml(item.color)} · ${escapeHtml(item.size)} · x${escapeHtml(item.qty)} <strong>${escapeHtml(item.line_total)} €</strong></li>
                 `).join('');
+                const notes = button.dataset.notes ? `
+                    <div class="admin-order-section">
+                        <div class="admin-order-label">Oharrak</div>
+                        <div class="admin-order-value">${escapeHtml(button.dataset.notes)}</div>
+                    </div>
+                ` : '';
                 orderDetail.innerHTML = `
                     <div class="admin-order-detail-grid">
                         <div>
                             <div class="admin-order-label">Data</div>
-                            <div class="admin-order-value">${button.dataset.created}</div>
+                            <div class="admin-order-value">${escapeHtml(button.dataset.created)}</div>
                         </div>
                         <div>
                             <div class="admin-order-label">Bezeroa</div>
-                            <div class="admin-order-value">${button.dataset.user || button.dataset.username || '-'}</div>
-                            <div class="admin-order-sub">${button.dataset.email}</div>
+                            <div class="admin-order-value">${escapeHtml(button.dataset.user || button.dataset.username || '-')}</div>
+                            <div class="admin-order-sub">${escapeHtml(button.dataset.email)}</div>
+                        </div>
+                        <div>
+                            <div class="admin-order-label">Egoera</div>
+                            <div class="admin-order-value">${escapeHtml(button.dataset.statusLabel || '-')}</div>
                         </div>
                         <div>
                             <div class="admin-order-label">Guztira</div>
-                            <div class="admin-order-value">${button.dataset.total} €</div>
+                            <div class="admin-order-value">${escapeHtml(button.dataset.total)} €</div>
                         </div>
                     </div>
                     <div class="admin-order-section">
                         <div class="admin-order-label">Artikuluak</div>
                         <ul class="admin-order-items">${itemsMarkup}</ul>
                     </div>
+                    ${notes}
                 `;
+                orderConfirmForm.action = button.dataset.confirm;
                 orderDeleteForm.action = button.dataset.delete;
+                if (button.dataset.status === 'pending_payment') {
+                    orderConfirmForm.hidden = false;
+                } else {
+                    orderConfirmForm.hidden = true;
+                }
                 openModal(orderModal);
             });
         });

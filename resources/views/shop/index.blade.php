@@ -22,7 +22,7 @@
     $products = [
         [
             'name' => 'Biserak',
-            'price' => 22,
+            'price' => 15,
             'note' => 'Eskalada eta eguneroko estiloa.',
             'id' => 'biserak',
             'images' => [
@@ -33,7 +33,7 @@
         ],
         [
             'name' => 'Kamiseta kalekue',
-            'price' => 22,
+            'price' => 20,
             'note' => 'Kotoia, erabilera egunero.',
             'id' => 'kamiseta-kalekue',
             'images' => [
@@ -46,7 +46,7 @@
         ],
         [
             'name' => 'Kamiseta teknikue',
-            'price' => 22,
+            'price' => 20,
             'note' => 'Ehun teknikoa, entrenamendurako.',
             'id' => 'kamiseta-teknikue',
             'images' => [
@@ -59,7 +59,7 @@
         ],
         [
             'name' => 'Kamiseta tirantedune',
-            'price' => 22,
+            'price' => 20,
             'note' => 'Udako saioetarako arina.',
             'id' => 'kamiseta-tirantedune',
             'images' => [
@@ -72,7 +72,7 @@
         ],
         [
             'name' => 'Sudaderie',
-            'price' => 32,
+            'price' => 25,
             'note' => 'Hotzerako geruza erosoa.',
             'id' => 'sudaderie',
             'images' => [
@@ -198,7 +198,7 @@
             <button type="button" class="icon-btn" id="shop-confirm-close">×</button>
         </div>
         <div id="shop-confirm-body"></div>
-        <p class="shop-confirm-note">Zure eskaria BELAIDXE dendara bideratuko da. Produktuak prest daudenean email bidez abizatuko zaitugu helbide honetara: {{ auth()->user()->email }}.</p>
+        <p class="shop-confirm-note">Eskaria jaso ondoren email bidez bidaliko dizugu ordainketa egiteko kontua. Ordainketa egiaztatutakoan bidaliko dugu eskaria BELAIDXEra.</p>
         <div class="shop-confirm-actions">
             <button type="button" class="btn btn-secondary" id="shop-confirm-cancel">Utzi</button>
             <button type="button" class="btn btn-primary" id="shop-confirm-ok">Ados</button>
@@ -381,9 +381,9 @@
                 cart.length = 0;
                 renderCart();
                 closeModal();
-                showToast('Erosketa baieztatuta');
+                showToast(result.message || 'Eskaria jasota');
                 if (successEl) {
-                    successEl.textContent = 'Erosketa baieztatuta. Email bidez jasoko duzu baieztapena.';
+                    successEl.textContent = 'Eskaria jasota. Email bidez jasoko duzu ordainketa egiteko informazioa.';
                     successEl.classList.add('is-visible');
                 }
             } catch (error) {

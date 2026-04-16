@@ -62,5 +62,6 @@ Route::middleware(['auth', 'admin'])->group(function (): void {
     Route::delete('/admin/maps/{map}', [AdminController::class, 'deleteMap'])->name('admin.maps.delete');
     Route::post('/admin/locations', [AdminController::class, 'storeLocation'])->name('admin.locations.store');
     Route::delete('/admin/locations/{location}', [AdminController::class, 'deleteLocation'])->name('admin.locations.delete');
+    Route::post('/admin/orders/{order}/confirm', [AdminController::class, 'confirmOrder'])->name('admin.orders.confirm');
     Route::delete('/admin/orders/{order}', [AdminController::class, 'deleteOrder'])->name('admin.orders.delete');
 });

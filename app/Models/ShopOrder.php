@@ -8,6 +8,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ShopOrder extends Model
 {
+    public const STATUS_PENDING_PAYMENT = 'pending_payment';
+    public const STATUS_CONFIRMED = 'confirmed';
+
     protected $fillable = [
         'user_id',
         'email',
@@ -24,5 +27,15 @@ class ShopOrder extends Model
     public function items(): HasMany
     {
         return $this->hasMany(ShopOrderItem::class, 'order_id');
+    }
+
+    public function isPendingPayment(): bool
+    {
+        return $this->status === self::STATUS_PENDING_PAYMENT;
+    }
+
+    public function isConfirmed(): bool
+    {
+        return $this->status === self::STATUS_CONFIRMED;
     }
 }

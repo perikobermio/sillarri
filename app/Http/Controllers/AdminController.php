@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\WeatherLocation;
 use App\Mail\ShopOrderCancelledNotify;
 use App\Mail\ShopOrderCancelledUser;
+use App\Mail\ShopOrderNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -38,6 +39,11 @@ class AdminController extends Controller
                     'line_total' => $item->line_total,
                 ];
             })->values();
+            $order->status_label = match ($order->status) {
+                ShopOrder::STATUS_PENDING_PAYMENT => 'Pendiente de pago',
+                ShopOrder::STATUS_CONFIRMED => 'Confirmado',
+                default => $order->status,
+            };
             return $order;
         });
         $perPageSetting = DB::table('app_settings')
@@ -187,13 +193,47 @@ class AdminController extends Controller
             $shopEmail = config('mail.shop_notify', 'erikbasanez@gmail.com');
 
             \Illuminate\Support\Facades\Mail::to($order->email)->send(new ShopOrderCancelledUser($order, $items, $total));
-            \Illuminate\Support\Facades\Mail::to($shopEmail)->send(new ShopOrderCancelledNotify($order, $items, $total));
+            if ($order->isConfirmed()) {
+                \Illuminate\Support\Facades\Mail::to($shopEmail)->send(new ShopOrderCancelledNotify($order, $items, $total));
+            }
 
             $order->delete();
 
             return redirect()->route('admin')->with('status', 'Eskaria ezabatuta.');
         } catch (\Throwable $e) {
             return redirect()->route('admin')->with('error', 'Ezin izan da eskaria ezabatu. Saiatu berriro.');
+        }
+    }
+
+    public function confirmOrder(ShopOrder $order): RedirectResponse
+    {
+        if (! $order->isPendingPayment()) {
+            return redirect()->route('admin')->with('error', 'Eskaria dagoeneko baieztatuta dago.');
+        }
+
+        try {
+            $order->loadMissing(['items', 'user']);
+            $items = $order->items->map(static function ($item): array {
+                return [
+                    'name' => $item->name,
+                    'color' => $item->color,
+                    'size' => $item->size,
+                    'qty' => $item->qty,
+                    'line_total' => $item->line_total,
+                ];
+            })->all();
+            $total = (float) $order->total;
+            $shopEmail = config('mail.shop_notify', 'erikbasanez@gmail.com');
+
+            \Illuminate\Support\Facades\Mail::to($shopEmail)->send(new ShopOrderNotification($order, $items, $total));
+
+            $order->update([
+                'status' => ShopOrder::STATUS_CONFIRMED,
+            ]);
+
+            return redirect()->route('admin')->with('status', 'Eskaria baieztatu da eta BELAIDXEri bidali zaio.');
+        } catch (\Throwable $e) {
+            return redirect()->route('admin')->with('error', 'Ezin izan da eskaria baieztatu. Saiatu berriro.');
         }
     }
 

@@ -2,10 +2,10 @@
 <html lang="eu">
 <head>
     <meta charset="utf-8">
-    <title>Sillarri · Erosketa jasota</title>
+    <title>Sillarri · Pedido pendiente de comprobacion</title>
 </head>
-<body style="margin:0;background:#0f0e0c;color:#2a2722;font-family:'Trebuchet MS', Arial, sans-serif;">
-    <table width="100%" cellpadding="0" cellspacing="0" style="background:#0f0e0c;padding:28px 0;">
+<body style="margin:0;background:#100e0d;color:#2a2722;font-family:'Trebuchet MS', Arial, sans-serif;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:#100e0d;padding:28px 0;">
         <tr>
             <td align="center">
                 <table width="620" cellpadding="0" cellspacing="0" style="background:#f6f1e8;border-radius:16px;overflow:hidden;border:1px solid #e7dccd;">
@@ -18,11 +18,11 @@
                                     </td>
                                     <td valign="middle">
                                         <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#86b8a1;">Sillarri Climb</div>
-                                        <div style="font-size:20px;font-weight:700;margin-top:4px;">Eskaria jasota</div>
-                                        <div style="font-size:13px;color:#e8ddce;margin-top:2px;">Eskerrik asko, {{ $user->name ?? $user->username ?? 'Eskalatzailea' }}.</div>
+                                        <div style="font-size:20px;font-weight:700;margin-top:4px;">Pedido pendiente de comprobacion</div>
+                                        <div style="font-size:13px;color:#e8ddce;margin-top:2px;">Eskaria #{{ $order->id }} · {{ $order->created_at?->format('Y-m-d H:i') }}</div>
                                     </td>
                                     <td align="right" valign="middle">
-                                        <span style="display:inline-block;padding:6px 12px;border-radius:999px;background:#f08b3e;color:#1b1915;font-size:11px;font-weight:700;letter-spacing:1px;">PENDIENTE DE PAGO</span>
+                                        <span style="display:inline-block;padding:6px 12px;border-radius:999px;background:#f08b3e;color:#1b1915;font-size:11px;font-weight:700;letter-spacing:1px;">PENDIENTE</span>
                                     </td>
                                 </tr>
                             </table>
@@ -30,10 +30,13 @@
                     </tr>
                     <tr>
                         <td style="padding:22px 24px;">
-                            <p style="margin:0 0 8px;font-size:14px;color:#5e574d;">Zure eskaria jaso dugu eta ordainketa baieztatu zain geratu da.</p>
-                            @if(!empty($orderId))
-                                <p style="margin:0 0 14px;font-size:14px;color:#5e574d;">Eskaria #{{ $orderId }}</p>
-                            @endif
+                            <p style="margin:0 0 14px;font-size:14px;color:#5e574d;">Hay un nuevo pedido pendiente de comprobar pago.</p>
+                            <p style="margin:0 0 14px;font-size:14px;color:#5e574d;">
+                                Cliente: <strong>{{ $order->user?->name ?? $order->user?->username ?? '—' }}</strong><br>
+                                Usuario: {{ $order->user?->username ?? '—' }}<br>
+                                Email: {{ $order->email }}<br>
+                                Telefono: {{ $order->user?->phone ?? '—' }}
+                            </p>
                             <table width="100%" cellpadding="0" cellspacing="0" style="font-size:14px;border-collapse:collapse;">
                                 @foreach($items as $item)
                                     <tr>
@@ -51,18 +54,17 @@
                                     <td align="right" style="font-weight:700;font-size:15px;">{{ number_format($total, 0) }} €</td>
                                 </tr>
                             </table>
-                            <div style="margin-top:16px;padding:14px 16px;background:#efe5d7;border-radius:12px;">
-                                <div style="font-size:13px;font-weight:700;color:#2a2722;">Egin transferentzia kontu honetara:</div>
-                                <div style="margin-top:8px;font-size:13px;color:#5e574d;">{{ \App\Mail\ShopOrderConfirmation::TRANSFER_ACCOUNT_HOLDER }}</div>
-                                <div style="margin-top:4px;font-size:16px;font-weight:700;color:#2a2722;letter-spacing:0.5px;">{{ \App\Mail\ShopOrderConfirmation::TRANSFER_IBAN }}</div>
-                            </div>
-                            <p style="margin-top:16px;font-size:13px;color:#6c655b;">Ordainketa egiaztatzen dugunean bidaliko dugu eskaria BELAIDXEra.</p>
-                            <p style="margin:8px 0 0;font-size:13px;color:#6c655b;">Zalantzarik baduzu, deitu BELAIDXEra: <strong>946 41 77 24</strong>.</p>
+                            @if(!empty($order->notes))
+                                <div style="margin-top:14px;padding:10px 12px;background:#efe5d7;border-radius:10px;font-size:13px;color:#5e574d;">
+                                    <strong>Oharrak:</strong><br>
+                                    {{ $order->notes }}
+                                </div>
+                            @endif
                         </td>
                     </tr>
                     <tr>
                         <td style="padding:16px 24px;background:#efe5d7;font-size:12px;color:#6c655b;">
-                            Sillarri Climb · BELAIDXE denda
+                            Sillarri Climb · Admin alerta
                         </td>
                     </tr>
                 </table>
