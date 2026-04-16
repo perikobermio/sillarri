@@ -1598,6 +1598,15 @@ button.is-loading > * {
   min-height: 40px;
 }
 
+.admin-order-row.is-pending td {
+  background: rgba(240, 139, 62, 0.14);
+  box-shadow: inset 0 1px 0 rgba(240, 139, 62, 0.28), inset 0 -1px 0 rgba(240, 139, 62, 0.28);
+}
+
+.admin-order-row.is-pending td:first-child {
+  border-left: 4px solid rgba(240, 139, 62, 0.95);
+}
+
 .admin-map-thumb {
   display: block;
 }

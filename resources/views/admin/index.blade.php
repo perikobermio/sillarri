@@ -193,7 +193,7 @@
                 </thead>
                 <tbody>
                     @forelse($orders as $order)
-                        <tr>
+                        <tr class="{{ $order->status === \App\Models\ShopOrder::STATUS_PENDING_PAYMENT ? 'admin-order-row is-pending' : 'admin-order-row' }}">
                             <td class="admin-col-date">{{ $order->created_at?->format('Y-m-d') ?? '-' }}</td>
                             <td>{{ $order->user?->username ?? $order->email }}</td>
                             <td>{{ $order->status_label }}</td>

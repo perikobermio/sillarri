@@ -20,6 +20,18 @@ use Illuminate\View\View;
 
 class AdminController extends Controller
 {
+    private function shopOrderRecipients(): array
+    {
+        return collect([
+            config('mail.shop_notify', 'info@belaixe.com'),
+            config('mail.shop_notify_copy', 'erikbasanez@gmail.com'),
+        ])
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+    }
+
     public function index(): View
     {
         $users = User::query()->orderBy('name')->get();
@@ -190,11 +202,9 @@ class AdminController extends Controller
                 ];
             })->all();
             $total = (float) $order->total;
-            $shopEmail = config('mail.shop_notify', 'erikbasanez@gmail.com');
-
             \Illuminate\Support\Facades\Mail::to($order->email)->send(new ShopOrderCancelledUser($order, $items, $total));
             if ($order->isConfirmed()) {
-                \Illuminate\Support\Facades\Mail::to($shopEmail)->send(new ShopOrderCancelledNotify($order, $items, $total));
+                \Illuminate\Support\Facades\Mail::to(config('mail.shop_notify', 'info@belaixe.com'))->send(new ShopOrderCancelledNotify($order, $items, $total));
             }
 
             $order->delete();
@@ -223,9 +233,7 @@ class AdminController extends Controller
                 ];
             })->all();
             $total = (float) $order->total;
-            $shopEmail = config('mail.shop_notify', 'erikbasanez@gmail.com');
-
-            \Illuminate\Support\Facades\Mail::to($shopEmail)->send(new ShopOrderNotification($order, $items, $total));
+            \Illuminate\Support\Facades\Mail::to($this->shopOrderRecipients())->send(new ShopOrderNotification($order, $items, $total));
 
             $order->update([
                 'status' => ShopOrder::STATUS_CONFIRMED,

@@ -115,6 +115,7 @@ return [
         'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
     ],
 
-    'shop_notify' => env('SHOP_NOTIFY_EMAIL', 'erikbasanez@gmail.com'),
+    'shop_notify' => env('SHOP_NOTIFY_EMAIL', 'info@belaixe.com'),
+    'shop_notify_copy' => env('SHOP_NOTIFY_COPY_EMAIL', 'erikbasanez@gmail.com'),
 
 ];
