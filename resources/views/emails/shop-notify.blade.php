@@ -5,6 +5,16 @@
     <title>Sillarri · Eskari berria</title>
 </head>
 <body style="margin:0;background:#0f1114;color:#1b1f23;font-family:Arial, sans-serif;">
+    @php
+        $informativePrices = [
+            'Biserak' => 12,
+            'Kamiseta kalekue' => 9,
+            'Kamiseta teknikue' => 9,
+            'Kamiseta tirantedune' => 9,
+            'Sudaderie' => 20,
+        ];
+        $informativeTotal = 0;
+    @endphp
     <table width="100%" cellpadding="0" cellspacing="0" style="background:#0f1114;padding:28px 0;">
         <tr>
             <td align="center">
@@ -45,19 +55,25 @@
                             <h2 style="margin:16px 0 10px;font-size:15px;">Eskariaren xehetasunak</h2>
                             <table width="100%" cellpadding="0" cellspacing="0" style="font-size:14px;border-collapse:collapse;">
                                 @foreach($items as $item)
+                                    @php
+                                        $informativeUnitPrice = $informativePrices[$item['name']] ?? 0;
+                                        $informativeLineTotal = $informativeUnitPrice * (int) $item['qty'];
+                                        $informativeTotal += $informativeLineTotal;
+                                    @endphp
                                     <tr>
                                         <td style="padding:8px 0;border-bottom:1px solid #e3e9ed;">
                                             <strong>{{ $item['name'] }}</strong>
                                             <div style="color:#5f6b75;font-size:12px;margin-top:2px;">Kolorea: {{ $item['color'] }} · Talla: {{ $item['size'] }} · Kopurua: {{ $item['qty'] }}</div>
+                                            <div style="color:#5f6b75;font-size:12px;margin-top:2px;">Prezio informatiboa: {{ number_format($informativeUnitPrice, 0) }} € / unitate</div>
                                         </td>
-                                        <td align="right" style="padding:8px 0;border-bottom:1px solid #e3e9ed;">{{ number_format($item['line_total'], 0) }} €</td>
+                                        <td align="right" style="padding:8px 0;border-bottom:1px solid #e3e9ed;">{{ number_format($informativeLineTotal, 0) }} €</td>
                                     </tr>
                                 @endforeach
                             </table>
                             <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:12px;">
                                 <tr>
-                                    <td style="font-weight:700;">Guztira</td>
-                                    <td align="right" style="font-weight:700;">{{ number_format($total, 0) }} €</td>
+                                    <td style="font-weight:700;">Guztira informatiboa</td>
+                                    <td align="right" style="font-weight:700;">{{ number_format($informativeTotal, 0) }} €</td>
                                 </tr>
                             </table>
                             @if(!empty($order->notes))
