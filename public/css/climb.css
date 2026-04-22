@@ -1552,6 +1552,52 @@ button.is-loading > * {
   margin-top: 0;
 }
 
+.admin-tabs {
+  display: grid;
+  gap: 1rem;
+}
+
+.admin-tab-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.admin-tab {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(246, 241, 232, 0.78);
+  border-radius: 999px;
+  padding: 0.7rem 1rem;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.admin-tab:hover,
+.admin-tab:focus-visible {
+  border-color: rgba(240, 139, 62, 0.6);
+  color: #fff5ea;
+  outline: none;
+}
+
+.admin-tab.is-active {
+  background: rgba(240, 139, 62, 0.18);
+  border-color: rgba(240, 139, 62, 0.72);
+  color: #fff0df;
+  transform: translateY(-1px);
+}
+
+.admin-tab-panels {
+  min-width: 0;
+}
+
+.admin-tab-panel[hidden] {
+  display: none;
+}
+
 .admin-inline-row {
   display: flex;
   align-items: center;
@@ -1663,6 +1709,16 @@ button.is-loading > * {
 }
 
 @media (max-width: 900px) {
+  .admin-tab-list {
+    gap: 0.5rem;
+  }
+
+  .admin-tab {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+
   .admin-table {
     table-layout: auto;
   }

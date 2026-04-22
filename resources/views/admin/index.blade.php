@@ -8,226 +8,248 @@
         <p>Erabiltzaileak, mapak eta eguraldi guneak kudeatu.</p>
     </div>
 
-    <div class="panel admin-section">
-        <h3>Blokeen ezarpenak</h3>
-        <form method="POST" action="{{ route('admin.settings.update') }}" class="auth-form">
-            @csrf
-            @method('PUT')
-            <label>Blokeen zerrendako orriko kopurua</label>
-            <div class="admin-inline-row">
-                <input
-                    type="number"
-                    name="kilter_blocks_per_page"
-                    min="2"
-                    max="100"
-                    value="{{ old('kilter_blocks_per_page', $blockListPageSize ?? 50) }}"
-                    required
-                >
-                <button type="submit" class="btn btn-primary btn-icon" aria-label="Gorde" title="Gorde">
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4 4L19 6"/></svg>
-                </button>
-            </div>
-            @error('kilter_blocks_per_page')
-                <small class="error">{{ $message }}</small>
-            @enderror
-        </form>
-    </div>
-
-    <div class="panel admin-section">
-        <div class="admin-section-head">
-            <h3>Erabiltzaileak</h3>
-            <button type="button" class="btn btn-primary btn-icon" id="open-user-create" aria-label="Erabiltzaile berria" title="Erabiltzaile berria">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+    <div class="admin-tabs" data-admin-tabs>
+        <div class="admin-tab-list" role="tablist" aria-label="Admin atalak">
+            <button type="button" class="admin-tab is-active" role="tab" id="admin-tab-settings" aria-selected="true" aria-controls="admin-panel-settings" data-tab-target="settings">
+                Parametroak
             </button>
-        </div>
-        <div class="table-scroll">
-            <table class="kilter-table admin-table">
-                <thead>
-                    <tr>
-                        <th>Username</th>
-                        <th>Ekintzak</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($users as $user)
-                        <tr>
-                            <td>{{ $user->username }}</td>
-                            <td class="admin-actions">
-                                <button
-                                    type="button"
-                                    class="btn btn-secondary btn-icon admin-edit-user"
-                                    data-id="{{ $user->id }}"
-                                    data-name="{{ $user->name }}"
-                                    data-username="{{ $user->username }}"
-                                    data-email="{{ $user->email }}"
-                                    data-avatar="{{ $user->avatar_path ? (\Illuminate\Support\Str::startsWith($user->avatar_path, ['http://', 'https://', '/']) ? $user->avatar_path : '/storage/'.$user->avatar_path) : '' }}"
-                                    data-admin="{{ $user->is_admin ? '1' : '0' }}"
-                                    aria-label="Editatu"
-                                    title="Editatu"
-                                >
-                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zm14.71-9.04a1.003 1.003 0 0 0 0-1.42l-2.5-2.5a1.003 1.003 0 0 0-1.42 0l-1.96 1.96 3.75 3.75 1.96-1.79z"/></svg>
-                                </button>
-                                <button
-                                    type="button"
-                                    class="btn btn-danger btn-icon admin-delete-user"
-                                    data-action="{{ route('admin.users.delete', $user) }}"
-                                    data-label="Erabiltzailea"
-                                    aria-label="Ezabatu"
-                                    title="Ezabatu"
-                                >
-                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7h12l-1 14H7L6 7zm3-3h6l1 2H8l1-2z"/></svg>
-                                </button>
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <div class="panel admin-section">
-        <h3>Mapak</h3>
-        <div class="table-scroll">
-            <table class="kilter-table admin-table">
-                <thead>
-                    <tr>
-                        <th>Izena</th>
-                        <th>Miniatura</th>
-                        <th>Ekintzak</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($maps as $map)
-                        @php
-                            $mapUrl = \Illuminate\Support\Str::startsWith($map->image, ['http://', 'https://', '/'])
-                                ? $map->image
-                                : '/storage/'.$map->image;
-                        @endphp
-                        <tr>
-                            <td>{{ $map->name }}</td>
-                            <td><img class="admin-map-thumb" src="{{ $mapUrl }}" alt="{{ $map->name }}"></td>
-                            <td class="admin-actions">
-                                <button
-                                    type="button"
-                                    class="btn btn-danger btn-icon admin-delete-map"
-                                    data-action="{{ route('admin.maps.delete', $map) }}"
-                                    data-label="Mapa"
-                                    aria-label="Ezabatu"
-                                    title="Ezabatu"
-                                >
-                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7h12l-1 14H7L6 7zm3-3h6l1 2H8l1-2z"/></svg>
-                                </button>
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <div class="panel admin-section">
-        <div class="admin-section-head">
-            <h3>Aurreikuspen meteorologikoa</h3>
-            <button type="button" class="btn btn-primary btn-icon" id="open-location-create" aria-label="Herria gehitu" title="Herria gehitu">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+            <button type="button" class="admin-tab" role="tab" id="admin-tab-users" aria-selected="false" aria-controls="admin-panel-users" data-tab-target="users" tabindex="-1">
+                Erabiltzaileak
+            </button>
+            <button type="button" class="admin-tab" role="tab" id="admin-tab-maps" aria-selected="false" aria-controls="admin-panel-maps" data-tab-target="maps" tabindex="-1">
+                Mapak
+            </button>
+            <button type="button" class="admin-tab" role="tab" id="admin-tab-weather" aria-selected="false" aria-controls="admin-panel-weather" data-tab-target="weather" tabindex="-1">
+                Eguraldia
+            </button>
+            <button type="button" class="admin-tab" role="tab" id="admin-tab-orders" aria-selected="false" aria-controls="admin-panel-orders" data-tab-target="orders" tabindex="-1">
+                Eskariak
             </button>
         </div>
 
-        <div class="table-scroll">
-            <table class="kilter-table admin-table">
-                <thead>
-                    <tr>
-                        <th>Label</th>
-                        <th>Ekintzak</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($locations as $location)
-                        <tr>
-                            <td>
-                                <span
-                                    class="admin-location-status"
-                                    data-lat="{{ $location->lat }}"
-                                    data-lon="{{ $location->lon }}"
-                                    aria-hidden="true"
-                                >
-                                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                                        <path d="M5 13l4 4L19 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    </svg>
-                                </span>
-                                {{ $location->label ?? $location->name }}
-                            </td>
-                            <td class="admin-actions">
-                                <button
-                                    type="button"
-                                    class="btn btn-danger btn-icon admin-delete-location"
-                                    data-action="{{ route('admin.locations.delete', $location) }}"
-                                    data-label="Herria"
-                                    aria-label="Ezabatu"
-                                    title="Ezabatu"
-                                >
-                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7h12l-1 14H7L6 7zm3-3h6l1 2H8l1-2z"/></svg>
-                                </button>
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-    </div>
+        <div class="admin-tab-panels">
+            <section class="panel admin-section admin-tab-panel is-active" role="tabpanel" id="admin-panel-settings" aria-labelledby="admin-tab-settings" data-tab-panel="settings">
+                <h3>Parametroak</h3>
+                <form method="POST" action="{{ route('admin.settings.update') }}" class="auth-form">
+                    @csrf
+                    @method('PUT')
+                    <label>Blokeen zerrendako orriko kopurua</label>
+                    <div class="admin-inline-row">
+                        <input
+                            type="number"
+                            name="kilter_blocks_per_page"
+                            min="2"
+                            max="100"
+                            value="{{ old('kilter_blocks_per_page', $blockListPageSize ?? 50) }}"
+                            required
+                        >
+                        <button type="submit" class="btn btn-primary btn-icon" aria-label="Gorde" title="Gorde">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4 4L19 6"/></svg>
+                        </button>
+                    </div>
+                    @error('kilter_blocks_per_page')
+                        <small class="error">{{ $message }}</small>
+                    @enderror
+                </form>
+            </section>
 
-    <div class="panel admin-section">
-        <div class="admin-section-head">
-            <h3>Denda · Eskariak</h3>
-        </div>
-        <div class="table-scroll">
-            <table class="kilter-table admin-table">
-                <thead>
-                    <tr>
-                        <th>Data</th>
-                        <th>Bezeroa</th>
-                        <th>Egoera</th>
-                        <th>Tot.</th>
-                        <th>Ekintzak</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($orders as $order)
-                        <tr class="{{ $order->status === \App\Models\ShopOrder::STATUS_PENDING_PAYMENT ? 'admin-order-row is-pending' : 'admin-order-row' }}">
-                            <td class="admin-col-date">{{ $order->created_at?->format('Y-m-d') ?? '-' }}</td>
-                            <td>{{ $order->user?->username ?? $order->email }}</td>
-                            <td>{{ $order->status_label }}</td>
-                            <td class="admin-col-total">{{ $order->total }} €</td>
-                            <td class="admin-actions">
-                                <button
-                                    type="button"
-                                    class="btn btn-secondary btn-icon admin-view-order"
-                                    data-id="{{ $order->id }}"
-                                    data-user="{{ $order->user?->name ?? $order->user?->username ?? '' }}"
-                                    data-username="{{ $order->user?->username ?? '' }}"
-                                    data-email="{{ $order->email }}"
-                                    data-total="{{ $order->total }}"
-                                    data-status="{{ $order->status }}"
-                                    data-status-label="{{ $order->status_label }}"
-                                    data-notes="{{ $order->notes ?? '' }}"
-                                    data-created="{{ $order->created_at?->format('Y-m-d H:i') ?? '-' }}"
-                                    data-items='@json($order->items_payload)'
-                                    data-confirm="{{ route('admin.orders.confirm', $order) }}"
-                                    data-delete="{{ route('admin.orders.delete', $order) }}"
-                                    aria-label="Ikusi"
-                                    title="Ikusi"
-                                >
-                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6-10-6-10-6z"/><circle cx="12" cy="12" r="3"/></svg>
-                                </button>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="5">Ez dago eskaririk.</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+            <section class="panel admin-section admin-tab-panel" role="tabpanel" id="admin-panel-users" aria-labelledby="admin-tab-users" data-tab-panel="users" hidden>
+                <div class="admin-section-head">
+                    <h3>Erabiltzaileak</h3>
+                    <button type="button" class="btn btn-primary btn-icon" id="open-user-create" aria-label="Erabiltzaile berria" title="Erabiltzaile berria">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                    </button>
+                </div>
+                <div class="table-scroll">
+                    <table class="kilter-table admin-table">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Ekintzak</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($users as $user)
+                                <tr>
+                                    <td>{{ $user->username }}</td>
+                                    <td class="admin-actions">
+                                        <button
+                                            type="button"
+                                            class="btn btn-secondary btn-icon admin-edit-user"
+                                            data-id="{{ $user->id }}"
+                                            data-name="{{ $user->name }}"
+                                            data-username="{{ $user->username }}"
+                                            data-email="{{ $user->email }}"
+                                            data-avatar="{{ $user->avatar_path ? (\Illuminate\Support\Str::startsWith($user->avatar_path, ['http://', 'https://', '/']) ? $user->avatar_path : '/storage/'.$user->avatar_path) : '' }}"
+                                            data-admin="{{ $user->is_admin ? '1' : '0' }}"
+                                            aria-label="Editatu"
+                                            title="Editatu"
+                                        >
+                                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zm14.71-9.04a1.003 1.003 0 0 0 0-1.42l-2.5-2.5a1.003 1.003 0 0 0-1.42 0l-1.96 1.96 3.75 3.75 1.96-1.79z"/></svg>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            class="btn btn-danger btn-icon admin-delete-user"
+                                            data-action="{{ route('admin.users.delete', $user) }}"
+                                            data-label="Erabiltzailea"
+                                            aria-label="Ezabatu"
+                                            title="Ezabatu"
+                                        >
+                                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7h12l-1 14H7L6 7zm3-3h6l1 2H8l1-2z"/></svg>
+                                        </button>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="panel admin-section admin-tab-panel" role="tabpanel" id="admin-panel-maps" aria-labelledby="admin-tab-maps" data-tab-panel="maps" hidden>
+                <h3>Mapak</h3>
+                <div class="table-scroll">
+                    <table class="kilter-table admin-table">
+                        <thead>
+                            <tr>
+                                <th>Izena</th>
+                                <th>Miniatura</th>
+                                <th>Ekintzak</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($maps as $map)
+                                @php
+                                    $mapUrl = \Illuminate\Support\Str::startsWith($map->image, ['http://', 'https://', '/'])
+                                        ? $map->image
+                                        : '/storage/'.$map->image;
+                                @endphp
+                                <tr>
+                                    <td>{{ $map->name }}</td>
+                                    <td><img class="admin-map-thumb" src="{{ $mapUrl }}" alt="{{ $map->name }}"></td>
+                                    <td class="admin-actions">
+                                        <button
+                                            type="button"
+                                            class="btn btn-danger btn-icon admin-delete-map"
+                                            data-action="{{ route('admin.maps.delete', $map) }}"
+                                            data-label="Mapa"
+                                            aria-label="Ezabatu"
+                                            title="Ezabatu"
+                                        >
+                                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7h12l-1 14H7L6 7zm3-3h6l1 2H8l1-2z"/></svg>
+                                        </button>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="panel admin-section admin-tab-panel" role="tabpanel" id="admin-panel-weather" aria-labelledby="admin-tab-weather" data-tab-panel="weather" hidden>
+                <div class="admin-section-head">
+                    <h3>Aurreikuspen meteorologikoa</h3>
+                    <button type="button" class="btn btn-primary btn-icon" id="open-location-create" aria-label="Herria gehitu" title="Herria gehitu">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                    </button>
+                </div>
+
+                <div class="table-scroll">
+                    <table class="kilter-table admin-table">
+                        <thead>
+                            <tr>
+                                <th>Label</th>
+                                <th>Ekintzak</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($locations as $location)
+                                <tr>
+                                    <td>
+                                        <span
+                                            class="admin-location-status"
+                                            data-lat="{{ $location->lat }}"
+                                            data-lon="{{ $location->lon }}"
+                                            aria-hidden="true"
+                                        >
+                                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                                <path d="M5 13l4 4L19 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            </svg>
+                                        </span>
+                                        {{ $location->label ?? $location->name }}
+                                    </td>
+                                    <td class="admin-actions">
+                                        <button
+                                            type="button"
+                                            class="btn btn-danger btn-icon admin-delete-location"
+                                            data-action="{{ route('admin.locations.delete', $location) }}"
+                                            data-label="Herria"
+                                            aria-label="Ezabatu"
+                                            title="Ezabatu"
+                                        >
+                                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7h12l-1 14H7L6 7zm3-3h6l1 2H8l1-2z"/></svg>
+                                        </button>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="panel admin-section admin-tab-panel" role="tabpanel" id="admin-panel-orders" aria-labelledby="admin-tab-orders" data-tab-panel="orders" hidden>
+                <div class="admin-section-head">
+                    <h3>Denda · Eskariak</h3>
+                </div>
+                <div class="table-scroll">
+                    <table class="kilter-table admin-table">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Bezeroa</th>
+                                <th>Egoera</th>
+                                <th>Tot.</th>
+                                <th>Ekintzak</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($orders as $order)
+                                <tr class="{{ $order->status === \App\Models\ShopOrder::STATUS_PENDING_PAYMENT ? 'admin-order-row is-pending' : 'admin-order-row' }}">
+                                    <td class="admin-col-date">{{ $order->created_at?->format('Y-m-d') ?? '-' }}</td>
+                                    <td>{{ $order->user?->username ?? $order->email }}</td>
+                                    <td>{{ $order->status_label }}</td>
+                                    <td class="admin-col-total">{{ $order->total }} €</td>
+                                    <td class="admin-actions">
+                                        <button
+                                            type="button"
+                                            class="btn btn-secondary btn-icon admin-view-order"
+                                            data-id="{{ $order->id }}"
+                                            data-user="{{ $order->user?->name ?? $order->user?->username ?? '' }}"
+                                            data-username="{{ $order->user?->username ?? '' }}"
+                                            data-email="{{ $order->email }}"
+                                            data-total="{{ $order->total }}"
+                                            data-status="{{ $order->status }}"
+                                            data-status-label="{{ $order->status_label }}"
+                                            data-notes="{{ $order->notes ?? '' }}"
+                                            data-created="{{ $order->created_at?->format('Y-m-d H:i') ?? '-' }}"
+                                            data-items='@json($order->items_payload)'
+                                            data-confirm="{{ route('admin.orders.confirm', $order) }}"
+                                            data-delete="{{ route('admin.orders.delete', $order) }}"
+                                            aria-label="Ikusi"
+                                            title="Ikusi"
+                                        >
+                                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6-10-6-10-6z"/><circle cx="12" cy="12" r="3"/></svg>
+                                        </button>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="5">Ez dago eskaririk.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </section>
         </div>
     </div>
 </section>
@@ -343,6 +365,9 @@
 
 <script>
     (function () {
+        const adminTabsRoot = document.querySelector('[data-admin-tabs]');
+        const adminTabs = Array.from(document.querySelectorAll('.admin-tab'));
+        const adminPanels = Array.from(document.querySelectorAll('.admin-tab-panel'));
         const createModal = document.getElementById('admin-user-create-modal');
         const editModal = document.getElementById('admin-user-edit-modal');
         const confirmModal = document.getElementById('admin-confirm-modal');
@@ -380,6 +405,25 @@
             modal?.classList.add('hidden-modal');
         }
 
+        function activateTab(tabKey) {
+            if (!tabKey) {
+                return;
+            }
+
+            adminTabs.forEach((tab) => {
+                const isActive = tab.dataset.tabTarget === tabKey;
+                tab.classList.toggle('is-active', isActive);
+                tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
+                tab.tabIndex = isActive ? 0 : -1;
+            });
+
+            adminPanels.forEach((panel) => {
+                const isActive = panel.dataset.tabPanel === tabKey;
+                panel.classList.toggle('is-active', isActive);
+                panel.hidden = !isActive;
+            });
+        }
+
         function escapeHtml(value) {
             return String(value ?? '')
                 .replaceAll('&', '&amp;')
@@ -387,6 +431,26 @@
                 .replaceAll('>', '&gt;')
                 .replaceAll('"', '&quot;')
                 .replaceAll("'", '&#39;');
+        }
+
+        if (adminTabsRoot) {
+            adminTabs.forEach((tab, index) => {
+                tab.addEventListener('click', () => activateTab(tab.dataset.tabTarget));
+                tab.addEventListener('keydown', (event) => {
+                    if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') {
+                        return;
+                    }
+
+                    event.preventDefault();
+                    const direction = event.key === 'ArrowRight' ? 1 : -1;
+                    const nextIndex = (index + direction + adminTabs.length) % adminTabs.length;
+                    const nextTab = adminTabs[nextIndex];
+                    activateTab(nextTab.dataset.tabTarget);
+                    nextTab.focus();
+                });
+            });
+
+            activateTab(adminTabs.find((tab) => tab.classList.contains('is-active'))?.dataset.tabTarget || adminTabs[0]?.dataset.tabTarget);
         }
 
         openCreate?.addEventListener('click', () => openModal(createModal));
