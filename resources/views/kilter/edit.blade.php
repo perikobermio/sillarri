@@ -141,6 +141,7 @@
                 <label for="coord-mode">Marrazki mota</label>
                 <select id="coord-mode">
                 <option value="points" selected>Zirkuluak</option>
+                <option value="trave">Trave</option>
                 <option value="line">Lerroa</option>
             </select>
             </span>
@@ -189,43 +190,65 @@
         const mapSelect = document.getElementById('map-select');
         const boulderInput = document.getElementById('boulder-input');
         const boulderSummary = document.getElementById('boulder-summary');
-        const validModes = ['points', 'line'];
+        const validModes = ['points', 'line', 'trave'];
         const validTypes = ['pie', 'mano_pie', 'comienzo', 'top'];
         const validSizes = ['pequeno', 'mediano', 'grande', 'gigante'];
+
+        function normalizePoint(point, mode) {
+            if (mode === 'line') {
+                return {
+                    x: Number(point?.x ?? 0),
+                    y: Number(point?.y ?? 0),
+                };
+            }
+
+            return {
+                x: Number(point?.x ?? 0),
+                y: Number(point?.y ?? 0),
+                type: validTypes.includes(point?.type) ? point.type : 'mano_pie',
+                size: validSizes.includes(point?.size) ? point.size : 'mediano',
+            };
+        }
+
+        function applyTraveOrder(points) {
+            let nextOrder = 0;
+
+            return points.map((point) => {
+                const normalized = normalizePoint(point, 'trave');
+                if (normalized.type === 'mano_pie') {
+                    nextOrder += 1;
+                    normalized.order = nextOrder;
+                }
+                return normalized;
+            });
+        }
+
+        function normalizePointCollection(points, mode) {
+            if (!Array.isArray(points)) {
+                return [];
+            }
+
+            if (mode === 'line') {
+                return points.map((point) => normalizePoint(point, 'line'));
+            }
+
+            const normalizedPoints = points.map((point) => normalizePoint(point, mode));
+            return mode === 'trave' ? applyTraveOrder(normalizedPoints) : normalizedPoints;
+        }
 
         function normalizeBoulderState(payload) {
             if (Array.isArray(payload)) {
                 return {
                     mode: 'points',
-                    points: payload.map((point) => ({
-                        x: Number(point?.x ?? 0),
-                        y: Number(point?.y ?? 0),
-                        type: validTypes.includes(point?.type) ? point.type : 'mano_pie',
-                        size: validSizes.includes(point?.size) ? point.size : 'mediano',
-                    })),
+                    points: normalizePointCollection(payload, 'points'),
                 };
             }
 
             if (payload && typeof payload === 'object' && Array.isArray(payload.points)) {
                 const mode = validModes.includes(payload.mode) ? payload.mode : 'points';
-                if (mode === 'line') {
-                    return {
-                        mode,
-                        points: payload.points.map((point) => ({
-                            x: Number(point?.x ?? 0),
-                            y: Number(point?.y ?? 0),
-                        })),
-                    };
-                }
-
                 return {
-                    mode: 'points',
-                    points: payload.points.map((point) => ({
-                        x: Number(point?.x ?? 0),
-                        y: Number(point?.y ?? 0),
-                        type: validTypes.includes(point?.type) ? point.type : 'mano_pie',
-                        size: validSizes.includes(point?.size) ? point.size : 'mediano',
-                    })),
+                    mode,
+                    points: normalizePointCollection(payload.points, mode),
                 };
             }
 
@@ -251,6 +274,12 @@
 
             if (state.mode === 'line') {
                 boulderSummary.textContent = `${points.length} puntu lotuta (lerroa)`;
+                return;
+            }
+
+            if (state.mode === 'trave') {
+                const numberedPoints = points.filter((point) => point.type === 'mano_pie').length;
+                boulderSummary.textContent = `${points.length} puntu zehaztuta (${numberedPoints} zenbakituta, trave)`;
                 return;
             }
 
@@ -546,7 +575,14 @@
                 } else {
                     const type = point.type || 'mano_pie';
                     const size = point.size || 'mediano';
-                    marker.className = `coord-point type-${type} size-${size}`;
+                    const isTraveNumbered = tempMode === 'trave' && type === 'mano_pie';
+                    marker.className = `coord-point type-${type} size-${size}${isTraveNumbered ? ' is-numbered' : ''}`;
+                    if (isTraveNumbered) {
+                        const label = document.createElement('span');
+                        label.className = 'coord-point-number';
+                        label.textContent = String(point.order);
+                        marker.appendChild(label);
+                    }
                 }
                 marker.style.left = `${point.x}%`;
                 marker.style.top = `${point.y}%`;
@@ -554,13 +590,21 @@
                 marker.addEventListener('click', (event) => {
                     event.stopPropagation();
                     tempPoints.splice(index, 1);
+                    if (tempMode === 'trave') {
+                        tempPoints = applyTraveOrder(tempPoints);
+                    }
                     renderPoints();
                 });
                 coordLayer.appendChild(marker);
             });
-            coordCount.textContent = tempMode === 'line'
-                ? `${tempPoints.length} puntu (lerroa)`
-                : `${tempPoints.length} puntu (zirkuluak)`;
+            if (tempMode === 'line') {
+                coordCount.textContent = `${tempPoints.length} puntu (lerroa)`;
+            } else if (tempMode === 'trave') {
+                const numberedPoints = tempPoints.filter((point) => point.type === 'mano_pie').length;
+                coordCount.textContent = `${tempPoints.length} puntu (${numberedPoints} zenbakituta, trave)`;
+            } else {
+                coordCount.textContent = `${tempPoints.length} puntu (zirkuluak)`;
+            }
         }
 
         function openBoulderModal() {
@@ -584,7 +628,7 @@
             coordImage.src = imageUrl;
             const state = parseBoulderState();
             tempMode = state.mode;
-            tempPoints = state.points;
+            tempPoints = [...state.points];
             if (coordModeSelect) coordModeSelect.value = tempMode;
             minZoom = 0.001;
             setZoom(1);
@@ -647,6 +691,10 @@
                     type,
                     size,
                 });
+            }
+
+            if (tempMode === 'trave') {
+                tempPoints = applyTraveOrder(tempPoints);
             }
 
             renderPoints();
@@ -805,21 +853,9 @@
         });
 
         coordModeSelect?.addEventListener('change', () => {
-            const nextMode = coordModeSelect.value === 'line' ? 'line' : 'points';
+            const nextMode = validModes.includes(coordModeSelect.value) ? coordModeSelect.value : 'points';
             tempMode = nextMode;
-            if (tempMode === 'points') {
-                tempPoints = tempPoints.map((point) => ({
-                    x: Number(point?.x ?? 0),
-                    y: Number(point?.y ?? 0),
-                    type: validTypes.includes(point?.type) ? point.type : 'mano_pie',
-                    size: validSizes.includes(point?.size) ? point.size : 'mediano',
-                }));
-            } else {
-                tempPoints = tempPoints.map((point) => ({
-                    x: Number(point?.x ?? 0),
-                    y: Number(point?.y ?? 0),
-                }));
-            }
+            tempPoints = normalizePointCollection(tempPoints, tempMode);
             syncModeUi();
             renderPoints();
         });
@@ -827,7 +863,7 @@
         saveBoulderBtn?.addEventListener('click', () => {
             boulderInput.value = JSON.stringify({
                 mode: tempMode,
-                points: tempPoints,
+                points: tempMode === 'trave' ? applyTraveOrder(tempPoints) : tempPoints,
             });
             syncBoulderSummary();
             closeBoulderModal();

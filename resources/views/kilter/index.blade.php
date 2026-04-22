@@ -347,7 +347,7 @@
         let baseImageWidth = 0;
         let applyWidthFitOnLoad = false;
         let currentState = { mode: 'points', points: [] };
-        const validModes = ['points', 'line'];
+        const validModes = ['points', 'line', 'trave'];
         const validTypes = ['pie', 'mano_pie', 'comienzo', 'top'];
         const validSizes = ['pequeno', 'mediano', 'grande', 'gigante'];
         const minZoom = 0.01;
@@ -370,16 +370,40 @@
             return Math.hypot(dx, dy);
         }
 
+        function normalizePoint(point, mode) {
+            if (mode === 'line') {
+                return {
+                    x: Number(point?.x ?? 0),
+                    y: Number(point?.y ?? 0),
+                };
+            }
+
+            return {
+                x: Number(point?.x ?? 0),
+                y: Number(point?.y ?? 0),
+                type: validTypes.includes(point?.type) ? point.type : 'mano_pie',
+                size: validSizes.includes(point?.size) ? point.size : 'mediano',
+            };
+        }
+
+        function applyTraveOrder(points) {
+            let nextOrder = 0;
+
+            return points.map((point) => {
+                const normalized = normalizePoint(point, 'trave');
+                if (normalized.type === 'mano_pie') {
+                    nextOrder += 1;
+                    normalized.order = nextOrder;
+                }
+                return normalized;
+            });
+        }
+
         function normalizeBoulderState(payload) {
             if (Array.isArray(payload)) {
                 return {
                     mode: 'points',
-                    points: payload.map((point) => ({
-                        x: Number(point?.x ?? 0),
-                        y: Number(point?.y ?? 0),
-                        type: validTypes.includes(point?.type) ? point.type : 'mano_pie',
-                        size: validSizes.includes(point?.size) ? point.size : 'mediano',
-                    })),
+                    points: payload.map((point) => normalizePoint(point, 'points')),
                 };
             }
 
@@ -388,21 +412,15 @@
                 if (mode === 'line') {
                     return {
                         mode,
-                        points: payload.points.map((point) => ({
-                            x: Number(point?.x ?? 0),
-                            y: Number(point?.y ?? 0),
-                        })),
+                        points: payload.points.map((point) => normalizePoint(point, 'line')),
                     };
                 }
 
                 return {
-                    mode: 'points',
-                    points: payload.points.map((point) => ({
-                        x: Number(point?.x ?? 0),
-                        y: Number(point?.y ?? 0),
-                        type: validTypes.includes(point?.type) ? point.type : 'mano_pie',
-                        size: validSizes.includes(point?.size) ? point.size : 'mediano',
-                    })),
+                    mode,
+                    points: mode === 'trave'
+                        ? applyTraveOrder(payload.points)
+                        : payload.points.map((point) => normalizePoint(point, 'points')),
                 };
             }
 
@@ -483,7 +501,14 @@
                 } else {
                     const type = point?.type || 'mano_pie';
                     const size = point?.size || 'mediano';
-                    marker.className = `viewer-point type-${type} size-${size}`;
+                    const isTraveNumbered = currentState.mode === 'trave' && type === 'mano_pie';
+                    marker.className = `viewer-point type-${type} size-${size}${isTraveNumbered ? ' is-numbered' : ''}`;
+                    if (isTraveNumbered) {
+                        const label = document.createElement('span');
+                        label.className = 'viewer-point-number';
+                        label.textContent = String(point.order);
+                        marker.appendChild(label);
+                    }
                 }
                 marker.style.left = `${point.x}%`;
                 marker.style.top = `${point.y}%`;

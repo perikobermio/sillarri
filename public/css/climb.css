@@ -3008,12 +3008,28 @@ button.is-loading > * {
 .coord-point,
 .viewer-point,
 .preview-point {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
   box-sizing: border-box;
   border-radius: 999px;
   aspect-ratio: 1 / 1;
   border: 3px solid #2f8cff;
   background: rgba(47, 140, 255, 0.2);
   box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.25), 0 0 12px rgba(47, 140, 255, 0.35);
+}
+
+.coord-point-number,
+.viewer-point-number,
+.preview-point-number {
+  display: block;
+  font-weight: 800;
+  font-size: 14px;
+  line-height: 1;
+  color: #fff7ed;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
+  pointer-events: none;
 }
 
 .coord-point:not(.line-node),

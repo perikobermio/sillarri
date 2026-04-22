@@ -724,7 +724,7 @@ class KilterController extends Controller
         $coords = $decoded;
         if (array_key_exists('points', $decoded)) {
             $modeValue = $decoded['mode'] ?? 'points';
-            if (! in_array($modeValue, ['points', 'line'], true)) {
+            if (! in_array($modeValue, ['points', 'line', 'trave'], true)) {
                 throw new \InvalidArgumentException('Koordenatuen formatua ez da baliozkoa.');
             }
             $mode = $modeValue;
@@ -739,6 +739,7 @@ class KilterController extends Controller
         $validSizes = ['pequeno', 'mediano', 'grande', 'gigante'];
         $normalizedPoints = [];
 
+        $traveOrder = 0;
         foreach ($coords as $point) {
             if (! is_array($point)) {
                 throw new \InvalidArgumentException('Koordenatuen formatua ez da baliozkoa.');
@@ -757,17 +758,24 @@ class KilterController extends Controller
                 throw new \InvalidArgumentException('Koordenatuek 0 eta 100 artean egon behar dute.');
             }
 
-            if ($mode === 'points') {
+            if ($mode !== 'line') {
                 if (! in_array($type, $validTypes, true) || ! in_array($size, $validSizes, true)) {
                     throw new \InvalidArgumentException('Puntu bakoitzak mota eta tamaina baliozkoak izan behar ditu.');
                 }
 
-                $normalizedPoints[] = [
+                $normalizedPoint = [
                     'x' => round((float) $x, 3),
                     'y' => round((float) $y, 3),
                     'type' => $type,
                     'size' => $size,
                 ];
+
+                if ($mode === 'trave' && $type === 'mano_pie') {
+                    $traveOrder += 1;
+                    $normalizedPoint['order'] = $traveOrder;
+                }
+
+                $normalizedPoints[] = $normalizedPoint;
             } else {
                 $normalizedPoints[] = [
                     'x' => round((float) $x, 3),
