@@ -27,18 +27,33 @@
     $completedUsers = $completedUsers ?? [];
     $canSuggestRecote = $viewerUser && ((int) $viewerUser->id !== (int) $block->user_id);
     $canResolveRecote = $viewerUser && (((int) $viewerUser->id === (int) $block->user_id) || (bool) $viewerUser->is_admin);
+    $gradeFilterUrl = route('kilter', array_filter([
+        'grade' => [strtolower((string) $block->grade)],
+        'location' => $block->kokapena ? (string) $block->kokapena : null,
+    ], static fn ($value) => $value !== null && $value !== ''));
 @endphp
 
 <section class="kilter-page">
-    <div class="kilter-table-head">
-        <div>
+    <div class="kilter-table-head detail-page-head">
+        <div class="detail-title-wrap">
             <p class="eyebrow">Kilter Board Hub</p>
             <h1>
                 {{ $block->name }}
-                <span class="recote-top-grade">{{ strtoupper($block->grade) }}</span>
+                <a class="recote-top-grade block-grade-filter-link" href="{{ $gradeFilterUrl }}">{{ strtoupper($block->grade) }}</a>
             </h1>
         </div>
-        <a class="btn btn-secondary" href="{{ route('kilter') }}">Itzuli zerrendara</a>
+        <a
+            class="btn btn-secondary detail-back-btn"
+            href="{{ route('kilter') }}"
+            aria-label="Itzuli zerrendara"
+            title="Itzuli zerrendara"
+        >
+            <span class="action-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                    <path d="M15 18l-6-6 6-6"></path>
+                </svg>
+            </span>
+        </a>
     </div>
 
     <div class="kilter-detail-grid {{ $mapImageUrl === '' ? 'is-single-panel' : '' }}">

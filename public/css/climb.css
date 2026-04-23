@@ -1940,9 +1940,46 @@ button.is-loading > * {
 .kilter-table-head {
   display: flex;
   gap: 1rem;
-  align-items: end;
+  align-items: flex-start;
   justify-content: space-between;
   margin-bottom: 1rem;
+}
+
+.detail-page-head {
+  flex-direction: row;
+  align-items: flex-start;
+}
+
+.detail-title-wrap {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.detail-back-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  align-self: flex-start;
+  flex: 0 0 auto;
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  padding: 0;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(26, 25, 23, 0.7);
+  color: var(--sand);
+  text-decoration: none;
+}
+
+.detail-back-btn:link,
+.detail-back-btn:visited,
+.detail-back-btn:hover,
+.detail-back-btn:active,
+.detail-back-btn:focus {
+  color: var(--sand);
+  text-decoration: none;
 }
 
 .kilter-table-head h1 {
@@ -1950,6 +1987,9 @@ button.is-loading > * {
   font-family: "Bebas Neue", sans-serif;
   font-size: clamp(1.8rem, 5vw, 3.2rem);
   letter-spacing: 1px;
+  line-height: 0.95;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .kilter-search {
@@ -2545,6 +2585,20 @@ button.is-loading > * {
   letter-spacing: 0.5px;
   text-transform: uppercase;
   vertical-align: middle;
+}
+
+.block-grade-filter-link,
+.block-grade-filter-link:link,
+.block-grade-filter-link:visited,
+.block-grade-filter-link:hover,
+.block-grade-filter-link:active,
+.block-grade-filter-link:focus {
+  color: inherit;
+  text-decoration: none;
+}
+
+.block-grade-filter-link {
+  cursor: pointer;
 }
 
 .recote-section-head {
@@ -3528,6 +3582,11 @@ button.is-loading > * {
 
   .kilter-table-head {
     flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .detail-page-head {
+    flex-direction: row;
     align-items: flex-start;
   }
 
