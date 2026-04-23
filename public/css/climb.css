@@ -188,7 +188,7 @@ body {
 }
 
 .user-chip-profile-link:hover {
-  text-decoration: underline;
+  text-decoration: none;
 }
 
 .admin-pill {
@@ -1703,7 +1703,7 @@ button.is-loading > * {
 }
 
 .admin-order-user-link:hover {
-  text-decoration: underline;
+  text-decoration: none;
 }
 
 .admin-order-sub {
@@ -2281,7 +2281,7 @@ button.is-loading > * {
 }
 
 .ranking-user-link:hover {
-  text-decoration: underline;
+  text-decoration: none;
 }
 
 .ranking-highlight-grid {
@@ -2430,7 +2430,7 @@ button.is-loading > * {
 }
 
 .user-public-table a:hover {
-  text-decoration: underline;
+  text-decoration: none;
 }
 
 .kilter-table th,
