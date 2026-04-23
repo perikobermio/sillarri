@@ -36,21 +36,51 @@
                             $groupKey = preg_replace('/[^0-9]/', '', $g);
                             $groupedGrades[$groupKey][] = $g;
                         }
+                        $gradesFilterActive = count($selectedGrades) > 0;
+                        $moreFiltersActive = $search !== ''
+                            || $selectedLocation !== ''
+                            || $selectedCreator !== null
+                            || (($selectedCompletedFilter ?? 'all') !== 'all');
+                        $orderFilterActive = $selectedOrderField !== '';
                     @endphp
-                    <details class="grade-filter-box">
+                    <details class="grade-filter-box {{ $gradesFilterActive ? 'is-active' : '' }}">
                         <summary><span class="grade-summary-label">Gradua</span></summary>
                         <div class="grade-check-list">
                             @foreach($groupedGrades as $group => $list)
-                                <div class="grade-group-title">{{ $romanMap[$group] ?? $group }}</div>
+                                @php
+                                    $groupId = 'grade_group_'.$group;
+                                    $normalizedGroupGrades = array_map(static fn (string $grade): string => strtolower($grade), $list);
+                                    $checkedInGroup = count(array_intersect($normalizedGroupGrades, $selectedGrades));
+                                    $allGroupChecked = count($normalizedGroupGrades) > 0 && $checkedInGroup === count($normalizedGroupGrades);
+                                    $someGroupChecked = $checkedInGroup > 0 && !$allGroupChecked;
+                                @endphp
+                                <div class="grade-group-title">
+                                    <div class="grade-check-item grade-check-item-group">
+                                        <input
+                                            id="{{ $groupId }}"
+                                            class="grade-group-checkbox"
+                                            type="checkbox"
+                                            data-grade-group="{{ $group }}"
+                                            @checked($allGroupChecked)
+                                            @if($someGroupChecked) data-indeterminate="true" @endif
+                                        >
+                                        <label for="{{ $groupId }}">{{ $romanMap[$group] ?? $group }}</label>
+                                    </div>
+                                </div>
                                 @foreach($list as $g)
-                                    @php $gradeId = 'grade_'.strtolower(str_replace('+', '_plus', $g)); @endphp
+                                    @php
+                                        $gradeId = 'grade_'.strtolower(str_replace('+', '_plus', $g));
+                                        $gradeValue = strtolower($g);
+                                    @endphp
                                     <div class="grade-check-item">
                                         <input
                                             id="{{ $gradeId }}"
+                                            class="grade-option-checkbox"
                                             type="checkbox"
                                             name="grade[]"
-                                            value="{{ $g }}"
-                                            @checked(in_array(strtolower($g), $selectedGrades, true))
+                                            value="{{ $gradeValue }}"
+                                            data-grade-group="{{ $group }}"
+                                            @checked(in_array($gradeValue, $selectedGrades, true))
                                         >
                                         <label for="{{ $gradeId }}">{{ strtoupper($g) }}</label>
                                     </div>
@@ -59,7 +89,7 @@
                         </div>
                     </details>
 
-                    <details class="extra-filter-box">
+                    <details class="extra-filter-box {{ $moreFiltersActive ? 'is-active' : '' }}" id="more-filter-details">
                         <summary>+</summary>
                         <div class="extra-filter-panel">
                             <label for="q-filter">Izena</label>
@@ -107,10 +137,19 @@
                                     <option value="pending" @selected(($selectedCompletedFilter ?? 'all') === 'pending')>Egin gabe</option>
                                 </select>
                             @endauth
+
+                            <div class="kilter-form-actions">
+                                <button type="button" class="icon-btn kilter-icon-action" id="apply-more-filters" aria-label="Aplikatu iragazkiak" title="Aplikatu">
+                                    ✓
+                                </button>
+                                <button type="button" class="icon-btn kilter-icon-action" id="cancel-more-filters" aria-label="Utzi aldaketak" title="Utzi">
+                                    ×
+                                </button>
+                            </div>
                         </div>
                     </details>
 
-                    <details class="extra-filter-box order-filter-box">
+                    <details class="extra-filter-box order-filter-box {{ $orderFilterActive ? 'is-active' : '' }}">
                         <summary class="order-filter-trigger" id="open-order-modal">⇅</summary>
                     </details>
 
@@ -259,8 +298,8 @@
                 <option value="asc" @selected($selectedOrderDir === 'asc')>Gorantz</option>
             </select>
             <div class="kilter-form-actions">
-                <button type="button" class="btn btn-primary" id="apply-order">Aplikatu</button>
-                <button type="button" class="btn btn-secondary" id="cancel-order">Utzi</button>
+                <button type="button" class="icon-btn kilter-icon-action" id="apply-order" aria-label="Aplikatu ordena" title="Aplikatu">✓</button>
+                <button type="button" class="icon-btn kilter-icon-action" id="cancel-order" aria-label="Utzi ordena" title="Utzi">×</button>
             </div>
         </div>
     </div>
@@ -269,6 +308,14 @@
     <script>
         (function () {
             const filterDetails = document.querySelectorAll('.grade-filter-box, .extra-filter-box');
+            const filterForm = document.getElementById('kilter-filter-form');
+            const gradeDetails = document.querySelector('.grade-filter-box');
+            const gradeCheckboxes = Array.from(document.querySelectorAll('.grade-option-checkbox'));
+            const gradeGroupCheckboxes = Array.from(document.querySelectorAll('.grade-group-checkbox'));
+            const moreFilterDetails = document.getElementById('more-filter-details');
+            const applyMoreFilters = document.getElementById('apply-more-filters');
+            const cancelMoreFilters = document.getElementById('cancel-more-filters');
+            const moreFilterFields = Array.from(document.querySelectorAll('#more-filter-details input[name=\"q\"], #more-filter-details input[name=\"location\"], #more-filter-details select[name=\"creator\"], #more-filter-details select[name=\"completed\"]'));
             const orderModal = document.getElementById('order-modal');
             const openOrder = document.getElementById('open-order-modal');
             const closeOrder = document.getElementById('close-order-modal');
@@ -287,6 +334,66 @@
                 });
             });
 
+            function submitFilterForm() {
+                if (!filterForm) return;
+                filterForm.dispatchEvent(new Event('submit', { cancelable: true }));
+                filterForm.submit();
+            }
+
+            function resetOrderControls() {
+                if (orderFieldInput && orderFieldSelect) {
+                    orderFieldSelect.value = orderFieldInput.value;
+                }
+                if (orderDirInput && orderDirSelect) {
+                    orderDirSelect.value = orderDirInput.value || 'desc';
+                }
+            }
+
+            function updateGradeGroupState(group) {
+                const children = gradeCheckboxes.filter((checkbox) => checkbox.dataset.gradeGroup === group);
+                const parent = gradeGroupCheckboxes.find((checkbox) => checkbox.dataset.gradeGroup === group);
+                if (!parent || children.length === 0) return;
+
+                const checkedCount = children.filter((checkbox) => checkbox.checked).length;
+                parent.checked = checkedCount === children.length;
+                parent.indeterminate = checkedCount > 0 && checkedCount < children.length;
+            }
+
+            gradeGroupCheckboxes.forEach((checkbox) => {
+                if (checkbox.dataset.indeterminate === 'true') {
+                    checkbox.indeterminate = true;
+                }
+
+                checkbox.addEventListener('change', () => {
+                    const group = checkbox.dataset.gradeGroup || '';
+                    gradeCheckboxes.forEach((child) => {
+                        if (child.dataset.gradeGroup === group) {
+                            child.checked = checkbox.checked;
+                        }
+                    });
+                    checkbox.indeterminate = false;
+                    if (gradeDetails) {
+                        gradeDetails.open = false;
+                    }
+                    submitFilterForm();
+                });
+            });
+
+            gradeCheckboxes.forEach((checkbox) => {
+                checkbox.addEventListener('change', () => {
+                    const group = checkbox.dataset.gradeGroup || '';
+                    updateGradeGroupState(group);
+                    if (gradeDetails) {
+                        gradeDetails.open = false;
+                    }
+                    submitFilterForm();
+                });
+            });
+
+            moreFilterFields.forEach((field) => {
+                field.dataset.initialValue = field.value;
+            });
+
             function openModal(modal) {
                 modal?.classList.remove('hidden-modal');
                 document.body.style.overflow = 'hidden';
@@ -303,12 +410,22 @@
                     if (openOrder.closest('details')) {
                         openOrder.closest('details').open = false;
                     }
+                    resetOrderControls();
                     openModal(orderModal);
                 });
-                closeOrder?.addEventListener('click', () => closeModal(orderModal));
-                cancelOrder?.addEventListener('click', () => closeModal(orderModal));
+                closeOrder?.addEventListener('click', () => {
+                    resetOrderControls();
+                    closeModal(orderModal);
+                });
+                cancelOrder?.addEventListener('click', () => {
+                    resetOrderControls();
+                    closeModal(orderModal);
+                });
                 orderModal.addEventListener('click', (event) => {
-                    if (event.target === orderModal) closeModal(orderModal);
+                    if (event.target === orderModal) {
+                        resetOrderControls();
+                        closeModal(orderModal);
+                    }
                 });
                 applyOrder?.addEventListener('click', () => {
                     if (orderFieldInput && orderFieldSelect) {
@@ -317,10 +434,25 @@
                     if (orderDirInput && orderDirSelect) {
                         orderDirInput.value = orderDirSelect.value;
                     }
-                    document.getElementById('kilter-filter-form')?.dispatchEvent(new Event('submit', { cancelable: true }));
-                    document.getElementById('kilter-filter-form')?.submit();
+                    submitFilterForm();
                 });
             }
+
+            applyMoreFilters?.addEventListener('click', () => {
+                if (moreFilterDetails) {
+                    moreFilterDetails.open = false;
+                }
+                submitFilterForm();
+            });
+
+            cancelMoreFilters?.addEventListener('click', () => {
+                moreFilterFields.forEach((field) => {
+                    field.value = field.dataset.initialValue ?? '';
+                });
+                if (moreFilterDetails) {
+                    moreFilterDetails.open = false;
+                }
+            });
 
             const viewer = document.getElementById('boulder-viewer');
             const closeBtn = document.getElementById('close-boulder-viewer');

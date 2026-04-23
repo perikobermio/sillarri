@@ -2006,9 +2006,14 @@ button.is-loading > * {
 }
 
 .grade-filter-box summary {
+  position: absolute;
+  inset: 0;
   list-style: none;
   cursor: pointer;
   font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .grade-filter-box summary::-webkit-details-marker {
@@ -2050,13 +2055,30 @@ button.is-loading > * {
 }
 
 .extra-filter-box summary {
+  position: absolute;
+  inset: 0;
   list-style: none;
   cursor: pointer;
   font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .extra-filter-box summary::-webkit-details-marker {
   display: none;
+}
+
+.grade-filter-box.is-active,
+.extra-filter-box.is-active {
+  border-color: rgba(240, 139, 62, 0.85);
+  background: rgba(240, 139, 62, 0.16);
+  box-shadow: 0 0 0 1px rgba(240, 139, 62, 0.18);
+}
+
+.grade-filter-box.is-active summary::before,
+.extra-filter-box.is-active summary {
+  color: #ffd8b0;
 }
 
 .extra-filter-panel {
@@ -2103,10 +2125,6 @@ button.is-loading > * {
 
 .grade-group-title {
   margin-top: 0.35rem;
-  color: var(--mint);
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
 }
 
 .grade-check-item {
@@ -2125,6 +2143,18 @@ button.is-loading > * {
   cursor: pointer;
   line-height: 1.2;
   white-space: nowrap;
+}
+
+.grade-check-item-group {
+  padding: 0.1rem 0;
+}
+
+.grade-check-item-group label {
+  color: var(--mint);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  font-weight: 700;
 }
 
 .grade-check-item input {
@@ -3191,6 +3221,21 @@ button.is-loading > * {
   gap: 0.6rem;
   margin-top: 0.65rem;
   flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.kilter-icon-action {
+  border-radius: 10px;
+  width: 42px;
+  height: 42px;
+  color: #fff;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.kilter-icon-action:hover {
+  border-color: rgba(240, 139, 62, 0.72);
+  background: rgba(240, 139, 62, 0.14);
 }
 
 @media (max-width: 920px) {
