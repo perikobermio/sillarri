@@ -6,7 +6,7 @@
         <p class="eyebrow">Panel pertsonala</p>
         <h1>
             Kaixo,
-            <a href="{{ route('users.public', auth()->user()) }}">
+            <a class="user-profile-link" href="{{ route('users.public', auth()->user()) }}">
                 {{ auth()->user()->username ?? auth()->user()->name }}
             </a>
         </h1>

@@ -15,7 +15,7 @@
         <div class="public-profile-head">
             <img class="public-avatar" src="{{ $avatarUrl }}" alt="Erabiltzailearen avatarra">
             <h1>
-                <a href="{{ route('users.public', $userProfile) }}">
+                <a class="user-profile-link" href="{{ route('users.public', $userProfile) }}">
                     {{ $userProfile->username ?? $userProfile->name }}
                 </a>
             </h1>

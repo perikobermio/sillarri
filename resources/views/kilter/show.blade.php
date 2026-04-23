@@ -158,7 +158,7 @@
             <p>
                 <strong>Sortzailea:</strong>
                 @if($block->creator)
-                    <a href="{{ route('users.public', $block->creator) }}">{{ $block->creator->username ?? $block->creator->name }}</a>
+                    <a class="user-profile-link" href="{{ route('users.public', $block->creator) }}">{{ $block->creator->username ?? $block->creator->name }}</a>
                 @else
                     -
                 @endif
@@ -175,7 +175,7 @@
                     @foreach($completedUsers as $completedUser)
                         <li>
                             <span class="recote-user">
-                                <a href="{{ route('users.public', $completedUser['id']) }}">{{ $completedUser['username'] }}</a>
+                                <a class="user-profile-link" href="{{ route('users.public', $completedUser['id']) }}">{{ $completedUser['username'] }}</a>
                             </span>
                             <span class="completed-rating">
                                 @if(is_numeric($completedUser['vote'] ?? null))
@@ -233,7 +233,7 @@
                     <li>
                         <span class="recote-user">
                             @if(!empty($entry['id']))
-                                <a href="{{ route('users.public', $entry['id']) }}">{{ $entry['username'] ?? '-' }}</a>
+                                <a class="user-profile-link" href="{{ route('users.public', $entry['id']) }}">{{ $entry['username'] ?? '-' }}</a>
                             @else
                                 {{ $entry['username'] ?? '-' }}
                             @endif

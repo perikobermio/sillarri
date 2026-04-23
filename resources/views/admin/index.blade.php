@@ -71,7 +71,7 @@
                         <tbody>
                             @foreach($users as $user)
                                 <tr>
-                                    <td><a href="{{ route('users.public', $user) }}">{{ $user->username }}</a></td>
+                                    <td><a class="user-profile-link" href="{{ route('users.public', $user) }}">{{ $user->username }}</a></td>
                                     <td class="admin-actions">
                                         <button
                                             type="button"
@@ -217,7 +217,7 @@
                                     <td class="admin-col-date">{{ $order->created_at?->format('Y-m-d') ?? '-' }}</td>
                                     <td>
                                         @if($order->user)
-                                            <a href="{{ route('users.public', $order->user) }}">{{ $order->user->username ?? $order->user->name }}</a>
+                                            <a class="user-profile-link" href="{{ route('users.public', $order->user) }}">{{ $order->user->username ?? $order->user->name }}</a>
                                         @else
                                             {{ $order->email }}
                                         @endif
