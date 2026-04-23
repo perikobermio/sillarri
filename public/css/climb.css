@@ -2227,6 +2227,24 @@ button.is-loading > * {
 .ranking-table th:nth-child(3),
 .ranking-table td:nth-child(3) { text-align: right; }
 
+.ranking-score-head {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.32rem;
+  width: 100%;
+}
+
+.ranking-info-btn {
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0;
+}
+
 .ranking-table-wrap {
   width: 100%;
   overflow: hidden;
@@ -2245,6 +2263,86 @@ button.is-loading > * {
 
 .ranking-user-link:hover {
   text-decoration: underline;
+}
+
+.ranking-highlight-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.8rem;
+  margin-top: 1rem;
+}
+
+.ranking-highlight-card {
+  min-height: 132px;
+  padding: 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--card);
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 0.45rem;
+}
+
+.ranking-highlight-label {
+  margin: 0;
+  color: var(--mint);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+}
+
+.ranking-highlight-user {
+  margin: 0;
+  display: block;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.ranking-highlight-value {
+  margin: 0;
+  color: #f7caa2;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.ranking-scale-modal-card {
+  width: min(420px, calc(100vw - 2rem));
+}
+
+.ranking-scale-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.45rem 0.7rem;
+}
+
+.ranking-scale-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.ranking-scale-grade,
+.ranking-scale-points {
+  line-height: 1.1;
+}
+
+.ranking-scale-grade {
+  font-weight: 700;
+  color: #f4e7d7;
+}
+
+.ranking-scale-points {
+  color: #f7caa2;
+  font-weight: 600;
 }
 
 .user-public-hero h1,
