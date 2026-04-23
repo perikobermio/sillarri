@@ -23,7 +23,7 @@
                         <th>Erabiltzailea</th>
                         <th>
                             <span class="ranking-score-head">
-                                <span>Puntuazioa</span>
+                                <span>PNTS.</span>
                                 <button
                                     type="button"
                                     class="icon-btn ranking-info-btn"

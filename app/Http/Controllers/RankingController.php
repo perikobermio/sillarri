@@ -13,6 +13,7 @@ class RankingController extends Controller
     public function index(Request $request): View
     {
         $gradeWeights = array_flip($this->orderedGrades());
+        $maxWeight = max(1, count($gradeWeights) - 1);
         $scoreTable = $this->scoreTable();
         $currentMonthStart = now()->startOfMonth();
 
@@ -48,6 +49,7 @@ class RankingController extends Controller
             $grade = strtolower(trim((string) $row->grade));
             $weight = $gradeWeights[$grade] ?? 0;
             $blockPoints = (float) ($scoreTable[$grade] ?? 0.0);
+            $normalizedDifficulty = $weight / $maxWeight;
             $userId = (int) $row->user_id;
 
             if (! isset($stats[$userId])) {
@@ -56,7 +58,7 @@ class RankingController extends Controller
 
             $stats[$userId]['completions'] += 1;
             $stats[$userId]['total_points'] += $blockPoints;
-            $stats[$userId]['difficulty_sum'] += $blockPoints;
+            $stats[$userId]['difficulty_sum'] += $normalizedDifficulty;
 
             if ($weight > $stats[$userId]['best_grade_weight']) {
                 $stats[$userId]['best_grade_weight'] = $weight;
@@ -111,6 +113,8 @@ class RankingController extends Controller
             ];
         }, $stats));
 
+        $rankingRows = array_values(array_filter($rankingRows, static fn (array $entry): bool => $entry['score'] > 0));
+
         usort($rankingRows, static function (array $a, array $b): int {
             if ($a['score'] === $b['score']) {
                 if ($a['completions'] === $b['completions']) {
@@ -149,10 +153,14 @@ class RankingController extends Controller
             [
                 'title' => 'Zailtasun handiena',
                 'user' => $this->topUser($stats, static fn (array $entry): array => [
-                    'primary' => (float) $entry['difficulty_sum'],
+                    'primary' => (int) $entry['completions'] > 0
+                        ? (($entry['difficulty_sum'] / $entry['completions']) * 100)
+                        : 0.0,
                     'secondary' => (int) $entry['completions'],
                 ]),
-                'format' => static fn (?array $user): string => $user ? number_format((float) $user['difficulty_sum'] * 100, 1).' pt' : '-',
+                'format' => static fn (?array $user): string => $user && (int) $user['completions'] > 0
+                    ? number_format(((float) $user['difficulty_sum'] / (int) $user['completions']) * 100, 1).'%'
+                    : '-',
             ],
             [
                 'title' => 'Hilabeteko aktiboena',
@@ -215,6 +223,9 @@ class RankingController extends Controller
 
         foreach ($stats as $entry) {
             ['primary' => $primary, 'secondary' => $secondary] = $metric($entry);
+            if ($primary <= 0) {
+                continue;
+            }
 
             if ($best === null
                 || $primary > $bestPrimary
