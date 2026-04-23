@@ -2257,6 +2257,20 @@ button.is-loading > * {
   overflow: hidden;
 }
 
+.user-public-completions {
+  position: relative;
+}
+
+.user-public-completions.is-loading {
+  opacity: 0.6;
+  pointer-events: none;
+  transition: opacity 160ms ease;
+}
+
+.user-public-pagination {
+  margin-top: 0.85rem;
+}
+
 .user-public-table {
   width: 100%;
   max-width: 100%;

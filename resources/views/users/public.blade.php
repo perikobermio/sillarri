@@ -88,68 +88,63 @@
         </article>
     </div>
 
-    <div class="panel user-public-completions">
-        <h3>Egindako blokeak</h3>
-        @if($completedBlocks->isEmpty())
-            <p>Oraindik ez du blokerik eginda markatu.</p>
-        @else
-            <div class="table-scroll user-public-table-wrap">
-                <table class="kilter-table user-public-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Izena</th>
-                            <th>Gradua</th>
-                            <th>Mapa</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($completedBlocks as $block)
-                            <tr>
-                                <td>{{ $block->id }}</td>
-                                <td>
-                                    <a href="{{ route('kilter.show', $block) }}">{{ $block->name }}</a>
-                                </td>
-                                <td>{{ $block->grade }}</td>
-                                <td>{{ $block->map?->name ?? '-' }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        @endif
-    </div>
+    @include('users.partials.public-block-list', [
+        'title' => 'Egindako blokeak',
+        'blocks' => $completedBlocks,
+        'emptyText' => 'Oraindik ez du blokerik eginda markatu.',
+        'panelId' => 'completed-blocks-panel',
+    ])
 
-    <div class="panel user-public-completions">
-        <h3>Sortutako blokeak</h3>
-        @if($createdBlocks->isEmpty())
-            <p>Ez du blokerik sortu oraindik.</p>
-        @else
-            <div class="table-scroll user-public-table-wrap">
-                <table class="kilter-table user-public-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Izena</th>
-                            <th>Gradua</th>
-                            <th>Mapa</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($createdBlocks as $block)
-                            <tr>
-                                <td>{{ $block->id }}</td>
-                                <td>
-                                    <a href="{{ route('kilter.show', $block) }}">{{ $block->name }}</a>
-                                </td>
-                                <td>{{ $block->grade }}</td>
-                                <td>{{ $block->map?->name ?? '-' }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        @endif
-    </div>
+    @include('users.partials.public-block-list', [
+        'title' => 'Sortutako blokeak',
+        'blocks' => $createdBlocks,
+        'emptyText' => 'Ez du blokerik sortu oraindik.',
+        'panelId' => 'created-blocks-panel',
+    ])
 </section>
+
+<script>
+    (function () {
+        const panels = document.querySelectorAll('[data-public-block-panel]');
+        if (panels.length === 0) return;
+
+        async function loadPanel(url, panel) {
+            const section = panel.id === 'completed-blocks-panel' ? 'completed' : 'created';
+            const requestUrl = new URL(url, window.location.origin);
+            requestUrl.searchParams.set('section', section);
+
+            panel.classList.add('is-loading');
+
+            try {
+                const response = await fetch(requestUrl.toString(), {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                });
+
+                if (!response.ok) {
+                    window.location.href = url;
+                    return;
+                }
+
+                panel.outerHTML = await response.text();
+            } catch (error) {
+                window.location.href = url;
+            } finally {
+                panel.classList.remove('is-loading');
+            }
+        }
+
+        document.addEventListener('click', (event) => {
+            const link = event.target.closest('.user-public-pagination-link');
+            if (!link) return;
+
+            const panel = link.closest('[data-public-block-panel]');
+            if (!panel) return;
+
+            event.preventDefault();
+            loadPanel(link.href, panel);
+        });
+    })();
+</script>
 @endsection

@@ -6,6 +6,7 @@ use App\Models\KilterBlock;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -14,10 +15,11 @@ use Illuminate\View\View;
 
 class UserController extends Controller
 {
-    public function showPublic(User $user): View
+    public function showPublic(Request $request, User $user)
     {
         $viewer = auth()->user();
         $isOwnProfile = $viewer && (int) $viewer->id === (int) $user->id;
+        $perPage = 15;
 
         $completedIds = DB::table('kilter_block_completions')
             ->where('user_id', $user->id)
@@ -26,7 +28,7 @@ class UserController extends Controller
             ->map(static fn ($id): int => (int) $id)
             ->all();
 
-        $completedBlocks = count($completedIds) > 0
+        $completedBlocksCollection = count($completedIds) > 0
             ? KilterBlock::query()
                 ->with('map')
                 ->whereIn('id', $completedIds)
@@ -35,7 +37,14 @@ class UserController extends Controller
                 ->values()
             : collect();
 
-        $completedGrades = $completedBlocks->pluck('grade')
+        $completedBlocks = $this->paginateCollection(
+            $completedBlocksCollection,
+            $perPage,
+            'completed_page',
+            $request
+        );
+
+        $completedGrades = $completedBlocksCollection->pluck('grade')
             ->filter(fn ($grade) => is_string($grade) && $grade !== '')
             ->map(fn (string $grade) => strtolower($grade))
             ->values();
@@ -47,7 +56,8 @@ class UserController extends Controller
             ->with('map')
             ->where('user_id', $user->id)
             ->orderByDesc('created_at')
-            ->get();
+            ->paginate($perPage, ['*'], 'created_page')
+            ->withQueryString();
 
         $pendingRecotes = collect();
         if ($isOwnProfile) {
@@ -102,10 +112,30 @@ class UserController extends Controller
             }
         }
 
+        if ($request->ajax()) {
+            $section = (string) $request->query('section', '');
+
+            if (in_array($section, ['completed', 'created'], true)) {
+                $blocks = $section === 'completed' ? $completedBlocks : $createdBlocks;
+                $title = $section === 'completed' ? 'Egindako blokeak' : 'Sortutako blokeak';
+                $emptyText = $section === 'completed'
+                    ? 'Oraindik ez du blokerik eginda markatu.'
+                    : 'Ez du blokerik sortu oraindik.';
+                $panelId = $section === 'completed' ? 'completed-blocks-panel' : 'created-blocks-panel';
+
+                return response()->view('users.partials.public-block-list', [
+                    'title' => $title,
+                    'blocks' => $blocks,
+                    'emptyText' => $emptyText,
+                    'panelId' => $panelId,
+                ]);
+            }
+        }
+
         return view('users.public', [
             'userProfile' => $user,
             'completedBlocks' => $completedBlocks,
-            'totalCompletedBlocks' => $completedBlocks->count(),
+            'totalCompletedBlocks' => $completedBlocksCollection->count(),
             'bestGrade' => $bestGrade,
             'difficultyPercent' => $difficultyPercent,
             'createdBlocks' => $createdBlocks,
@@ -236,5 +266,24 @@ class UserController extends Controller
         }
 
         return round($sum / $count, 1);
+    }
+
+    private function paginateCollection($items, int $perPage, string $pageName, Request $request): LengthAwarePaginator
+    {
+        $page = max(1, (int) $request->query($pageName, 1));
+        $collection = $items instanceof \Illuminate\Support\Collection ? $items->values() : collect($items)->values();
+        $total = $collection->count();
+        $slice = $collection->slice(($page - 1) * $perPage, $perPage)->values();
+
+        return (new LengthAwarePaginator(
+            $slice,
+            $total,
+            $perPage,
+            $page,
+            [
+                'path' => $request->url(),
+                'pageName' => $pageName,
+            ]
+        ))->withQueryString();
     }
 }
