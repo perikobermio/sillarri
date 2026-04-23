@@ -155,7 +155,14 @@
             <p><strong>Kokapena:</strong> {{ $block->kokapena ?? '-' }}</p>
             <p><strong>Balorazioa:</strong> {{ number_format($ratingAverage, 1) }}/10 ({{ $ratingCount }} bozka)</p>
             <p><strong>Mapa:</strong> {{ $block->map?->name ?? '-' }}</p>
-            <p><strong>Sortzailea:</strong> {{ $block->creator?->name ?? '-' }}</p>
+            <p>
+                <strong>Sortzailea:</strong>
+                @if($block->creator)
+                    <a href="{{ route('users.public', $block->creator) }}">{{ $block->creator->username ?? $block->creator->name }}</a>
+                @else
+                    -
+                @endif
+            </p>
             <p><strong>Sortua:</strong> {{ $block->created_at?->format('Y-m-d') ?? '-' }}</p>
         </article>
 
@@ -224,7 +231,13 @@
             <ul class="recote-list">
                 @foreach($recotationEntries as $entry)
                     <li>
-                        <span class="recote-user">{{ $entry['username'] ?? '-' }}</span>
+                        <span class="recote-user">
+                            @if(!empty($entry['id']))
+                                <a href="{{ route('users.public', $entry['id']) }}">{{ $entry['username'] ?? '-' }}</a>
+                            @else
+                                {{ $entry['username'] ?? '-' }}
+                            @endif
+                        </span>
                         <span class="recote-grade">{{ strtoupper((string) ($entry['grade'] ?? '')) }}</span>
                     </li>
                 @endforeach

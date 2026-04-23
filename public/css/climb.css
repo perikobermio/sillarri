@@ -181,6 +181,16 @@ body {
   color: var(--sand);
 }
 
+.user-chip-profile-link {
+  font-weight: 600;
+  color: var(--sand);
+  text-decoration: none;
+}
+
+.user-chip-profile-link:hover {
+  text-decoration: underline;
+}
+
 .admin-pill {
   font-size: 0.68rem;
   line-height: 1;
@@ -1685,6 +1695,15 @@ button.is-loading > * {
 .admin-order-value {
   font-weight: 700;
   margin-top: 0.2rem;
+}
+
+.admin-order-user-link {
+  color: #f4e7d7;
+  text-decoration: none;
+}
+
+.admin-order-user-link:hover {
+  text-decoration: underline;
 }
 
 .admin-order-sub {

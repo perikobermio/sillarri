@@ -49,11 +49,12 @@ class KilterController extends Controller
         $recotationEntries = DB::table('kilter_block_recotations as r')
             ->join('users as u', 'u.id', '=', 'r.user_id')
             ->where('r.kilter_block_id', $block->id)
-            ->select('r.grade', 'u.username')
+            ->select('r.grade', 'u.id', 'u.username')
             ->orderBy('r.created_at')
             ->get()
             ->map(static function ($row): array {
                 return [
+                    'id' => (int) $row->id,
                     'grade' => (string) $row->grade,
                     'username' => (string) $row->username,
                 ];

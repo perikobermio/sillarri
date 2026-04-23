@@ -14,7 +14,11 @@
         @endphp
         <div class="public-profile-head">
             <img class="public-avatar" src="{{ $avatarUrl }}" alt="Erabiltzailearen avatarra">
-            <h1>{{ $userProfile->username ?? $userProfile->name }}</h1>
+            <h1>
+                <a href="{{ route('users.public', $userProfile) }}">
+                    {{ $userProfile->username ?? $userProfile->name }}
+                </a>
+            </h1>
         </div>
         <p>KILTER jardueraren laburpena: egindako blokeak, zailtasuna eta datu nagusiak.</p>
     </div>

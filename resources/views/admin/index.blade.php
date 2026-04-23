@@ -71,7 +71,7 @@
                         <tbody>
                             @foreach($users as $user)
                                 <tr>
-                                    <td>{{ $user->username }}</td>
+                                    <td><a href="{{ route('users.public', $user) }}">{{ $user->username }}</a></td>
                                     <td class="admin-actions">
                                         <button
                                             type="button"
@@ -215,7 +215,13 @@
                             @forelse($orders as $order)
                                 <tr class="{{ $order->status === \App\Models\ShopOrder::STATUS_PENDING_PAYMENT ? 'admin-order-row is-pending' : 'admin-order-row' }}">
                                     <td class="admin-col-date">{{ $order->created_at?->format('Y-m-d') ?? '-' }}</td>
-                                    <td>{{ $order->user?->username ?? $order->email }}</td>
+                                    <td>
+                                        @if($order->user)
+                                            <a href="{{ route('users.public', $order->user) }}">{{ $order->user->username ?? $order->user->name }}</a>
+                                        @else
+                                            {{ $order->email }}
+                                        @endif
+                                    </td>
                                     <td>{{ $order->status_label }}</td>
                                     <td class="admin-col-total">{{ $order->total }} €</td>
                                     <td class="admin-actions">
@@ -224,6 +230,7 @@
                                             class="btn btn-secondary btn-icon admin-view-order"
                                             data-id="{{ $order->id }}"
                                             data-user="{{ $order->user?->name ?? $order->user?->username ?? '' }}"
+                                            data-user-url="{{ $order->user ? route('users.public', $order->user) : '' }}"
                                             data-username="{{ $order->user?->username ?? '' }}"
                                             data-email="{{ $order->email }}"
                                             data-total="{{ $order->total }}"
@@ -498,6 +505,11 @@
                         <div class="admin-order-value">${escapeHtml(button.dataset.notes)}</div>
                     </div>
                 ` : '';
+                const customerName = escapeHtml(button.dataset.user || button.dataset.username || '-');
+                const customerUrl = button.dataset.userUrl || '';
+                const customerMarkup = customerUrl
+                    ? `<a class="admin-order-user-link" href="${escapeHtml(customerUrl)}">${customerName}</a>`
+                    : customerName;
                 orderDetail.innerHTML = `
                     <div class="admin-order-detail-grid">
                         <div>
@@ -506,7 +518,7 @@
                         </div>
                         <div>
                             <div class="admin-order-label">Bezeroa</div>
-                            <div class="admin-order-value">${escapeHtml(button.dataset.user || button.dataset.username || '-')}</div>
+                            <div class="admin-order-value">${customerMarkup}</div>
                             <div class="admin-order-sub">${escapeHtml(button.dataset.email)}</div>
                         </div>
                         <div>

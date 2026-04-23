@@ -4,7 +4,12 @@
 <section class="dashboard">
     <div class="panel">
         <p class="eyebrow">Panel pertsonala</p>
-        <h1>Kaixo, {{ auth()->user()->username ?? auth()->user()->name }}</h1>
+        <h1>
+            Kaixo,
+            <a href="{{ route('users.public', auth()->user()) }}">
+                {{ auth()->user()->username ?? auth()->user()->name }}
+            </a>
+        </h1>
         <p>
             Zure kontua aktibo dago. Hemendik zure eskalada egunkaria gehitu,
             bideak erregistratu eta hurrengo irteerak presta ditzakezu.
