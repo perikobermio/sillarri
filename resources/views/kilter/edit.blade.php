@@ -316,18 +316,24 @@
             document.body.style.overflow = hasOpenModal ? 'hidden' : '';
         }
 
+        function normalizeLocationValue(value) {
+            return String(value || '').trim().toLowerCase();
+        }
+
         function filterMapsByLocation() {
-            const selectedLocation = locationSelect?.value || '';
+            const selectedLocation = normalizeLocationValue(locationSelect?.value || '');
             let hasVisibleSelection = false;
 
             Array.from(mapSelect?.options || []).forEach((option, index) => {
                 if (index === 0) {
                     option.hidden = false;
+                    option.disabled = false;
                     return;
                 }
 
-                const isVisible = selectedLocation !== '' && option.dataset.kokapena === selectedLocation;
+                const isVisible = selectedLocation !== '' && normalizeLocationValue(option.dataset.kokapena) === selectedLocation;
                 option.hidden = !isVisible;
+                option.disabled = !isVisible;
                 if (isVisible && option.selected) {
                     hasVisibleSelection = true;
                 }

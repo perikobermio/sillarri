@@ -3215,6 +3215,10 @@ button.is-loading > * {
   background: rgba(134, 184, 161, 0.12);
 }
 
+.map-picker-option.is-hidden-map-option {
+  display: none;
+}
+
 .map-picker-option img {
   width: 76px;
   height: 56px;

@@ -355,6 +355,10 @@
             }
         }
 
+        function normalizeLocationValue(value) {
+            return String(value || '').trim().toLowerCase();
+        }
+
         function syncMapPickerFromSelect() {
             if (!mapSelect) return;
             const selected = mapSelect.options[mapSelect.selectedIndex];
@@ -369,25 +373,29 @@
         }
 
         function filterMapsByLocation() {
-            const selectedLocation = locationSelect?.value || '';
+            const selectedLocation = normalizeLocationValue(locationSelect?.value || '');
             let hasVisibleSelection = false;
 
             Array.from(mapSelect?.options || []).forEach((option, index) => {
                 if (index === 0) {
                     option.hidden = false;
+                    option.disabled = false;
                     return;
                 }
 
-                const isVisible = selectedLocation !== '' && option.dataset.kokapena === selectedLocation;
+                const isVisible = selectedLocation !== '' && normalizeLocationValue(option.dataset.kokapena) === selectedLocation;
                 option.hidden = !isVisible;
+                option.disabled = !isVisible;
                 if (isVisible && option.selected) {
                     hasVisibleSelection = true;
                 }
             });
 
             mapPickerList?.querySelectorAll('.map-picker-option').forEach((button) => {
-                const isVisible = selectedLocation !== '' && button.dataset.kokapena === selectedLocation;
+                const isVisible = selectedLocation !== '' && normalizeLocationValue(button.dataset.kokapena) === selectedLocation;
                 button.hidden = !isVisible;
+                button.classList.toggle('is-hidden-map-option', !isVisible);
+                button.setAttribute('aria-hidden', !isVisible ? 'true' : 'false');
             });
 
             if (!hasVisibleSelection) {
@@ -409,10 +417,19 @@
 
         function toggleMapPicker() {
             if (!mapPickerTrigger || !mapPickerList) return;
+            if (!locationSelect?.value) {
+                updateMapPicker('Lehenengo kokapena hautatu', '');
+                return;
+            }
             const isOpen = mapPickerList.classList.contains('is-open');
             if (isOpen) {
                 closeMapPicker();
             } else {
+                const hasVisibleOptions = Array.from(mapPickerList.querySelectorAll('.map-picker-option')).some((option) => !option.hidden);
+                if (!hasVisibleOptions) {
+                    updateMapPicker('Ez dago maparik kokapena horretarako', '');
+                    return;
+                }
                 mapPickerList.classList.add('is-open');
                 mapPickerTrigger.setAttribute('aria-expanded', 'true');
             }
