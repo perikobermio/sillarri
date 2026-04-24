@@ -31,6 +31,9 @@
         'grade' => [strtolower((string) $block->grade)],
         'location' => $block->kokapena ? (string) $block->kokapena : null,
     ], static fn ($value) => $value !== null && $value !== ''));
+    $locationFilterUrl = $block->kokapena
+        ? route('kilter', ['location' => (string) $block->kokapena])
+        : null;
 @endphp
 
 <section class="kilter-page">
@@ -167,7 +170,14 @@
             <p><strong>ID:</strong> {{ $block->id }}</p>
             <p><strong>Deskribapena:</strong> {{ $block->description }}</p>
             <p><strong>Gradua:</strong> {{ $block->grade }}</p>
-            <p><strong>Kokapena:</strong> {{ $block->kokapena ?? '-' }}</p>
+            <p>
+                <strong>Kokapena:</strong>
+                @if($locationFilterUrl)
+                    <a class="block-grade-filter-link" href="{{ $locationFilterUrl }}">{{ $block->kokapena }}</a>
+                @else
+                    -
+                @endif
+            </p>
             <p><strong>Balorazioa:</strong> {{ number_format($ratingAverage, 1) }}/10 ({{ $ratingCount }} bozka)</p>
             <p><strong>Mapa:</strong> {{ $block->map?->name ?? '-' }}</p>
             <p>

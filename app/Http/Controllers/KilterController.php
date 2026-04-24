@@ -16,6 +16,13 @@ use Illuminate\View\View;
 
 class KilterController extends Controller
 {
+    public function locations(): View
+    {
+        return view('kilter.locations', [
+            'locationCards' => $this->locationCards(),
+        ]);
+    }
+
     public function show(Request $request, KilterBlock $block): View
     {
         $block->loadMissing(['map', 'creator']);
@@ -160,14 +167,7 @@ class KilterController extends Controller
         }
         $perPage = max(2, min(100, $perPage));
 
-        $locations = KilterBlock::query()
-            ->whereNotNull('kokapena')
-            ->where('kokapena', '!=', '')
-            ->select('kokapena')
-            ->distinct()
-            ->orderBy('kokapena')
-            ->pluck('kokapena')
-            ->all();
+        $locations = $this->availableLocations();
 
         $blocks = KilterBlock::query()
             ->select('kilter_blocks.*')
@@ -282,14 +282,7 @@ class KilterController extends Controller
     public function create(Request $request): View
     {
         $maps = KilterMap::query()->orderBy('name')->get();
-        $locations = KilterBlock::query()
-            ->whereNotNull('kokapena')
-            ->where('kokapena', '!=', '')
-            ->select('kokapena')
-            ->distinct()
-            ->orderBy('kokapena')
-            ->pluck('kokapena')
-            ->all();
+        $locations = $this->availableLocations();
 
         return view('kilter.create', [
             'maps' => $maps,
@@ -313,14 +306,7 @@ class KilterController extends Controller
         }
 
         $maps = KilterMap::query()->orderBy('name')->get();
-        $locations = KilterBlock::query()
-            ->whereNotNull('kokapena')
-            ->where('kokapena', '!=', '')
-            ->select('kokapena')
-            ->distinct()
-            ->orderBy('kokapena')
-            ->pluck('kokapena')
-            ->all();
+        $locations = $this->availableLocations();
 
         return view('kilter.edit', [
             'block' => $block,
@@ -686,6 +672,91 @@ class KilterController extends Controller
             || str_contains($ua, 'ipad')
             || str_contains($ua, 'ipod')
             || str_contains($ua, 'mobile');
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function availableLocations(): array
+    {
+        return KilterBlock::query()
+            ->whereNotNull('kokapena')
+            ->where('kokapena', '!=', '')
+            ->select('kokapena')
+            ->distinct()
+            ->orderBy('kokapena')
+            ->pluck('kokapena')
+            ->all();
+    }
+
+    /**
+     * @return list<array{key:string,name:string,blocks_count:int,maps_count:int,map_names:list<string>,images:list<string>}>
+     */
+    private function locationCards(): array
+    {
+        $blocksByLocation = KilterBlock::query()
+            ->with('map:id,name,image')
+            ->whereNotNull('kokapena')
+            ->where('kokapena', '!=', '')
+            ->orderBy('kokapena')
+            ->orderBy('name')
+            ->get();
+
+        $grouped = [];
+
+        foreach ($blocksByLocation as $block) {
+            $locationName = trim((string) $block->kokapena);
+            if ($locationName === '') {
+                continue;
+            }
+
+            if (! array_key_exists($locationName, $grouped)) {
+                $grouped[$locationName] = [
+                    'key' => $locationName,
+                    'name' => $locationName,
+                    'blocks_count' => 0,
+                    'maps' => [],
+                ];
+            }
+
+            $grouped[$locationName]['blocks_count']++;
+
+            $map = $block->map;
+            if (! $map || (int) $map->id <= 0) {
+                continue;
+            }
+
+            $imageUrl = '';
+            if (is_string($map->image) && $map->image !== '') {
+                $imageUrl = Str::startsWith($map->image, ['http://', 'https://', '/'])
+                    ? $map->image
+                    : '/storage/'.$map->image;
+            }
+
+            if (! array_key_exists((int) $map->id, $grouped[$locationName]['maps'])) {
+                $grouped[$locationName]['maps'][(int) $map->id] = [
+                    'name' => (string) $map->name,
+                    'image' => $imageUrl,
+                ];
+            }
+        }
+
+        return collect($grouped)
+            ->map(static function (array $entry): array {
+                $maps = array_values($entry['maps']);
+
+                return [
+                    'key' => $entry['key'],
+                    'name' => $entry['name'],
+                    'blocks_count' => (int) $entry['blocks_count'],
+                    'maps_count' => count($maps),
+                    'map_names' => array_values(array_map(static fn (array $map): string => $map['name'], $maps)),
+                    'images' => array_values(array_filter(array_map(static fn (array $map): string => $map['image'], $maps))),
+                ];
+            })
+            ->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE)
+            ->values()
+            ->all();
     }
 
     /**

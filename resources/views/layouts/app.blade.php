@@ -35,10 +35,10 @@
 
         <nav class="nav-links">
             <a class="kilter-nav" href="{{ route('kilter') }}">KILTER</a>
-            <a class="desktop-only" href="{{ route('ranking') }}">Sailkapena</a>
+            <a class="desktop-only" href="{{ route('kilter.locations') }}">Kokapenak</a>
             <a class="desktop-only" href="{{ route('shop') }}">Denda</a>
             @if(request()->routeIs('kilter*'))
-                <a class="mobile-only" href="{{ route('ranking') }}">Sailkapena</a>
+                <a class="mobile-only" href="{{ route('kilter.locations') }}">Kokapenak</a>
             @else
                 <a class="mobile-only" href="{{ route('shop') }}">Denda</a>
             @endif
@@ -72,6 +72,7 @@
                         @if(\Illuminate\Support\Facades\Route::has('users.public'))
                             <a href="{{ route('users.public', auth()->user()) }}">Estatistikak</a>
                         @endif
+                        <a href="{{ route('ranking') }}">Sailkapena</a>
                         <a href="{{ route('multimedia') }}">Multimedia</a>
                         <a href="{{ route('settings') }}">Ezarpenak</a>
                         @if((bool) auth()->user()->is_admin)

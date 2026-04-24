@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Route::get('/kilter', [KilterController::class, 'index'])->name('kilter');
+Route::get('/kilter/kokapenak', [KilterController::class, 'locations'])->name('kilter.locations');
 Route::get('/sailkapena', [RankingController::class, 'index'])->name('ranking');
 Route::middleware('auth')->group(function (): void {
     Route::get('/denda', [ShopController::class, 'index'])->name('shop');
