@@ -2025,6 +2025,33 @@ button.is-loading > * {
   font-weight: 700;
 }
 
+.location-card-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(10, 10, 10, 0.65);
+  color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2;
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.location-card-nav.prev {
+  left: 0.5rem;
+}
+
+.location-card-nav.next {
+  right: 0.5rem;
+}
+
 .location-card-body {
   display: grid;
   gap: 0.3rem;
@@ -2041,12 +2068,6 @@ button.is-loading > * {
 
 .location-card-body p {
   margin: 0;
-}
-
-.location-card-maps {
-  color: rgba(246, 241, 232, 0.72);
-  font-size: 0.88rem;
-  line-height: 1.35;
 }
 
 .kilter-table-head {

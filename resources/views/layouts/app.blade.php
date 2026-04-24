@@ -54,13 +54,9 @@
                                 : '/images/default-avatar.svg';
                         @endphp
                         <img src="{{ $avatarUrl }}" alt="Lehenetsitako profileko irudia">
-                        <a
-                            href="{{ route('users.public', auth()->user()) }}"
-                            class="user-chip-profile-link"
-                            onclick="event.stopPropagation();"
-                        >
+                        <span class="user-chip-profile-link">
                             {{ auth()->user()->username ?? auth()->user()->name }}
-                        </a>
+                        </span>
                         @if((bool) auth()->user()->is_admin)
                             <span class="admin-pill admin-pill-icon" title="Administratzailea" aria-label="Administratzailea">🛡️</span>
                         @endif

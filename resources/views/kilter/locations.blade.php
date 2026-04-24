@@ -43,14 +43,15 @@
                         <div class="location-card-overlay">
                             <span>{{ $locationCard['maps_count'] }} mapa</span>
                         </div>
+                        @if(count($locationCard['images']) > 1)
+                            <button type="button" class="location-card-nav prev" data-direction="-1" aria-label="Aurreko mapa">‹</button>
+                            <button type="button" class="location-card-nav next" data-direction="1" aria-label="Hurrengo mapa">›</button>
+                        @endif
                     </div>
 
                     <div class="location-card-body">
                         <h2>{{ $locationCard['name'] }}</h2>
                         <p>{{ $locationCard['blocks_count'] }} bloke</p>
-                        <p class="location-card-maps">
-                            {{ count($locationCard['map_names']) > 0 ? implode(' · ', $locationCard['map_names']) : 'Maparik gabe' }}
-                        </p>
                     </div>
                 </a>
             @endforeach
@@ -78,9 +79,8 @@
                 img.src = src;
                 preload.add(src);
             };
-
-            window.setInterval(() => {
-                index = (index + 1) % images.length;
+            const goTo = (nextIndex) => {
+                index = (nextIndex + images.length) % images.length;
                 ensurePreloaded(images[(index + 1) % images.length]);
                 currentImage.classList.remove('is-active');
 
@@ -88,7 +88,16 @@
                     currentImage.src = images[index];
                     currentImage.classList.add('is-active');
                 }, 180);
-            }, 2400);
+            };
+
+            card.querySelectorAll('.location-card-nav').forEach((button) => {
+                button.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    const direction = Number(button.dataset.direction || '1');
+                    goTo(index + direction);
+                });
+            });
         });
     })();
 </script>
