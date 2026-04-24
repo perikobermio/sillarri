@@ -102,19 +102,12 @@
                             >
 
                             <label for="location-filter">Kokapena</label>
-                            <input
-                                id="location-filter"
-                                type="text"
-                                name="location"
-                                value="{{ $selectedLocation }}"
-                                list="kokapena-filter-options"
-                                placeholder="Aukeratu kokapena..."
-                            >
-                            <datalist id="kokapena-filter-options">
+                            <select id="location-filter" name="location">
+                                <option value="">Denak</option>
                                 @foreach($locations as $location)
-                                    <option value="{{ $location }}"></option>
+                                    <option value="{{ $location }}" @selected($selectedLocation === $location)>{{ $location }}</option>
                                 @endforeach
-                            </datalist>
+                            </select>
 
                             <label for="creator-filter">Erabiltzailea</label>
                             <select id="creator-filter" name="creator">
@@ -315,7 +308,7 @@
             const moreFilterDetails = document.getElementById('more-filter-details');
             const applyMoreFilters = document.getElementById('apply-more-filters');
             const cancelMoreFilters = document.getElementById('cancel-more-filters');
-            const moreFilterFields = Array.from(document.querySelectorAll('#more-filter-details input[name=\"q\"], #more-filter-details input[name=\"location\"], #more-filter-details select[name=\"creator\"], #more-filter-details select[name=\"completed\"]'));
+            const moreFilterFields = Array.from(document.querySelectorAll('#more-filter-details input[name=\"q\"], #more-filter-details select[name=\"location\"], #more-filter-details select[name=\"creator\"], #more-filter-details select[name=\"completed\"]'));
             const orderModal = document.getElementById('order-modal');
             const openOrder = document.getElementById('open-order-modal');
             const closeOrder = document.getElementById('close-order-modal');

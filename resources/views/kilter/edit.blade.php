@@ -37,19 +37,17 @@
             @enderror
 
             <label>Kokapena</label>
-            <input
-                type="text"
-                name="kokapena"
-                value="{{ old('kokapena', $block->kokapena) }}"
-                list="kokapena-options"
-                placeholder="Adib. Gernika, Rocodromo, Bilbao..."
-                required
-            >
-            <datalist id="kokapena-options">
-                @foreach($locations as $location)
-                    <option value="{{ $location }}"></option>
-                @endforeach
-            </datalist>
+            <div class="map-picker-row">
+                <select name="kokapena" id="kokapena-select" required>
+                    <option value="">Hautatu kokapena</option>
+                    @foreach($locations as $location)
+                        <option value="{{ $location }}" @selected(old('kokapena', $block->kokapena) === $location)>{{ $location }}</option>
+                    @endforeach
+                </select>
+                <button type="button" class="btn btn-secondary map-upload-toggle" id="open-location-modal">
+                    <span class="map-upload-toggle-label">Kokapena gehitu</span>
+                </button>
+            </div>
             @error('kokapena')
                 <small class="error">{{ $message }}</small>
             @enderror
@@ -69,6 +67,7 @@
                         @endphp
                         <option
                             value="{{ $map->id }}"
+                            data-kokapena="{{ $map->kokapena }}"
                             data-image-url="{{ $imageUrl }}"
                             @selected((string) old('map_id', $block->map_id) === (string) $map->id)
                         >
@@ -124,6 +123,29 @@
             <div class="kilter-form-actions">
                 <button type="submit" class="btn btn-primary" id="save-map-btn"><span class="btn-text">Mapa gorde</span></button>
                 <button type="button" class="btn btn-secondary" id="cancel-map-modal">Utzi</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal-shell hidden-modal" id="location-modal" role="dialog" aria-modal="true" aria-labelledby="location-modal-title">
+    <div class="modal-card">
+        <div class="modal-head">
+            <h2 id="location-modal-title">Kokapena gehitu</h2>
+            <button type="button" class="icon-btn" id="close-location-modal" aria-label="Itxi leihoa">×</button>
+        </div>
+
+        <form id="location-create-form" class="kilter-form">
+            <input type="hidden" name="_token" value="{{ csrf_token() }}">
+
+            <label>Kokapenaren izena</label>
+            <input type="text" name="name" id="location-name" required>
+
+            <small class="error hidden-error" id="location-modal-error"></small>
+
+            <div class="kilter-form-actions">
+                <button type="submit" class="btn btn-primary" id="save-location-btn"><span class="btn-text">Kokapena gorde</span></button>
+                <button type="button" class="btn btn-secondary" id="cancel-location-modal">Utzi</button>
             </div>
         </form>
     </div>
@@ -187,6 +209,7 @@
 
 <script>
     (function () {
+        const locationSelect = document.getElementById('kokapena-select');
         const mapSelect = document.getElementById('map-select');
         const boulderInput = document.getElementById('boulder-input');
         const boulderSummary = document.getElementById('boulder-summary');
@@ -293,16 +316,45 @@
             document.body.style.overflow = hasOpenModal ? 'hidden' : '';
         }
 
+        function filterMapsByLocation() {
+            const selectedLocation = locationSelect?.value || '';
+            let hasVisibleSelection = false;
+
+            Array.from(mapSelect?.options || []).forEach((option, index) => {
+                if (index === 0) {
+                    option.hidden = false;
+                    return;
+                }
+
+                const isVisible = selectedLocation !== '' && option.dataset.kokapena === selectedLocation;
+                option.hidden = !isVisible;
+                if (isVisible && option.selected) {
+                    hasVisibleSelection = true;
+                }
+            });
+
+            if (!hasVisibleSelection) {
+                mapSelect.value = '';
+            }
+        }
+
         syncBoulderSummary();
 
         // Modal de mapa
         const mapModal = document.getElementById('map-modal');
+        const locationModal = document.getElementById('location-modal');
         const openMapBtn = document.getElementById('open-map-modal');
+        const openLocationBtn = document.getElementById('open-location-modal');
         const closeMapBtn = document.getElementById('close-map-modal');
+        const closeLocationBtn = document.getElementById('close-location-modal');
         const cancelMapBtn = document.getElementById('cancel-map-modal');
+        const cancelLocationBtn = document.getElementById('cancel-location-modal');
         const mapForm = document.getElementById('map-create-form');
+        const locationForm = document.getElementById('location-create-form');
         const mapError = document.getElementById('map-modal-error');
+        const locationError = document.getElementById('location-modal-error');
         const saveMapBtn = document.getElementById('save-map-btn');
+        const saveLocationBtn = document.getElementById('save-location-btn');
         const mapFileInput = document.getElementById('map-image-file');
         const appSnackbar = document.getElementById('app-snackbar');
         const maxMapFileBytes = 20 * 1024 * 1024;
@@ -321,6 +373,10 @@
         }
 
         const openMapModal = () => {
+            if (!locationSelect?.value) {
+                showSnackbar('Lehenengo kokapena hautatu behar duzu.');
+                return;
+            }
             mapModal.classList.remove('hidden-modal');
             syncBodyScrollLock();
         };
@@ -331,12 +387,29 @@
             mapForm.reset();
             syncBodyScrollLock();
         };
+        const openLocationModal = () => {
+            locationModal.classList.remove('hidden-modal');
+            syncBodyScrollLock();
+        };
+        const closeLocationModal = () => {
+            locationModal.classList.add('hidden-modal');
+            locationError.classList.add('hidden-error');
+            locationError.textContent = '';
+            locationForm.reset();
+            syncBodyScrollLock();
+        };
 
         openMapBtn?.addEventListener('click', openMapModal);
+        openLocationBtn?.addEventListener('click', openLocationModal);
         closeMapBtn?.addEventListener('click', closeMapModal);
+        closeLocationBtn?.addEventListener('click', closeLocationModal);
         cancelMapBtn?.addEventListener('click', closeMapModal);
+        cancelLocationBtn?.addEventListener('click', closeLocationModal);
         mapModal?.addEventListener('click', (event) => {
             if (event.target === mapModal) closeMapModal();
+        });
+        locationModal?.addEventListener('click', (event) => {
+            if (event.target === locationModal) closeLocationModal();
         });
 
         mapForm?.addEventListener('submit', async (event) => {
@@ -349,6 +422,7 @@
             const payload = new FormData();
             payload.append('_token', mapForm.querySelector('input[name="_token"]').value);
             payload.append('name', mapForm.querySelector('#map-name').value);
+            payload.append('kokapena', locationSelect?.value || '');
 
             const file = mapFileInput?.files?.[0];
             const chosenFile = file;
@@ -420,12 +494,14 @@
                 const option = document.createElement('option');
                 option.value = data.id;
                 option.textContent = `${data.name} (ID ${data.id})`;
+                option.dataset.kokapena = data.kokapena || '';
                 option.dataset.imageUrl = data.image_url || '';
                 option.selected = true;
                 mapSelect.appendChild(option);
                 mapSelect.value = String(data.id);
 
                 closeMapModal();
+                filterMapsByLocation();
             } catch (error) {
                 const isTimeout = error?.name === 'AbortError';
                 const detail = error instanceof Error ? ` (${error.message})` : '';
@@ -439,6 +515,65 @@
                 window.setButtonLoading?.(saveMapBtn, false);
             }
         });
+        locationForm?.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            locationError.classList.add('hidden-error');
+            locationError.textContent = '';
+            window.setButtonLoading?.(saveLocationBtn, true);
+
+            try {
+                const payload = new FormData();
+                payload.append('_token', locationForm.querySelector('input[name="_token"]').value);
+                payload.append('name', locationForm.querySelector('#location-name').value);
+
+                const requestOptions = {
+                    method: 'POST',
+                    body: payload,
+                    credentials: 'same-origin',
+                    headers: {
+                        'X-CSRF-TOKEN': locationForm.querySelector('input[name="_token"]').value,
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                };
+
+                const response = window.appFetch
+                    ? await window.appFetch('{{ route('kilter.locations.store') }}', { ...requestOptions, timeoutMs: 12000, showError: false })
+                    : await fetch('{{ route('kilter.locations.store') }}', requestOptions);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    let msg = data?.message || `Errorea ${response.status} kokapena gordetzean.`;
+                    if (data?.errors) {
+                        const firstKey = Object.keys(data.errors)[0];
+                        const firstError = firstKey ? data.errors[firstKey]?.[0] : null;
+                        if (firstError) msg = firstError;
+                    }
+                    locationError.textContent = msg;
+                    locationError.classList.remove('hidden-error');
+                    showSnackbar(msg);
+                    return;
+                }
+
+                const option = document.createElement('option');
+                option.value = data.name;
+                option.textContent = data.name;
+                locationSelect.appendChild(option);
+                locationSelect.value = data.name;
+                closeLocationModal();
+                filterMapsByLocation();
+            } catch (error) {
+                const detail = error instanceof Error ? ` (${error.message})` : '';
+                const message = `Sareko errorea kokapena gordetzean${detail}.`;
+                locationError.textContent = message;
+                locationError.classList.remove('hidden-error');
+                showSnackbar(message);
+            } finally {
+                window.setButtonLoading?.(saveLocationBtn, false);
+            }
+        });
+        locationSelect?.addEventListener('change', filterMapsByLocation);
+        filterMapsByLocation();
 
         // Modal de coordenadas
         const boulderModal = document.getElementById('boulder-modal');

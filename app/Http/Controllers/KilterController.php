@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\KilterBlock;
+use App\Models\KilterLocation;
 use App\Models\KilterMap;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -12,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\View\View;
 
 class KilterController extends Controller
@@ -418,6 +420,7 @@ class KilterController extends Controller
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'kokapena' => ['required', 'string', 'max:120', 'exists:kilter_locations,name'],
             'image' => ['required', 'image', 'max:20480'],
         ]);
 
@@ -425,6 +428,7 @@ class KilterController extends Controller
 
         $map = KilterMap::create([
             'name' => $data['name'],
+            'kokapena' => trim((string) $data['kokapena']),
             'image' => $path,
             'image_physical_path' => $physicalPath,
         ]);
@@ -432,9 +436,26 @@ class KilterController extends Controller
         return response()->json([
             'id' => $map->id,
             'name' => $map->name,
+            'kokapena' => $map->kokapena,
             'image' => $map->image,
             'image_physical_path' => $map->image_physical_path,
             'image_url' => '/storage/'.$map->image,
+        ]);
+    }
+
+    public function storeLocation(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:120', 'unique:kilter_locations,name'],
+        ]);
+
+        $location = KilterLocation::create([
+            'name' => trim((string) $data['name']),
+        ]);
+
+        return response()->json([
+            'id' => $location->id,
+            'name' => $location->name,
         ]);
     }
 
@@ -679,13 +700,9 @@ class KilterController extends Controller
      */
     private function availableLocations(): array
     {
-        return KilterBlock::query()
-            ->whereNotNull('kokapena')
-            ->where('kokapena', '!=', '')
-            ->select('kokapena')
-            ->distinct()
-            ->orderBy('kokapena')
-            ->pluck('kokapena')
+        return KilterLocation::query()
+            ->orderBy('name')
+            ->pluck('name')
             ->all();
     }
 
@@ -695,7 +712,9 @@ class KilterController extends Controller
     private function locationCards(): array
     {
         $blocksByLocation = KilterBlock::query()
-            ->with('map:id,name,image')
+            ->with('map:id,name,image,kokapena')
+            ->get();
+        $mapsByLocation = KilterMap::query()
             ->whereNotNull('kokapena')
             ->where('kokapena', '!=', '')
             ->orderBy('kokapena')
@@ -703,6 +722,15 @@ class KilterController extends Controller
             ->get();
 
         $grouped = [];
+
+        foreach ($this->availableLocations() as $locationName) {
+            $grouped[$locationName] = [
+                'key' => $locationName,
+                'name' => $locationName,
+                'blocks_count' => 0,
+                'maps' => [],
+            ];
+        }
 
         foreach ($blocksByLocation as $block) {
             $locationName = trim((string) $block->kokapena);
@@ -720,10 +748,21 @@ class KilterController extends Controller
             }
 
             $grouped[$locationName]['blocks_count']++;
+        }
 
-            $map = $block->map;
-            if (! $map || (int) $map->id <= 0) {
+        foreach ($mapsByLocation as $map) {
+            $locationName = trim((string) $map->kokapena);
+            if ($locationName === '') {
                 continue;
+            }
+
+            if (! array_key_exists($locationName, $grouped)) {
+                $grouped[$locationName] = [
+                    'key' => $locationName,
+                    'name' => $locationName,
+                    'blocks_count' => 0,
+                    'maps' => [],
+                ];
             }
 
             $imageUrl = '';
@@ -733,12 +772,10 @@ class KilterController extends Controller
                     : '/storage/'.$map->image;
             }
 
-            if (! array_key_exists((int) $map->id, $grouped[$locationName]['maps'])) {
-                $grouped[$locationName]['maps'][(int) $map->id] = [
-                    'name' => (string) $map->name,
-                    'image' => $imageUrl,
-                ];
-            }
+            $grouped[$locationName]['maps'][(int) $map->id] = [
+                'name' => (string) $map->name,
+                'image' => $imageUrl,
+            ];
         }
 
         return collect($grouped)
@@ -764,14 +801,33 @@ class KilterController extends Controller
      */
     private function validatedBlockPayload(Request $request): array
     {
-        $data = $request->validate([
+        $validator = Validator::make($request->all(), [
             'name' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string'],
             'grade' => ['required', Rule::in($this->grades())],
-            'kokapena' => ['required', 'string', 'max:120'],
+            'kokapena' => ['required', 'string', 'max:120', 'exists:kilter_locations,name'],
             'map_id' => ['required', 'integer', 'exists:kilter_maps,id'],
             'boulder' => ['required', 'json'],
         ]);
+
+        $validator->after(function ($validator) use ($request): void {
+            $locationName = trim((string) $request->input('kokapena', ''));
+            $mapId = $request->input('map_id');
+
+            if (! is_numeric($mapId) || $locationName === '') {
+                return;
+            }
+
+            $mapLocation = KilterMap::query()
+                ->whereKey((int) $mapId)
+                ->value('kokapena');
+
+            if (trim((string) $mapLocation) !== $locationName) {
+                $validator->errors()->add('map_id', 'Hautatutako mapa ez dagokio aukeratutako kokapenari.');
+            }
+        });
+
+        $data = $validator->validate();
 
         $normalizedBoulder = $this->normalizeBoulderJson((string) $data['boulder']);
 

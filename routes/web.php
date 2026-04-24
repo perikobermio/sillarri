@@ -42,6 +42,7 @@ Route::middleware('auth')->group(function (): void {
 
     Route::get('/kilter/create', [KilterController::class, 'create'])->name('kilter.create');
     Route::get('/kilter/blokea/{block}/edit', [KilterController::class, 'edit'])->name('kilter.edit');
+    Route::post('/kilter/locations', [KilterController::class, 'storeLocation'])->name('kilter.locations.store');
     Route::post('/kilter/maps', [KilterController::class, 'storeMap'])->name('kilter.maps.store');
     Route::post('/kilter', [KilterController::class, 'store'])->name('kilter.store');
     Route::put('/kilter/blokea/{block}', [KilterController::class, 'update'])->name('kilter.update');

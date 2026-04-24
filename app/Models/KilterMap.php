@@ -11,6 +11,7 @@ class KilterMap extends Model
 
     protected $fillable = [
         'name',
+        'kokapena',
         'image',
         'image_physical_path',
     ];
