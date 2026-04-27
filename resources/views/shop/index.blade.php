@@ -4,19 +4,66 @@
 <div class="shop-page" id="shopPage">
 @php
     $colors = [
-        ['code' => 'BK', 'label' => 'Baltza', 'hex' => '#0d0d0d'],
-        ['code' => 'WH', 'label' => 'Zurije', 'hex' => '#f3f2ee'],
-        ['code' => 'RD', 'label' => 'Gorrije', 'hex' => '#c0392b'],
-        ['code' => 'AZ', 'label' => 'Urdine', 'hex' => '#2a6ee8'],
-        ['code' => 'RB', 'label' => 'Urdin ilune', 'hex' => '#1f3a66'],
-        ['code' => 'BR', 'label' => 'Marroie', 'hex' => '#7a4b2e'],
-        ['code' => 'SY', 'label' => 'Horije', 'hex' => '#f0c540'],
-        ['code' => 'AS', 'label' => 'Grise', 'hex' => '#8e8b84'],
-        ['code' => 'SB', 'label' => 'Steel blue', 'hex' => '#5a7d9a'],
+        ['code' => 'BK', 'label' => 'Black', 'hex' => '#1b1b1b'],
+        ['code' => 'WH', 'label' => 'White', 'hex' => '#f3f2ee'],
+        ['code' => 'RD', 'label' => 'Red', 'hex' => '#cf2f32'],
+        ['code' => 'AZ', 'label' => 'Royal Blue', 'hex' => '#2a6ee8'],
+        ['code' => 'RB', 'label' => 'Navy', 'hex' => '#21345f'],
+        ['code' => 'BR', 'label' => 'Brown', 'hex' => '#7a4b2e'],
+        ['code' => 'SY', 'label' => 'Gold', 'hex' => '#f0c540'],
+        ['code' => 'AS', 'label' => 'Ash', 'hex' => '#c8c7c3'],
+        ['code' => 'SB', 'label' => 'Steel Blue', 'hex' => '#5a7d9a'],
         ['code' => 'SA', 'label' => 'Sand', 'hex' => '#d6c2a6'],
-        ['code' => 'PV', 'label' => 'Pink vintage', 'hex' => '#c88a9a'],
+        ['code' => 'PV', 'label' => 'Pink Vintage', 'hex' => '#c88a9a'],
         ['code' => 'LI', 'label' => 'Lima', 'hex' => '#a3d74f'],
         ['code' => 'AQ', 'label' => 'Aqua', 'hex' => '#3bb7b3'],
+        ['code' => 'PGR', 'label' => 'Pacific Grey', 'hex' => '#8d949c'],
+        ['code' => 'NV', 'label' => 'Navy', 'hex' => '#223050'],
+        ['code' => 'RBL', 'label' => 'Royal Blue', 'hex' => '#205fcb'],
+        ['code' => 'SWP', 'label' => 'Swimming Pool', 'hex' => '#22bfd2'],
+        ['code' => 'SKB', 'label' => 'Sky Blue', 'hex' => '#74b8ec'],
+        ['code' => 'IND', 'label' => 'Indigo', 'hex' => '#42538c'],
+        ['code' => 'OR', 'label' => 'Orange', 'hex' => '#f27921'],
+        ['code' => 'SBT', 'label' => 'Sorbet', 'hex' => '#f86d8f'],
+        ['code' => 'PSX', 'label' => 'Pink Sixties', 'hex' => '#d871aa'],
+        ['code' => 'KGR', 'label' => 'Kelly Green', 'hex' => '#00a64f'],
+        ['code' => 'GLD', 'label' => 'Gold', 'hex' => '#edc512'],
+        ['code' => 'SGR', 'label' => 'Sport Grey', 'hex' => '#9b9b9b'],
+        ['code' => 'NAT', 'label' => 'Natural', 'hex' => '#efe5cf'],
+        ['code' => 'UBK', 'label' => 'Used Black', 'hex' => '#3a3a3a'],
+        ['code' => 'DGY', 'label' => 'Dark Grey', 'hex' => '#5a5d63'],
+        ['code' => 'NVB', 'label' => 'Navy Blue', 'hex' => '#22345c'],
+        ['code' => 'CBL', 'label' => 'Cobalt Blue', 'hex' => '#2554c7'],
+        ['code' => 'MLI', 'label' => 'Millenial Lilac', 'hex' => '#a98bb9'],
+        ['code' => 'ATL', 'label' => 'Atoll', 'hex' => '#13b3bd'],
+        ['code' => 'DBL', 'label' => 'Diva Blue', 'hex' => '#4b87d9'],
+        ['code' => 'STB', 'label' => 'Stone Blue', 'hex' => '#6f92a8'],
+        ['code' => 'RPU', 'label' => 'Radiant Purple', 'hex' => '#8d52c8'],
+        ['code' => 'UPU', 'label' => 'Urban Purple', 'hex' => '#6f4f9d'],
+        ['code' => 'FRD', 'label' => 'Fire Red', 'hex' => '#d62828'],
+        ['code' => 'UOR', 'label' => 'Urban Orange', 'hex' => '#ef6d2f'],
+        ['code' => 'SOR', 'label' => 'Sunset Orange', 'hex' => '#f67c48'],
+        ['code' => 'OPK', 'label' => 'Orchid Pink', 'hex' => '#d77fa1'],
+        ['code' => 'BRG', 'label' => 'Burgundy', 'hex' => '#722f46'],
+        ['code' => 'OGR', 'label' => 'Orchid Green', 'hex' => '#7ebd75'],
+        ['code' => 'PXL', 'label' => 'Pixel Lime', 'hex' => '#c8d81c'],
+        ['code' => 'MMT', 'label' => 'Millenial Mint', 'hex' => '#a6d8c4'],
+        ['code' => 'BGR', 'label' => 'Bottle Green', 'hex' => '#0f5a3e'],
+        ['code' => 'SYL', 'label' => 'Solar Yellow', 'hex' => '#f2df12'],
+        ['code' => 'CHO', 'label' => 'Chocolate', 'hex' => '#5c3825'],
+        ['code' => 'ASH', 'label' => 'Ash', 'hex' => '#cfcfcb'],
+        ['code' => 'UKH', 'label' => 'Urban Khaki', 'hex' => '#7b7257'],
+        ['code' => 'SND', 'label' => 'Sand', 'hex' => '#b09f7c'],
+        ['code' => 'APR', 'label' => 'Apricot', 'hex' => '#f6c18b'],
+        ['code' => 'AQU', 'label' => 'Aqua', 'hex' => '#1db8c5'],
+        ['code' => 'FUC', 'label' => 'Fuchsia', 'hex' => '#ea1b8d'],
+        ['code' => 'YLW', 'label' => 'Yellow', 'hex' => '#f4d81d'],
+        ['code' => 'FYL', 'label' => 'Fluor Yellow', 'hex' => '#d8e71b'],
+        ['code' => 'CRL', 'label' => 'Coral', 'hex' => '#f56f73'],
+        ['code' => 'LIM', 'label' => 'Lime', 'hex' => '#7ed23d'],
+        ['code' => 'PUR', 'label' => 'Purple', 'hex' => '#3d3c93'],
+        ['code' => 'ORN', 'label' => 'Orange', 'hex' => '#ff7a1c'],
+        ['code' => 'OLV', 'label' => 'Olive', 'hex' => '#6c664e'],
     ];
 
     $products = [
@@ -29,7 +76,14 @@
                 '/images/shop/bisera_1.png',
                 '/images/shop/bisera_2.png',
             ],
-            'sizes' => ['UNI'],
+            'variants' => [
+                [
+                    'id' => 'default',
+                    'label' => 'Unica',
+                    'sizes' => ['UNI'],
+                    'colors' => ['BK', 'WH', 'RD', 'AZ', 'RB', 'BR', 'SY', 'AS', 'SB', 'SA', 'PV', 'LI', 'AQ'],
+                ],
+            ],
         ],
         [
             'name' => 'Kamiseta kalekue',
@@ -42,7 +96,14 @@
                 '/images/shop/kalekue_back_2.png',
                 '/images/shop/kalekue_front_2.png',
             ],
-            'sizes' => ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
+            'variants' => [
+                [
+                    'id' => 'default',
+                    'label' => 'Unica',
+                    'sizes' => ['3-4', '5-6', '7-8', '9-11', '12-14', 'XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'],
+                    'colors' => ['WH', 'BK', 'PGR', 'NV', 'RBL', 'SWP', 'SKB', 'IND', 'RD', 'OR', 'SBT', 'PSX', 'KGR', 'GLD', 'ASH', 'SGR', 'NAT', 'UBK', 'DGY', 'NVB', 'CBL', 'MLI', 'ATL', 'DBL', 'STB', 'RPU', 'UPU', 'FRD', 'UOR', 'SOR', 'OPK', 'BRG', 'OGR', 'PXL', 'MMT', 'BGR', 'SYL', 'BRN', 'CHO', 'UKH', 'SND', 'APR'],
+                ],
+            ],
         ],
         [
             'name' => 'Kamiseta teknikue',
@@ -55,7 +116,14 @@
                 '/images/shop/teknika_front_2.png',
                 '/images/shop/teknika_back_2.png',
             ],
-            'sizes' => ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
+            'variants' => [
+                [
+                    'id' => 'adult',
+                    'label' => 'Adulto',
+                    'sizes' => ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'],
+                    'colors' => ['WH', 'BK', 'NV', 'RBL', 'RD', 'AQU', 'FUC', 'DGY', 'YLW', 'FYL', 'SND', 'CRL', 'LIM', 'PUR', 'ORN', 'KGR', 'OLV'],
+                ],
+            ],
         ],
         [
             'name' => 'Kamiseta tirantedune',
@@ -68,7 +136,14 @@
                 '/images/shop/tirante_1.png',
                 '/images/shop/tirante_2.png',
             ],
-            'sizes' => ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
+            'variants' => [
+                [
+                    'id' => 'adult',
+                    'label' => 'Adulto',
+                    'sizes' => ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'],
+                    'colors' => ['WH', 'BK', 'SGR', 'CBL', 'FRD'],
+                ],
+            ],
         ],
         [
             'name' => 'Sudaderie',
@@ -81,25 +156,17 @@
                 '/images/shop/suda_back_1.png',
                 '/images/shop/suda_front_1.png',
             ],
-            'sizes' => ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
+            'variants' => [
+                [
+                    'id' => 'adult',
+                    'label' => 'Adulto',
+                    'sizes' => ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'],
+                    'colors' => ['WH', 'BK', 'SGR', 'NV', 'RBL', 'RD', 'NAT', 'UBK', 'DGY', 'PGR', 'NVB', 'CBL', 'MLI', 'SWP', 'ATL', 'SKB', 'DBL', 'STB', 'RPU', 'UPU', 'FRD', 'UOR', 'OR', 'SBT', 'SOR', 'OPK', 'BRG', 'OGR', 'PXL', 'MMT', 'KGR', 'BGR', 'SYL', 'GLD', 'BRN', 'CHO', 'ASH', 'UKH', 'SND', 'APR'],
+                ],
+            ],
         ],
     ];
 
-    $colorIcons = [
-        'BK' => '⚫',
-        'WH' => '⚪',
-        'RD' => '🔴',
-        'AZ' => '🔵',
-        'RB' => '🔷',
-        'BR' => '🟤',
-        'SY' => '🟡',
-        'AS' => '⚙️',
-        'SB' => '🔹',
-        'SA' => '🟫',
-        'PV' => '🩷',
-        'LI' => '🟢',
-        'AQ' => '🩵',
-    ];
 @endphp
 
 <section class="shop-hero">
@@ -112,6 +179,9 @@
 
 <section class="shop-grid">
     @foreach($products as $product)
+        @php
+            $defaultVariant = $product['variants'][0];
+        @endphp
         <article class="shop-card">
             <div class="shop-card-carousel" data-carousel>
                 <div class="shop-card-carousel-track" data-track>
@@ -132,18 +202,41 @@
             </div>
             <p>{{ $product['note'] }}</p>
             <div class="shop-card-form">
+                @if(count($product['variants']) > 1)
+                    <label>
+                        Modeloa
+                        <select data-variant>
+                            @foreach($product['variants'] as $variant)
+                                <option value="{{ $variant['id'] }}">{{ $variant['label'] }}</option>
+                            @endforeach
+                        </select>
+                    </label>
+                @endif
                 <label>
                     Kolorea
-                    <select data-color>
-                        @foreach($colors as $color)
-                            <option value="{{ $color['code'] }}">{{ $colorIcons[$color['code']] ?? '●' }} {{ $color['label'] }} ({{ $color['code'] }})</option>
+                    <select data-color class="shop-color-select map-select-hidden">
+                        @foreach($defaultVariant['colors'] as $colorCode)
+                            @php
+                                $color = collect($colors)->firstWhere('code', $colorCode);
+                            @endphp
+                            @if($color)
+                                <option value="{{ $color['code'] }}">{{ $color['label'] }} ({{ $color['code'] }})</option>
+                            @endif
                         @endforeach
                     </select>
+                    <div class="shop-color-picker" data-color-picker>
+                        <button type="button" class="shop-color-trigger" data-color-trigger aria-haspopup="listbox" aria-expanded="false">
+                            <span class="shop-color-swatch" data-color-swatch aria-hidden="true"></span>
+                            <span data-color-label>Kolorea hautatu</span>
+                            <span class="shop-color-caret" aria-hidden="true">▾</span>
+                        </button>
+                        <div class="shop-color-list" data-color-list role="listbox" aria-label="Koloreak"></div>
+                    </div>
                 </label>
                 <label>
                     Talla
                     <select data-size>
-                        @foreach($product['sizes'] as $size)
+                        @foreach($defaultVariant['sizes'] as $size)
                             <option value="{{ $size }}">{{ $size === 'UNI' ? 'Talla bakarra' : $size }}</option>
                         @endforeach
                     </select>
@@ -224,11 +317,16 @@
         const successEl = document.getElementById('shopSuccess');
         const cartCard = document.getElementById('shopCartCard');
         const shopPage = document.getElementById('shopPage');
+        const colorMeta = @json(collect($colors)->keyBy('code'));
 
         const cart = [];
 
         function formatPrice(value) {
             return `${value.toFixed(2).replace('.00', '')} €`;
+        }
+
+        function formatSizeLabel(size) {
+            return /^\d+-\d+$/.test(String(size)) ? `${size} urte` : size;
         }
 
         function renderCart() {
@@ -250,7 +348,7 @@
                             <span>${formatPrice(item.price * item.qty)}</span>
                         </div>
                         <div class="shop-cart-meta">
-                            Kolorea: ${item.color} · Talla: ${item.size} · Kopurua: ${item.qty}
+                            ${item.variantLabel ? `Modeloa: ${item.variantLabel} · ` : ''}Kolorea: ${item.colorLabel || item.color} · Talla: ${item.sizeLabel || item.size} · Kopurua: ${item.qty}
                             <button type="button" class="btn btn-secondary shop-action-btn inline-remove" data-remove="${index}" aria-label="Kendu">
                                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7h12l-1 14H7L6 7zm3-3h6l1 2H8l1-2z"/></svg>
                                 <span class="btn-text">Kendu</span>
@@ -301,7 +399,7 @@
             const lines = cart.map((item) => {
                 const lineTotal = item.price * item.qty;
                 total += lineTotal;
-                return `<li>${item.name} · ${item.color} · ${item.size} · x${item.qty} <strong>${formatPrice(lineTotal)}</strong></li>`;
+                return `<li>${item.name}${item.variantLabel ? ` · ${item.variantLabel}` : ''} · ${item.colorLabel || item.color} · ${item.sizeLabel || item.size} · x${item.qty} <strong>${formatPrice(lineTotal)}</strong></li>`;
             }).join('');
             confirmBody.innerHTML = `
                 <ul class="shop-confirm-list">${lines}</ul>
@@ -311,21 +409,155 @@
             `;
         }
 
+        function fillSelect(select, values, formatter, selectedValue = '') {
+            if (!select) return;
+            const normalizedSelected = String(selectedValue || '');
+            select.innerHTML = values.map((value) => {
+                const optionLabel = formatter(value);
+                const selected = String(value) === normalizedSelected ? ' selected' : '';
+                return `<option value="${value}"${selected}>${optionLabel}</option>`;
+            }).join('');
+        }
+
+        function closeColorPicker(card) {
+            const trigger = card?.querySelector('[data-color-trigger]');
+            const list = card?.querySelector('[data-color-list]');
+            if (!trigger || !list) return;
+            list.classList.remove('is-open');
+            trigger.setAttribute('aria-expanded', 'false');
+        }
+
+        function syncColorPicker(card) {
+            const colorSelect = card?.querySelector('[data-color]');
+            const swatch = card?.querySelector('[data-color-swatch]');
+            const label = card?.querySelector('[data-color-label]');
+            const list = card?.querySelector('[data-color-list]');
+            if (!colorSelect || !swatch || !label || !list) return;
+
+            const color = colorMeta[colorSelect.value];
+            swatch.style.background = color?.hex || '#ffffff';
+            label.textContent = color ? `${color.label} (${color.code})` : 'Kolorea hautatu';
+
+            list.querySelectorAll('.shop-color-option').forEach((option) => {
+                option.setAttribute('aria-selected', option.dataset.colorCode === colorSelect.value ? 'true' : 'false');
+            });
+        }
+
+        function renderColorPicker(card, colorCodes, selectedValue = '') {
+            const colorSelect = card?.querySelector('[data-color]');
+            const list = card?.querySelector('[data-color-list]');
+            if (!colorSelect || !list) return;
+
+            fillSelect(
+                colorSelect,
+                colorCodes,
+                (code) => {
+                    const color = colorMeta[code];
+                    return `${color?.label || code} (${code})`;
+                },
+                selectedValue
+            );
+
+            list.innerHTML = colorCodes.map((code) => {
+                const color = colorMeta[code];
+                if (!color) return '';
+                const selected = code === colorSelect.value ? 'true' : 'false';
+                return `
+                    <button type="button" class="shop-color-option" data-color-code="${color.code}" role="option" aria-selected="${selected}">
+                        <span class="shop-color-swatch" style="background:${color.hex}" aria-hidden="true"></span>
+                        <span>${color.label} (${color.code})</span>
+                    </button>
+                `;
+            }).join('');
+
+            list.querySelectorAll('.shop-color-option').forEach((option) => {
+                option.addEventListener('click', () => {
+                    colorSelect.value = option.dataset.colorCode || '';
+                    syncColorPicker(card);
+                    closeColorPicker(card);
+                });
+            });
+
+            syncColorPicker(card);
+        }
+
+        function getProductById(productId) {
+            return products.find((product) => product.id === productId) || null;
+        }
+
+        function getVariant(product, variantId) {
+            if (!product || !Array.isArray(product.variants) || product.variants.length === 0) return null;
+            return product.variants.find((variant) => variant.id === variantId) || product.variants[0];
+        }
+
+        function renderCardOptions(card) {
+            const productId = card?.querySelector('[data-add]')?.dataset.id || '';
+            const product = getProductById(productId);
+            if (!product) return;
+
+            const variantSelect = card.querySelector('[data-variant]');
+            const colorSelect = card.querySelector('[data-color]');
+            const sizeSelect = card.querySelector('[data-size]');
+            const activeVariant = getVariant(product, variantSelect?.value || product.variants[0].id);
+            if (!activeVariant) return;
+
+            fillSelect(
+                sizeSelect,
+                activeVariant.sizes,
+                (size) => size === 'UNI' ? 'Talla bakarra' : formatSizeLabel(size),
+                sizeSelect?.value
+            );
+
+            renderColorPicker(card, activeVariant.colors, colorSelect?.value);
+        }
+
         document.querySelectorAll('[data-add]').forEach((btn) => {
+            const card = btn.closest('.shop-card');
+            if (card) {
+                card.querySelector('[data-variant]')?.addEventListener('change', () => renderCardOptions(card));
+                card.querySelector('[data-color-trigger]')?.addEventListener('click', () => {
+                    const list = card.querySelector('[data-color-list]');
+                    const trigger = card.querySelector('[data-color-trigger]');
+                    if (!list || !trigger) return;
+                    const isOpen = list.classList.contains('is-open');
+                    document.querySelectorAll('.shop-color-list.is-open').forEach((openList) => {
+                        openList.classList.remove('is-open');
+                    });
+                    document.querySelectorAll('[data-color-trigger][aria-expanded="true"]').forEach((openTrigger) => {
+                        openTrigger.setAttribute('aria-expanded', 'false');
+                    });
+                    if (!isOpen) {
+                        list.classList.add('is-open');
+                        trigger.setAttribute('aria-expanded', 'true');
+                    }
+                });
+                renderCardOptions(card);
+            }
+
             btn.addEventListener('click', () => {
                 const card = btn.closest('.shop-card');
                 if (!card) return;
-                const color = card.querySelector('[data-color]')?.value || 'BK';
+                const product = getProductById(btn.dataset.id || '');
+                if (!product) return;
+                const variantSelect = card.querySelector('[data-variant]');
+                const variant = getVariant(product, variantSelect?.value || product.variants[0].id);
+                if (!variant) return;
+                const color = card.querySelector('[data-color]')?.value || variant.colors[0];
                 const size = card.querySelector('[data-size]')?.value || 'M';
                 const qtyValue = card.querySelector('[data-qty]')?.value || 1;
                 const qty = Math.max(1, Number(qtyValue));
+                const colorInfo = colorMeta[color] || null;
                 cart.push({
                     id: btn.dataset.id,
                     name: btn.dataset.name,
                     price: Number(btn.dataset.price || 0),
                     qty,
+                    variant: variant.id,
+                    variantLabel: product.variants.length > 1 ? variant.label : '',
                     color,
+                    colorLabel: colorInfo?.label || color,
                     size,
+                    sizeLabel: formatSizeLabel(size),
                 });
                 renderCart();
                 showToast('Produktua saskira gehituta');
@@ -398,6 +630,14 @@
 
         confirmModal?.addEventListener('click', (event) => {
             if (event.target === confirmModal) closeModal();
+        });
+
+        document.addEventListener('click', (event) => {
+            document.querySelectorAll('.shop-card').forEach((card) => {
+                const picker = card.querySelector('[data-color-picker]');
+                if (!picker || picker.contains(event.target)) return;
+                closeColorPicker(card);
+            });
         });
 
         renderCart();

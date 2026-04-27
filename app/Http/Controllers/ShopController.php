@@ -33,12 +33,12 @@ class ShopController extends Controller
         }
 
         $catalog = $this->catalog();
-        $colors = $this->colors();
 
         $validated = $request->validate([
             'items' => ['required', 'array', 'min:1'],
             'items.*.id' => ['required', Rule::in(array_keys($catalog))],
-            'items.*.color' => ['required', Rule::in($colors)],
+            'items.*.variant' => ['nullable', 'string', 'max:40'],
+            'items.*.color' => ['required', 'string', 'max:40'],
             'items.*.size' => ['required', 'string'],
             'items.*.qty' => ['required', 'integer', 'min:1', 'max:10'],
             'notes' => ['nullable', 'string', 'max:1000'],
@@ -49,17 +49,32 @@ class ShopController extends Controller
 
         foreach ($validated['items'] as $item) {
             $product = $catalog[$item['id']];
-            $allowedSizes = $product['sizes'];
+            $variantId = (string) ($item['variant'] ?? array_key_first($product['variants']));
+            $variant = $product['variants'][$variantId] ?? null;
 
-            if (!in_array($item['size'], $allowedSizes, true)) {
+            if (!is_array($variant)) {
+                return response()->json(['message' => 'Modelo ez da zuzena.'], 422);
+            }
+
+            if (!in_array($item['size'], $variant['sizes'], true)) {
                 return response()->json(['message' => 'Talla ez da zuzena.'], 422);
+            }
+
+            if (!in_array($item['color'], $variant['colors'], true)) {
+                return response()->json(['message' => 'Kolorea ez da zuzena.'], 422);
+            }
+
+            $displayName = $product['name'];
+            if (count($product['variants']) > 1) {
+                $displayName .= ' ('.$variant['label'].')';
             }
 
             $lineTotal = $product['price'] * $item['qty'];
             $total += $lineTotal;
             $items[] = [
-                'name' => $product['name'],
+                'name' => $displayName,
                 'product_id' => $item['id'],
+                'variant' => $variantId,
                 'color' => $item['color'],
                 'size' => $item['size'],
                 'qty' => $item['qty'],
@@ -130,35 +145,58 @@ class ShopController extends Controller
             'biserak' => [
                 'name' => 'Biserak',
                 'price' => 15,
-                'sizes' => ['UNI'],
+                'variants' => [
+                    'default' => [
+                        'label' => 'Unica',
+                        'sizes' => ['UNI'],
+                        'colors' => ['BK', 'WH', 'RD', 'AZ', 'RB', 'BR', 'SY', 'AS', 'SB', 'SA', 'PV', 'LI', 'AQ'],
+                    ],
+                ],
             ],
             'kamiseta-kalekue' => [
                 'name' => 'Kamiseta kalekue',
                 'price' => 20,
-                'sizes' => ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
+                'variants' => [
+                    'default' => [
+                        'label' => 'Unica',
+                        'sizes' => ['3-4', '5-6', '7-8', '9-11', '12-14', 'XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'],
+                        'colors' => ['WH', 'BK', 'PGR', 'NV', 'RBL', 'SWP', 'SKB', 'IND', 'RD', 'OR', 'SBT', 'PSX', 'KGR', 'GLD', 'ASH', 'SGR', 'NAT', 'UBK', 'DGY', 'NVB', 'CBL', 'MLI', 'ATL', 'DBL', 'STB', 'RPU', 'UPU', 'FRD', 'UOR', 'SOR', 'OPK', 'BRG', 'OGR', 'PXL', 'MMT', 'BGR', 'SYL', 'BRN', 'CHO', 'UKH', 'SND', 'APR'],
+                    ],
+                ],
             ],
             'kamiseta-teknikue' => [
                 'name' => 'Kamiseta teknikue',
                 'price' => 20,
-                'sizes' => ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
+                'variants' => [
+                    'adult' => [
+                        'label' => 'Adulto',
+                        'sizes' => ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'],
+                        'colors' => ['WH', 'BK', 'NV', 'RBL', 'RD', 'AQU', 'FUC', 'DGY', 'YLW', 'FYL', 'SND', 'CRL', 'LIM', 'PUR', 'ORN', 'KGR', 'OLV'],
+                    ],
+                ],
             ],
             'kamiseta-tirantedune' => [
                 'name' => 'Kamiseta tirantedune',
                 'price' => 20,
-                'sizes' => ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
+                'variants' => [
+                    'adult' => [
+                        'label' => 'Adulto',
+                        'sizes' => ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'],
+                        'colors' => ['WH', 'BK', 'SGR', 'CBL', 'FRD'],
+                    ],
+                ],
             ],
             'sudaderie' => [
                 'name' => 'Sudaderie',
                 'price' => 25,
-                'sizes' => ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
+                'variants' => [
+                    'adult' => [
+                        'label' => 'Adulto',
+                        'sizes' => ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'],
+                        'colors' => ['WH', 'BK', 'SGR', 'NV', 'RBL', 'RD', 'NAT', 'UBK', 'DGY', 'PGR', 'NVB', 'CBL', 'MLI', 'SWP', 'ATL', 'SKB', 'DBL', 'STB', 'RPU', 'UPU', 'FRD', 'UOR', 'OR', 'SBT', 'SOR', 'OPK', 'BRG', 'OGR', 'PXL', 'MMT', 'KGR', 'BGR', 'SYL', 'GLD', 'BRN', 'CHO', 'ASH', 'UKH', 'SND', 'APR'],
+                    ],
+                ],
             ],
-        ];
-    }
-
-    private function colors(): array
-    {
-        return [
-            'BK', 'WH', 'RD', 'AZ', 'RB', 'BR', 'SY', 'AS', 'SB', 'SA', 'PV', 'LI', 'AQ',
         ];
     }
 }

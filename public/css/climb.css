@@ -1175,6 +1175,79 @@ button.is-loading > * {
   padding: 0.45rem 0.6rem;
 }
 
+.shop-color-picker {
+  position: relative;
+}
+
+.shop-color-trigger {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.shop-color-swatch {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 1.4px solid rgba(255, 255, 255, 0.55);
+  flex: 0 0 18px;
+}
+
+.shop-color-caret {
+  margin-left: auto;
+  opacity: 0.7;
+}
+
+.shop-color-list {
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  left: 0;
+  right: 0;
+  display: none;
+  max-height: 260px;
+  overflow: auto;
+  padding: 0.45rem;
+  border-radius: 12px;
+  background: rgba(18, 16, 14, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+  z-index: 30;
+  gap: 0.35rem;
+}
+
+.shop-color-list.is-open {
+  display: grid;
+}
+
+.shop-color-option {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.shop-color-option:hover,
+.shop-color-option[aria-selected="true"] {
+  border-color: rgba(134, 184, 161, 0.6);
+  background: rgba(134, 184, 161, 0.12);
+}
+
 @media (max-width: 900px) {
   .shop-hero {
     grid-template-columns: 1fr;
