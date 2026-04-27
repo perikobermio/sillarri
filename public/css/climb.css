@@ -1098,7 +1098,7 @@ button.is-loading > * {
   background: rgba(14, 12, 10, 0.7);
   padding: 1.1rem;
   display: grid;
-  gap: 0.6rem;
+  gap: 0.45rem;
 }
 
 .shop-card-image {
@@ -1144,12 +1144,20 @@ button.is-loading > * {
 
 .shop-card-top {
   display: grid;
-  gap: 0.3rem;
+  gap: 0.15rem;
+}
+
+.shop-card-top h3 {
+  margin: 0;
 }
 
 .shop-price {
   font-weight: 700;
   color: var(--sun);
+}
+
+.shop-card > p {
+  margin: 0;
 }
 
 .shop-card-form {
