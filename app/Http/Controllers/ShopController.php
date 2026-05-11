@@ -38,7 +38,6 @@ class ShopController extends Controller
             'items' => ['required', 'array', 'min:1'],
             'items.*.id' => ['required', Rule::in(array_keys($catalog))],
             'items.*.variant' => ['nullable', 'string', 'max:40'],
-            'items.*.color' => ['required', 'string', 'max:40'],
             'items.*.size' => ['required', 'string'],
             'items.*.qty' => ['required', 'integer', 'min:1', 'max:10'],
             'notes' => ['nullable', 'string', 'max:1000'],
@@ -47,10 +46,11 @@ class ShopController extends Controller
         $items = [];
         $total = 0;
 
-        foreach ($validated['items'] as $item) {
+        foreach ($validated['items'] as $index => $item) {
             $product = $catalog[$item['id']];
             $variantId = (string) ($item['variant'] ?? array_key_first($product['variants']));
             $variant = $product['variants'][$variantId] ?? null;
+            $color = $this->normalizeColor(data_get($request->input('items', []), $index.'.color', ''));
 
             if (!is_array($variant)) {
                 return response()->json(['message' => 'Modelo ez da zuzena.'], 422);
@@ -58,10 +58,6 @@ class ShopController extends Controller
 
             if (!in_array($item['size'], $variant['sizes'], true)) {
                 return response()->json(['message' => 'Talla ez da zuzena.'], 422);
-            }
-
-            if (!in_array($item['color'], $variant['colors'], true)) {
-                return response()->json(['message' => 'Kolorea ez da zuzena.'], 422);
             }
 
             $displayName = $product['name'];
@@ -75,7 +71,7 @@ class ShopController extends Controller
                 'name' => $displayName,
                 'product_id' => $item['id'],
                 'variant' => $variantId,
-                'color' => $item['color'],
+                'color' => $color,
                 'size' => $item['size'],
                 'qty' => $item['qty'],
                 'unit_price' => $product['price'],
@@ -170,7 +166,7 @@ class ShopController extends Controller
                 'variants' => [
                     'adult' => [
                         'label' => 'Adulto',
-                        'sizes' => ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'],
+                        'sizes' => ['3-4', '5-6', '7-8', '9-11', '12-14', 'XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'],
                         'colors' => ['WH', 'BK', 'NV', 'RBL', 'RD', 'AQU', 'FUC', 'DGY', 'YLW', 'FYL', 'SND', 'CRL', 'LIM', 'PUR', 'ORN', 'KGR', 'OLV'],
                     ],
                 ],
@@ -181,7 +177,7 @@ class ShopController extends Controller
                 'variants' => [
                     'adult' => [
                         'label' => 'Adulto',
-                        'sizes' => ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'],
+                        'sizes' => ['3-4', '5-6', '7-8', '9-11', '12-14', 'XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'],
                         'colors' => ['WH', 'BK', 'SGR', 'CBL', 'FRD'],
                     ],
                 ],
@@ -192,11 +188,16 @@ class ShopController extends Controller
                 'variants' => [
                     'adult' => [
                         'label' => 'Adulto',
-                        'sizes' => ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'],
+                        'sizes' => ['3-4', '5-6', '7-8', '9-11', '12-14', 'XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'],
                         'colors' => ['WH', 'BK', 'SGR', 'NV', 'RBL', 'RD', 'NAT', 'UBK', 'DGY', 'PGR', 'NVB', 'CBL', 'MLI', 'SWP', 'ATL', 'SKB', 'DBL', 'STB', 'RPU', 'UPU', 'FRD', 'UOR', 'OR', 'SBT', 'SOR', 'OPK', 'BRG', 'OGR', 'PXL', 'MMT', 'KGR', 'BGR', 'SYL', 'GLD', 'BRN', 'CHO', 'ASH', 'UKH', 'SND', 'APR'],
                     ],
                 ],
             ],
         ];
+    }
+
+    private function normalizeColor(mixed $color): string
+    {
+        return is_scalar($color) ? trim((string) $color) : '';
     }
 }

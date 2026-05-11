@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -153,32 +154,69 @@ class AdminController extends Controller
 
     public function storeLocation(Request $request): RedirectResponse
     {
-        $data = $request->validate([
+        $validator = Validator::make($request->all(), [
             'name' => ['required', 'string', 'max:120', 'unique:weather_locations,name'],
             'label' => ['required', 'string', 'max:120', 'unique:weather_locations,label'],
         ]);
 
-        $geoResponse = Http::get('https://geocoding-api.open-meteo.com/v1/search', [
-            'name' => $data['name'],
-            'count' => 1,
-            'language' => 'es',
-            'format' => 'json',
-        ]);
+        if ($validator->fails()) {
+            return redirect()->route('admin')
+                ->withErrors($validator, 'locationCreate')
+                ->withInput()
+                ->with('admin_tab', 'weather')
+                ->with('open_location_create', true);
+        }
+
+        $data = $validator->validated();
+        $name = trim((string) $data['name']);
+        $label = trim((string) $data['label']);
+
+        try {
+            $geoResponse = Http::acceptJson()
+                ->timeout(8)
+                ->retry(2, 250)
+                ->get('https://geocoding-api.open-meteo.com/v1/search', [
+                    'name' => $name,
+                    'count' => 1,
+                    'language' => 'es',
+                    'format' => 'json',
+                ]);
+        } catch (\Throwable) {
+            return redirect()->route('admin')
+                ->withInput()
+                ->with('admin_tab', 'weather')
+                ->with('open_location_create', true)
+                ->with('error', 'Ezin izan da geokodetze zerbitzuarekin konektatu. Saiatu berriro.');
+        }
+
+        if ($geoResponse->failed()) {
+            return redirect()->route('admin')
+                ->withInput()
+                ->with('admin_tab', 'weather')
+                ->with('open_location_create', true)
+                ->with('error', 'Ezin izan da kokapena egiaztatu. Saiatu berriro.');
+        }
 
         $geoJson = $geoResponse->json();
         $first = is_array($geoJson) ? ($geoJson['results'][0] ?? null) : null;
-        if (! $first || ! isset($first['latitude'], $first['longitude'])) {
-            return redirect()->route('admin')->with('status', 'Ez da kokapena aurkitu. Saiatu izenarekin.');
+        if (! $first || ! isset($first['latitude'], $first['longitude']) || ! is_numeric($first['latitude']) || ! is_numeric($first['longitude'])) {
+            return redirect()->route('admin')
+                ->withInput()
+                ->with('admin_tab', 'weather')
+                ->with('open_location_create', true)
+                ->with('error', 'Ez da kokapena aurkitu. Saiatu udalerri edo hiri izenarekin.');
         }
 
         WeatherLocation::create([
-            'name' => trim((string) $data['name']),
-            'label' => trim((string) $data['label']),
+            'name' => $name,
+            'label' => $label,
             'lat' => (float) $first['latitude'],
             'lon' => (float) $first['longitude'],
         ]);
 
-        return redirect()->route('admin')->with('status', 'Herria gehituta.');
+        return redirect()->route('admin')
+            ->with('admin_tab', 'weather')
+            ->with('status', 'Herria gehituta.');
     }
 
     public function deleteLocation(WeatherLocation $location): RedirectResponse

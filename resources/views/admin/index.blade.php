@@ -323,10 +323,33 @@
         </div>
         <form method="POST" action="{{ route('admin.locations.store') }}" class="auth-form">
             @csrf
+            @if($errors->locationCreate->any())
+                <div class="flash-error">Ezin izan da herria gehitu. Begiratu eremuak.</div>
+            @endif
             <label>Bilaketa izena</label>
-            <input type="text" name="name" placeholder="Adib: Gernika" required>
+            <input
+                type="text"
+                name="name"
+                placeholder="Adib: Gernika"
+                value="{{ old('name') }}"
+                required
+                @error('name', 'locationCreate') aria-invalid="true" @enderror
+            >
+            @error('name', 'locationCreate')
+                <small class="error">{{ $message }}</small>
+            @enderror
             <label>Label (front)</label>
-            <input type="text" name="label" placeholder="Adib: Gernika" required>
+            <input
+                type="text"
+                name="label"
+                placeholder="Adib: Gernika"
+                value="{{ old('label') }}"
+                required
+                @error('label', 'locationCreate') aria-invalid="true" @enderror
+            >
+            @error('label', 'locationCreate')
+                <small class="error">{{ $message }}</small>
+            @enderror
             <button type="submit" class="btn btn-primary">Gehitu</button>
         </form>
     </div>
@@ -396,6 +419,8 @@
         const orderConfirmBtn = document.getElementById('admin-order-confirm');
         const orderDeleteForm = document.getElementById('admin-order-delete-form');
         const orderDeleteBtn = document.getElementById('admin-order-delete');
+        const initialAdminTab = @json(session('admin_tab') ?? ($errors->locationCreate->any() ? 'weather' : null));
+        const shouldOpenLocationCreate = @json((bool) session('open_location_create') || $errors->locationCreate->any());
 
         const editForm = document.getElementById('admin-user-edit-form');
         const editName = document.getElementById('admin-edit-name');
@@ -457,7 +482,7 @@
                 });
             });
 
-            activateTab(adminTabs.find((tab) => tab.classList.contains('is-active'))?.dataset.tabTarget || adminTabs[0]?.dataset.tabTarget);
+            activateTab(initialAdminTab || adminTabs.find((tab) => tab.classList.contains('is-active'))?.dataset.tabTarget || adminTabs[0]?.dataset.tabTarget);
         }
 
         openCreate?.addEventListener('click', () => openModal(createModal));
@@ -467,6 +492,10 @@
         closeLocationCreate?.addEventListener('click', () => closeModal(locationCreateModal));
         closeConfirm?.addEventListener('click', () => closeModal(confirmModal));
         cancelConfirm?.addEventListener('click', () => closeModal(confirmModal));
+
+        if (shouldOpenLocationCreate) {
+            openModal(locationCreateModal);
+        }
 
         document.querySelectorAll('.admin-edit-user').forEach((button) => {
             button.addEventListener('click', () => {

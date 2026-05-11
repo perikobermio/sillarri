@@ -187,7 +187,7 @@
                 [
                     'id' => 'adult',
                     'label' => 'Adulto',
-                    'sizes' => ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'],
+                    'sizes' => ['3-4', '5-6', '7-8', '9-11', '12-14', 'XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'],
                     'colors' => ['WH', 'BK', 'NV', 'RBL', 'RD', 'AQU', 'FUC', 'DGY', 'YLW', 'FYL', 'SND', 'CRL', 'LIM', 'PUR', 'ORN', 'KGR', 'OLV'],
                 ],
             ],
@@ -207,7 +207,7 @@
                 [
                     'id' => 'adult',
                     'label' => 'Adulto',
-                    'sizes' => ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'],
+                    'sizes' => ['3-4', '5-6', '7-8', '9-11', '12-14', 'XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'],
                     'colors' => ['WH', 'BK', 'SGR', 'CBL', 'FRD'],
                 ],
             ],
@@ -227,7 +227,7 @@
                 [
                     'id' => 'adult',
                     'label' => 'Adulto',
-                    'sizes' => ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'],
+                    'sizes' => ['3-4', '5-6', '7-8', '9-11', '12-14', 'XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'],
                     'colors' => ['WH', 'BK', 'RD', 'NY', 'RB', 'AQ', 'AS', 'BG', 'BRD', 'BU', 'CR', 'DN', 'FG', 'GF', 'GM', 'IB', 'KG', 'KH', 'LS', 'LV', 'LY', 'OR', 'PK', 'PU', 'SA', 'SK', 'SY', 'AL', 'FUF', 'LMF', 'ORF', 'SYF', 'CO', 'MG', 'CHC', 'DNH', 'CHCH', 'AP', 'SL', 'AQM', 'DGM', 'BT', 'PV', 'TP', 'MO', 'VI', 'APR', 'PB', 'ML', 'OC', 'LP', 'DP', 'KB', 'PKG', 'TE', 'AN', 'AE', 'LEY', 'OD', 'FD', 'LM', 'RP', 'TU', 'WR', 'ZC', 'MM', 'AG', 'AR', 'AZ', 'BC', 'BR', 'CH', 'FU', 'CA', 'MU', 'SB', 'IV', 'MXG', 'WG', 'SG'],
                 ],
             ],

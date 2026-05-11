@@ -43,108 +43,13 @@
                             || (($selectedCompletedFilter ?? 'all') !== 'all');
                         $orderFilterActive = $selectedOrderField !== '';
                     @endphp
-                    <details class="grade-filter-box {{ $gradesFilterActive ? 'is-active' : '' }}">
-                        <summary><span class="grade-summary-label">Gradua</span></summary>
-                        <div class="grade-check-list">
-                            @foreach($groupedGrades as $group => $list)
-                                @php
-                                    $groupId = 'grade_group_'.$group;
-                                    $normalizedGroupGrades = array_map(static fn (string $grade): string => strtolower($grade), $list);
-                                    $checkedInGroup = count(array_intersect($normalizedGroupGrades, $selectedGrades));
-                                    $allGroupChecked = count($normalizedGroupGrades) > 0 && $checkedInGroup === count($normalizedGroupGrades);
-                                    $someGroupChecked = $checkedInGroup > 0 && !$allGroupChecked;
-                                @endphp
-                                <div class="grade-group-title">
-                                    <div class="grade-check-item grade-check-item-group">
-                                        <input
-                                            id="{{ $groupId }}"
-                                            class="grade-group-checkbox"
-                                            type="checkbox"
-                                            data-grade-group="{{ $group }}"
-                                            @checked($allGroupChecked)
-                                            @if($someGroupChecked) data-indeterminate="true" @endif
-                                        >
-                                        <label for="{{ $groupId }}">{{ $romanMap[$group] ?? $group }}</label>
-                                    </div>
-                                </div>
-                                @foreach($list as $g)
-                                    @php
-                                        $gradeId = 'grade_'.strtolower(str_replace('+', '_plus', $g));
-                                        $gradeValue = strtolower($g);
-                                    @endphp
-                                    <div class="grade-check-item">
-                                        <input
-                                            id="{{ $gradeId }}"
-                                            class="grade-option-checkbox"
-                                            type="checkbox"
-                                            name="grade[]"
-                                            value="{{ $gradeValue }}"
-                                            data-grade-group="{{ $group }}"
-                                            @checked(in_array($gradeValue, $selectedGrades, true))
-                                        >
-                                        <label for="{{ $gradeId }}">{{ strtoupper($g) }}</label>
-                                    </div>
-                                @endforeach
-                            @endforeach
-                        </div>
-                    </details>
+                    <button type="button" class="grade-filter-box {{ $gradesFilterActive ? 'is-active' : '' }}" id="open-grade-filter-modal" aria-label="Gradua" title="Gradua">
+                        <span class="grade-summary-label">Gradua</span>
+                    </button>
 
-                    <details class="extra-filter-box {{ $moreFiltersActive ? 'is-active' : '' }}" id="more-filter-details">
-                        <summary>+</summary>
-                        <div class="extra-filter-panel">
-                            <label for="q-filter">Izena</label>
-                            <input
-                                id="q-filter"
-                                type="text"
-                                name="q"
-                                value="{{ $search }}"
-                                placeholder="Bilatu blokea izenaren arabera..."
-                            >
+                    <button type="button" class="extra-filter-box {{ $moreFiltersActive ? 'is-active' : '' }}" id="open-more-filter-modal" aria-label="Iragazki gehiago" title="Iragazki gehiago">+</button>
 
-                            <label for="location-filter">Kokapena</label>
-                            <select id="location-filter" name="location">
-                                <option value="">Denak</option>
-                                @foreach($locations as $location)
-                                    <option value="{{ $location }}" @selected($selectedLocation === $location)>{{ $location }}</option>
-                                @endforeach
-                            </select>
-
-                            <label for="creator-filter">Erabiltzailea</label>
-                            <select id="creator-filter" name="creator">
-                                <option value="">Denak</option>
-                                @foreach($creators as $creator)
-                                    <option
-                                        value="{{ $creator->id }}"
-                                        @selected($selectedCreator !== null && (int) $creator->id === (int) $selectedCreator)
-                                    >
-                                        {{ $creator->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-
-                            @auth
-                                <label for="completed-filter">Egoera</label>
-                                <select id="completed-filter" name="completed">
-                                    <option value="all" @selected(($selectedCompletedFilter ?? 'all') === 'all')>Denak</option>
-                                    <option value="done" @selected(($selectedCompletedFilter ?? 'all') === 'done')>Eginda</option>
-                                    <option value="pending" @selected(($selectedCompletedFilter ?? 'all') === 'pending')>Egin gabe</option>
-                                </select>
-                            @endauth
-
-                            <div class="kilter-form-actions">
-                                <button type="button" class="icon-btn kilter-icon-action" id="apply-more-filters" aria-label="Aplikatu iragazkiak" title="Aplikatu">
-                                    ✓
-                                </button>
-                                <button type="button" class="icon-btn kilter-icon-action" id="cancel-more-filters" aria-label="Utzi aldaketak" title="Utzi">
-                                    ×
-                                </button>
-                            </div>
-                        </div>
-                    </details>
-
-                    <details class="extra-filter-box order-filter-box {{ $orderFilterActive ? 'is-active' : '' }}">
-                        <summary class="order-filter-trigger" id="open-order-modal">⇅</summary>
-                    </details>
+                    <button type="button" class="extra-filter-box order-filter-box {{ $orderFilterActive ? 'is-active' : '' }}" id="open-order-modal" aria-label="Ordenatu" title="Ordenatu">⇅</button>
 
                     <a
                         class="btn btn-secondary clear-filters-btn {{ $filtersActive ? '' : 'is-disabled' }}"
@@ -270,6 +175,117 @@
     </div>
 </div>
 
+<div class="modal-shell hidden-modal" id="grade-filter-modal" role="dialog" aria-modal="true" aria-labelledby="grade-filter-modal-title">
+    <div class="modal-card kilter-filter-modal-card">
+        <div class="modal-head">
+            <h2 id="grade-filter-modal-title">Gradua</h2>
+            <button type="button" class="icon-btn" id="close-grade-filter-modal" aria-label="Itxi leihoa">×</button>
+        </div>
+        <div class="grade-check-list">
+            @foreach($groupedGrades as $group => $list)
+                @php
+                    $groupId = 'grade_group_'.$group;
+                    $normalizedGroupGrades = array_map(static fn (string $grade): string => strtolower($grade), $list);
+                    $checkedInGroup = count(array_intersect($normalizedGroupGrades, $selectedGrades));
+                    $allGroupChecked = count($normalizedGroupGrades) > 0 && $checkedInGroup === count($normalizedGroupGrades);
+                    $someGroupChecked = $checkedInGroup > 0 && !$allGroupChecked;
+                @endphp
+                <div class="grade-group-title">
+                    <div class="grade-check-item grade-check-item-group">
+                        <input
+                            id="{{ $groupId }}"
+                            class="grade-group-checkbox"
+                            type="checkbox"
+                            data-grade-group="{{ $group }}"
+                            @checked($allGroupChecked)
+                            @if($someGroupChecked) data-indeterminate="true" @endif
+                        >
+                        <label for="{{ $groupId }}">{{ $romanMap[$group] ?? $group }}</label>
+                    </div>
+                </div>
+                @foreach($list as $g)
+                    @php
+                        $gradeId = 'grade_'.strtolower(str_replace('+', '_plus', $g));
+                        $gradeValue = strtolower($g);
+                    @endphp
+                    <div class="grade-check-item">
+                        <input
+                            id="{{ $gradeId }}"
+                            class="grade-option-checkbox"
+                            type="checkbox"
+                            name="grade[]"
+                            value="{{ $gradeValue }}"
+                            data-grade-group="{{ $group }}"
+                            form="kilter-filter-form"
+                            @checked(in_array($gradeValue, $selectedGrades, true))
+                        >
+                        <label for="{{ $gradeId }}">{{ strtoupper($g) }}</label>
+                    </div>
+                @endforeach
+            @endforeach
+        </div>
+        <div class="kilter-form-actions">
+            <button type="button" class="icon-btn kilter-icon-action" id="apply-grade-filters" aria-label="Aplikatu graduak" title="Aplikatu">✓</button>
+            <button type="button" class="icon-btn kilter-icon-action" id="cancel-grade-filters" aria-label="Utzi graduak" title="Utzi">×</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-shell hidden-modal" id="more-filter-modal" role="dialog" aria-modal="true" aria-labelledby="more-filter-modal-title">
+    <div class="modal-card kilter-filter-modal-card">
+        <div class="modal-head">
+            <h2 id="more-filter-modal-title">Iragazkiak</h2>
+            <button type="button" class="icon-btn" id="close-more-filter-modal" aria-label="Itxi leihoa">×</button>
+        </div>
+        <div class="kilter-form extra-filter-panel">
+            <label for="q-filter">Izena</label>
+            <input
+                id="q-filter"
+                type="text"
+                name="q"
+                value="{{ $search }}"
+                placeholder="Bilatu blokea izenaren arabera..."
+                form="kilter-filter-form"
+            >
+
+            <label for="location-filter">Kokapena</label>
+            <select id="location-filter" name="location" form="kilter-filter-form">
+                <option value="">Denak</option>
+                @foreach($locations as $location)
+                    <option value="{{ $location }}" @selected($selectedLocation === $location)>{{ $location }}</option>
+                @endforeach
+            </select>
+
+            <label for="creator-filter">Erabiltzailea</label>
+            <select id="creator-filter" name="creator" form="kilter-filter-form">
+                <option value="">Denak</option>
+                @foreach($creators as $creator)
+                    <option
+                        value="{{ $creator->id }}"
+                        @selected($selectedCreator !== null && (int) $creator->id === (int) $selectedCreator)
+                    >
+                        {{ $creator->name }}
+                    </option>
+                @endforeach
+            </select>
+
+            @auth
+                <label for="completed-filter">Egoera</label>
+                <select id="completed-filter" name="completed" form="kilter-filter-form">
+                    <option value="all" @selected(($selectedCompletedFilter ?? 'all') === 'all')>Denak</option>
+                    <option value="done" @selected(($selectedCompletedFilter ?? 'all') === 'done')>Eginda</option>
+                    <option value="pending" @selected(($selectedCompletedFilter ?? 'all') === 'pending')>Egin gabe</option>
+                </select>
+            @endauth
+
+            <div class="kilter-form-actions">
+                <button type="button" class="icon-btn kilter-icon-action" id="apply-more-filters" aria-label="Aplikatu iragazkiak" title="Aplikatu">✓</button>
+                <button type="button" class="icon-btn kilter-icon-action" id="cancel-more-filters" aria-label="Utzi aldaketak" title="Utzi">×</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="modal-shell hidden-modal" id="order-modal" role="dialog" aria-modal="true" aria-labelledby="order-modal-title">
     <div class="modal-card">
         <div class="modal-head">
@@ -300,15 +316,20 @@
 
     <script>
         (function () {
-            const filterDetails = document.querySelectorAll('.grade-filter-box, .extra-filter-box');
             const filterForm = document.getElementById('kilter-filter-form');
-            const gradeDetails = document.querySelector('.grade-filter-box');
+            const gradeModal = document.getElementById('grade-filter-modal');
+            const openGrade = document.getElementById('open-grade-filter-modal');
+            const closeGrade = document.getElementById('close-grade-filter-modal');
+            const cancelGrade = document.getElementById('cancel-grade-filters');
+            const applyGrade = document.getElementById('apply-grade-filters');
             const gradeCheckboxes = Array.from(document.querySelectorAll('.grade-option-checkbox'));
             const gradeGroupCheckboxes = Array.from(document.querySelectorAll('.grade-group-checkbox'));
-            const moreFilterDetails = document.getElementById('more-filter-details');
+            const moreFilterModal = document.getElementById('more-filter-modal');
+            const openMoreFilters = document.getElementById('open-more-filter-modal');
+            const closeMoreFilters = document.getElementById('close-more-filter-modal');
             const applyMoreFilters = document.getElementById('apply-more-filters');
             const cancelMoreFilters = document.getElementById('cancel-more-filters');
-            const moreFilterFields = Array.from(document.querySelectorAll('#more-filter-details input[name=\"q\"], #more-filter-details select[name=\"location\"], #more-filter-details select[name=\"creator\"], #more-filter-details select[name=\"completed\"]'));
+            const moreFilterFields = Array.from(document.querySelectorAll('#more-filter-modal input[name="q"], #more-filter-modal select[name="location"], #more-filter-modal select[name="creator"], #more-filter-modal select[name="completed"]'));
             const orderModal = document.getElementById('order-modal');
             const openOrder = document.getElementById('open-order-modal');
             const closeOrder = document.getElementById('close-order-modal');
@@ -318,14 +339,6 @@
             const orderDirSelect = document.getElementById('order-dir-select');
             const orderFieldInput = document.getElementById('order-field-input');
             const orderDirInput = document.getElementById('order-dir-input');
-
-            document.addEventListener('click', (event) => {
-                filterDetails.forEach((detailsEl) => {
-                    if (!detailsEl?.open) return;
-                    if (detailsEl.contains(event.target)) return;
-                    detailsEl.open = false;
-                });
-            });
 
             function submitFilterForm() {
                 if (!filterForm) return;
@@ -352,6 +365,23 @@
                 parent.indeterminate = checkedCount > 0 && checkedCount < children.length;
             }
 
+            function updateAllGradeGroupStates() {
+                gradeGroupCheckboxes.forEach((checkbox) => updateGradeGroupState(checkbox.dataset.gradeGroup || ''));
+            }
+
+            function resetGradeControls() {
+                gradeCheckboxes.forEach((checkbox) => {
+                    checkbox.checked = checkbox.dataset.initialChecked === 'true';
+                });
+                updateAllGradeGroupStates();
+            }
+
+            function resetMoreFilterControls() {
+                moreFilterFields.forEach((field) => {
+                    field.value = field.dataset.initialValue ?? '';
+                });
+            }
+
             gradeGroupCheckboxes.forEach((checkbox) => {
                 if (checkbox.dataset.indeterminate === 'true') {
                     checkbox.indeterminate = true;
@@ -364,22 +394,15 @@
                             child.checked = checkbox.checked;
                         }
                     });
-                    checkbox.indeterminate = false;
-                    if (gradeDetails) {
-                        gradeDetails.open = false;
-                    }
-                    submitFilterForm();
+                    updateGradeGroupState(group);
                 });
             });
 
             gradeCheckboxes.forEach((checkbox) => {
+                checkbox.dataset.initialChecked = checkbox.checked ? 'true' : 'false';
                 checkbox.addEventListener('change', () => {
                     const group = checkbox.dataset.gradeGroup || '';
                     updateGradeGroupState(group);
-                    if (gradeDetails) {
-                        gradeDetails.open = false;
-                    }
-                    submitFilterForm();
                 });
             });
 
@@ -397,12 +420,53 @@
                 document.body.style.overflow = '';
             }
 
+            if (openGrade && gradeModal) {
+                openGrade.addEventListener('click', () => {
+                    resetGradeControls();
+                    openModal(gradeModal);
+                });
+                closeGrade?.addEventListener('click', () => {
+                    resetGradeControls();
+                    closeModal(gradeModal);
+                });
+                cancelGrade?.addEventListener('click', () => {
+                    resetGradeControls();
+                    closeModal(gradeModal);
+                });
+                gradeModal.addEventListener('click', (event) => {
+                    if (event.target === gradeModal) {
+                        resetGradeControls();
+                        closeModal(gradeModal);
+                    }
+                });
+                applyGrade?.addEventListener('click', submitFilterForm);
+            }
+
+            if (openMoreFilters && moreFilterModal) {
+                openMoreFilters.addEventListener('click', () => {
+                    resetMoreFilterControls();
+                    openModal(moreFilterModal);
+                });
+                closeMoreFilters?.addEventListener('click', () => {
+                    resetMoreFilterControls();
+                    closeModal(moreFilterModal);
+                });
+                cancelMoreFilters?.addEventListener('click', () => {
+                    resetMoreFilterControls();
+                    closeModal(moreFilterModal);
+                });
+                moreFilterModal.addEventListener('click', (event) => {
+                    if (event.target === moreFilterModal) {
+                        resetMoreFilterControls();
+                        closeModal(moreFilterModal);
+                    }
+                });
+                applyMoreFilters?.addEventListener('click', submitFilterForm);
+            }
+
             if (openOrder && orderModal) {
                 openOrder.addEventListener('click', (event) => {
                     event.preventDefault();
-                    if (openOrder.closest('details')) {
-                        openOrder.closest('details').open = false;
-                    }
                     resetOrderControls();
                     openModal(orderModal);
                 });
@@ -430,22 +494,6 @@
                     submitFilterForm();
                 });
             }
-
-            applyMoreFilters?.addEventListener('click', () => {
-                if (moreFilterDetails) {
-                    moreFilterDetails.open = false;
-                }
-                submitFilterForm();
-            });
-
-            cancelMoreFilters?.addEventListener('click', () => {
-                moreFilterFields.forEach((field) => {
-                    field.value = field.dataset.initialValue ?? '';
-                });
-                if (moreFilterDetails) {
-                    moreFilterDetails.open = false;
-                }
-            });
 
             const viewer = document.getElementById('boulder-viewer');
             const closeBtn = document.getElementById('close-boulder-viewer');
