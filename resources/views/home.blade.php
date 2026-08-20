@@ -56,19 +56,21 @@
     })->values();
 @endphp
 
-<a class="shop-krokis-chip" href="{{ route('shop') }}" aria-label="Ogoño krokis berria dendan">
-    <span class="shop-krokis-chip-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24" focusable="false">
-            <path d="M6 6h13l-1.6 8H8z"></path>
-            <path d="M4 4h2l1 2"></path>
-            <path d="M10 19a1 1 0 1 0 0 2 1 1 0 0 0 0-2Z"></path>
-            <path d="M16 19a1 1 0 1 0 0 2 1 1 0 0 0 0-2Z"></path>
-        </svg>
-    </span>
-    <span class="shop-krokis-chip-copy">
-        <strong>Ogoño krokis</strong>
-    </span>
-</a>
+@if(config('shop.krokis_enabled', false))
+    <a class="shop-krokis-chip" href="{{ route('shop') }}" aria-label="Ogoño krokis berria dendan">
+        <span class="shop-krokis-chip-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" focusable="false">
+                <path d="M6 6h13l-1.6 8H8z"></path>
+                <path d="M4 4h2l1 2"></path>
+                <path d="M10 19a1 1 0 1 0 0 2 1 1 0 0 0 0-2Z"></path>
+                <path d="M16 19a1 1 0 1 0 0 2 1 1 0 0 0 0-2Z"></path>
+            </svg>
+        </span>
+        <span class="shop-krokis-chip-copy">
+            <strong>Ogoño krokis</strong>
+        </span>
+    </a>
+@endif
 
 <a class="kilter-spotlight" href="{{ route('kilter') }}">
     <p class="eyebrow">Atal nagusia</p>

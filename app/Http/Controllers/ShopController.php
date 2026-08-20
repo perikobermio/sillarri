@@ -139,7 +139,7 @@ class ShopController extends Controller
 
     private function catalog(): array
     {
-        return [
+        $catalog = [
             'biserak' => [
                 'name' => 'Biserak',
                 'price' => 15,
@@ -211,6 +211,12 @@ class ShopController extends Controller
                 ],
             ],
         ];
+
+        if (!config('shop.krokis_enabled', false)) {
+            unset($catalog['ogono-krokis']);
+        }
+
+        return $catalog;
     }
 
     private function normalizeColor(mixed $color): string

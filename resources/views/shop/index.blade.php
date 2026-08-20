@@ -3,6 +3,7 @@
 @section('content')
 <div class="shop-page" id="shopPage">
 @php
+    $krokisEnabled = config('shop.krokis_enabled', false);
     $colors = [
         ['code' => 'BK', 'label' => 'Black', 'hex' => '#1b1b1b'],
         ['code' => 'WH', 'label' => 'White', 'hex' => '#f3f2ee'],
@@ -135,25 +136,6 @@
 
     $products = [
         [
-            'name' => 'Ogoño krokis',
-            'price' => 20,
-            'note' => 'Ogoñoko bideen krokis gida, poltsan eramateko formatuan.',
-            'id' => 'ogono-krokis',
-            'show_color' => false,
-            'show_size' => false,
-            'images' => [
-                '/images/sillarri_belaidxe.png',
-            ],
-            'variants' => [
-                [
-                    'id' => 'default',
-                    'label' => 'Liburua',
-                    'sizes' => ['UNI'],
-                    'colors' => ['NAT'],
-                ],
-            ],
-        ],
-        [
             'name' => 'Biserak',
             'price' => 15,
             'note' => 'Eskalada eta eguneroko estiloa.',
@@ -254,6 +236,28 @@
             ],
         ],
     ];
+
+    if ($krokisEnabled) {
+        array_unshift($products, [
+            'name' => 'Ogoño krokis',
+            'price' => 20,
+            'note' => 'Ogoñoko bideen krokis gida, poltsan eramateko formatuan.',
+            'id' => 'ogono-krokis',
+            'show_color' => false,
+            'show_size' => false,
+            'images' => [
+                '/images/sillarri_belaidxe.png',
+            ],
+            'variants' => [
+                [
+                    'id' => 'default',
+                    'label' => 'Liburua',
+                    'sizes' => ['UNI'],
+                    'colors' => ['NAT'],
+                ],
+            ],
+        ]);
+    }
 
 @endphp
 
