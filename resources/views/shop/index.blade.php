@@ -135,6 +135,25 @@
 
     $products = [
         [
+            'name' => 'Ogoño krokis',
+            'price' => 20,
+            'note' => 'Ogoñoko bideen krokis gida, poltsan eramateko formatuan.',
+            'id' => 'ogono-krokis',
+            'show_color' => false,
+            'show_size' => false,
+            'images' => [
+                '/images/sillarri_belaidxe.png',
+            ],
+            'variants' => [
+                [
+                    'id' => 'default',
+                    'label' => 'Liburua',
+                    'sizes' => ['UNI'],
+                    'colors' => ['NAT'],
+                ],
+            ],
+        ],
+        [
             'name' => 'Biserak',
             'price' => 15,
             'note' => 'Eskalada eta eguneroko estiloa.',
@@ -217,6 +236,8 @@
             'price' => 25,
             'note' => 'Hotzerako geruza erosoa.',
             'id' => 'sudaderie',
+            'show_color' => true,
+            'show_size' => true,
             'images' => [
                 '/images/shop/suda_front_2.png',
                 '/images/shop/suda_back_2.png',
@@ -279,35 +300,39 @@
                         </select>
                     </label>
                 @endif
-                <label>
-                    Kolorea
-                    <select data-color class="shop-color-select map-select-hidden">
-                        @foreach($defaultVariant['colors'] as $colorCode)
-                            @php
-                                $color = collect($colors)->firstWhere('code', $colorCode);
-                            @endphp
-                            @if($color)
-                                <option value="{{ $color['code'] }}">{{ $color['label'] }} ({{ $color['code'] }})</option>
-                            @endif
-                        @endforeach
-                    </select>
-                    <div class="shop-color-picker" data-color-picker>
-                        <button type="button" class="shop-color-trigger" data-color-trigger aria-haspopup="listbox" aria-expanded="false">
-                            <span class="shop-color-swatch" data-color-swatch aria-hidden="true"></span>
-                            <span data-color-label>Kolorea hautatu</span>
-                            <span class="shop-color-caret" aria-hidden="true">▾</span>
-                        </button>
-                        <div class="shop-color-list" data-color-list role="listbox" aria-label="Koloreak"></div>
-                    </div>
-                </label>
-                <label>
-                    Talla
-                    <select data-size>
-                        @foreach($defaultVariant['sizes'] as $size)
-                            <option value="{{ $size }}">{{ $size === 'UNI' ? 'Talla bakarra' : $size }}</option>
-                        @endforeach
-                    </select>
-                </label>
+                @if($product['show_color'] ?? true)
+                    <label>
+                        Kolorea
+                        <select data-color class="shop-color-select map-select-hidden">
+                            @foreach($defaultVariant['colors'] as $colorCode)
+                                @php
+                                    $color = collect($colors)->firstWhere('code', $colorCode);
+                                @endphp
+                                @if($color)
+                                    <option value="{{ $color['code'] }}">{{ $color['label'] }} ({{ $color['code'] }})</option>
+                                @endif
+                            @endforeach
+                        </select>
+                        <div class="shop-color-picker" data-color-picker>
+                            <button type="button" class="shop-color-trigger" data-color-trigger aria-haspopup="listbox" aria-expanded="false">
+                                <span class="shop-color-swatch" data-color-swatch aria-hidden="true"></span>
+                                <span data-color-label>Kolorea hautatu</span>
+                                <span class="shop-color-caret" aria-hidden="true">▾</span>
+                            </button>
+                            <div class="shop-color-list" data-color-list role="listbox" aria-label="Koloreak"></div>
+                        </div>
+                    </label>
+                @endif
+                @if($product['show_size'] ?? true)
+                    <label>
+                        Talla
+                        <select data-size>
+                            @foreach($defaultVariant['sizes'] as $size)
+                                <option value="{{ $size }}">{{ $size === 'UNI' ? 'Talla bakarra' : $size }}</option>
+                            @endforeach
+                        </select>
+                    </label>
+                @endif
                 <label>
                     Kopurua
                     <input data-qty type="number" min="1" max="10" value="1">
@@ -396,6 +421,15 @@
             return /^\d+-\d+$/.test(String(size)) ? `${size} urte` : size;
         }
 
+        function buildItemMeta(item) {
+            const parts = [];
+            if (item.variantLabel) parts.push(`Modeloa: ${item.variantLabel}`);
+            if (item.hasColorOption) parts.push(`Kolorea: ${item.colorLabel || item.color}`);
+            if (item.hasSizeOption) parts.push(`Talla: ${item.sizeLabel || item.size}`);
+            parts.push(`Kopurua: ${item.qty}`);
+            return parts.join(' · ');
+        }
+
         function renderCart() {
             if (!cart.length) {
                 cartEl.innerHTML = '<div class="shop-cart-empty">Oraindik ez dago produkturik.</div>';
@@ -415,7 +449,7 @@
                             <span>${formatPrice(item.price * item.qty)}</span>
                         </div>
                         <div class="shop-cart-meta">
-                            ${item.variantLabel ? `Modeloa: ${item.variantLabel} · ` : ''}Kolorea: ${item.colorLabel || item.color} · Talla: ${item.sizeLabel || item.size} · Kopurua: ${item.qty}
+                            ${buildItemMeta(item)}
                             <button type="button" class="btn btn-secondary shop-action-btn inline-remove" data-remove="${index}" aria-label="Kendu">
                                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7h12l-1 14H7L6 7zm3-3h6l1 2H8l1-2z"/></svg>
                                 <span class="btn-text">Kendu</span>
@@ -466,7 +500,7 @@
             const lines = cart.map((item) => {
                 const lineTotal = item.price * item.qty;
                 total += lineTotal;
-                return `<li>${item.name}${item.variantLabel ? ` · ${item.variantLabel}` : ''} · ${item.colorLabel || item.color} · ${item.sizeLabel || item.size} · x${item.qty} <strong>${formatPrice(lineTotal)}</strong></li>`;
+                return `<li>${item.name} · ${buildItemMeta(item)} <strong>${formatPrice(lineTotal)}</strong></li>`;
             }).join('');
             confirmBody.innerHTML = `
                 <ul class="shop-confirm-list">${lines}</ul>
@@ -568,14 +602,18 @@
             const activeVariant = getVariant(product, variantSelect?.value || product.variants[0].id);
             if (!activeVariant) return;
 
-            fillSelect(
-                sizeSelect,
-                activeVariant.sizes,
-                (size) => size === 'UNI' ? 'Talla bakarra' : formatSizeLabel(size),
-                sizeSelect?.value
-            );
+            if (sizeSelect) {
+                fillSelect(
+                    sizeSelect,
+                    activeVariant.sizes,
+                    (size) => size === 'UNI' ? 'Talla bakarra' : formatSizeLabel(size),
+                    sizeSelect?.value
+                );
+            }
 
-            renderColorPicker(card, activeVariant.colors, colorSelect?.value);
+            if (colorSelect) {
+                renderColorPicker(card, activeVariant.colors, colorSelect?.value);
+            }
         }
 
         document.querySelectorAll('[data-add]').forEach((btn) => {
@@ -609,8 +647,10 @@
                 const variantSelect = card.querySelector('[data-variant]');
                 const variant = getVariant(product, variantSelect?.value || product.variants[0].id);
                 if (!variant) return;
-                const color = card.querySelector('[data-color]')?.value || variant.colors[0];
-                const size = card.querySelector('[data-size]')?.value || 'M';
+                const hasColorOption = product.show_color !== false;
+                const hasSizeOption = product.show_size !== false;
+                const color = hasColorOption ? (card.querySelector('[data-color]')?.value || variant.colors[0]) : '';
+                const size = hasSizeOption ? (card.querySelector('[data-size]')?.value || 'M') : '';
                 const qtyValue = card.querySelector('[data-qty]')?.value || 1;
                 const qty = Math.max(1, Number(qtyValue));
                 const colorInfo = colorMeta[color] || null;
@@ -623,8 +663,10 @@
                     variantLabel: product.variants.length > 1 ? variant.label : '',
                     color,
                     colorLabel: colorInfo?.label || color,
+                    hasColorOption,
                     size,
                     sizeLabel: formatSizeLabel(size),
+                    hasSizeOption,
                 });
                 renderCart();
                 showToast('Produktua saskira gehituta');

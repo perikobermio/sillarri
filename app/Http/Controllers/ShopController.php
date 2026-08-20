@@ -51,6 +51,8 @@ class ShopController extends Controller
             $variantId = (string) ($item['variant'] ?? array_key_first($product['variants']));
             $variant = $product['variants'][$variantId] ?? null;
             $color = $this->normalizeColor(data_get($request->input('items', []), $index.'.color', ''));
+            $showColor = (bool) ($product['show_color'] ?? true);
+            $showSize = (bool) ($product['show_size'] ?? true);
 
             if (!is_array($variant)) {
                 return response()->json(['message' => 'Modelo ez da zuzena.'], 422);
@@ -71,8 +73,8 @@ class ShopController extends Controller
                 'name' => $displayName,
                 'product_id' => $item['id'],
                 'variant' => $variantId,
-                'color' => $color,
-                'size' => $item['size'],
+                'color' => $showColor ? $color : '',
+                'size' => $showSize ? $item['size'] : '',
                 'qty' => $item['qty'],
                 'unit_price' => $product['price'],
                 'line_total' => $lineTotal,
@@ -185,11 +187,26 @@ class ShopController extends Controller
             'sudaderie' => [
                 'name' => 'Sudaderie',
                 'price' => 25,
+                'show_color' => true,
+                'show_size' => true,
                 'variants' => [
                     'adult' => [
                         'label' => 'Adulto',
                         'sizes' => ['3-4', '5-6', '7-8', '9-11', '12-14', 'XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'],
                         'colors' => ['WH', 'BK', 'SGR', 'NV', 'RBL', 'RD', 'NAT', 'UBK', 'DGY', 'PGR', 'NVB', 'CBL', 'MLI', 'SWP', 'ATL', 'SKB', 'DBL', 'STB', 'RPU', 'UPU', 'FRD', 'UOR', 'OR', 'SBT', 'SOR', 'OPK', 'BRG', 'OGR', 'PXL', 'MMT', 'KGR', 'BGR', 'SYL', 'GLD', 'BRN', 'CHO', 'ASH', 'UKH', 'SND', 'APR'],
+                    ],
+                ],
+            ],
+            'ogono-krokis' => [
+                'name' => 'Ogoño krokis',
+                'price' => 20,
+                'show_color' => false,
+                'show_size' => false,
+                'variants' => [
+                    'default' => [
+                        'label' => 'Liburua',
+                        'sizes' => ['UNI'],
+                        'colors' => ['NAT'],
                     ],
                 ],
             ],

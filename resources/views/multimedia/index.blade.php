@@ -70,18 +70,17 @@
     </div>
 </section>
 
-<div class="modal-shell hidden-modal" id="media-lightbox" role="dialog" aria-modal="true" aria-labelledby="media-lightbox-title">
-    <div class="modal-card modal-card-xl">
-        <div class="modal-head">
-            <h2 id="media-lightbox-title">Argazkia</h2>
-            <button type="button" class="btn btn-secondary" id="media-lightbox-close">Itzuli</button>
+<div class="modal-shell hidden-modal image-lightbox-modal" id="media-lightbox" role="dialog" aria-modal="true" aria-labelledby="media-lightbox-title">
+    <div class="modal-card image-lightbox-card">
+        <button type="button" class="image-lightbox-close" id="media-lightbox-close" aria-label="Itxi">×</button>
+        <button type="button" class="image-lightbox-nav prev" id="media-lightbox-prev" aria-label="Aurrekoa">‹</button>
+        <button type="button" class="image-lightbox-nav next" id="media-lightbox-next" aria-label="Hurrengoa">›</button>
+        <div class="image-lightbox-stage">
+            <img id="media-lightbox-image" class="image-lightbox-image" alt="Argazkia">
         </div>
-        <div class="media-lightbox-body">
-            <img id="media-lightbox-image" alt="Argazkia">
-            <div class="media-lightbox-text">
-                <h3 id="media-lightbox-caption"></h3>
-                <p id="media-lightbox-description"></p>
-            </div>
+        <div class="image-lightbox-caption">
+            <h2 id="media-lightbox-title">Argazkia</h2>
+            <p id="media-lightbox-description"></p>
         </div>
     </div>
 </div>
@@ -91,38 +90,35 @@
         const buttons = document.querySelectorAll('.multimedia-thumb');
         const modal = document.getElementById('media-lightbox');
         const closeBtn = document.getElementById('media-lightbox-close');
+        const prevBtn = document.getElementById('media-lightbox-prev');
+        const nextBtn = document.getElementById('media-lightbox-next');
         const image = document.getElementById('media-lightbox-image');
-        const caption = document.getElementById('media-lightbox-caption');
         const description = document.getElementById('media-lightbox-description');
         const title = document.getElementById('media-lightbox-title');
 
-        if (!modal || !image || !caption || !description || !title) return;
+        if (!modal || !image || !description || !title || !buttons.length) return;
 
-        function openModal(data) {
-            image.src = data.image;
-            caption.textContent = data.title || 'Argazkia';
-            description.textContent = data.description || '';
-            title.textContent = data.title || 'Argazkia';
-            modal.classList.remove('hidden-modal');
-        }
+        const items = Array.from(buttons).map((button) => ({
+            image: button.dataset.image || '',
+            title: button.dataset.title || 'Argazkia',
+            description: button.dataset.description || '',
+        }));
 
-        function closeModal() {
-            modal.classList.add('hidden-modal');
-        }
-
-        buttons.forEach((button) => {
-            button.addEventListener('click', () => {
-                openModal({
-                    image: button.dataset.image,
-                    title: button.dataset.title,
-                    description: button.dataset.description,
-                });
-            });
+        const lightbox = window.initImageLightbox?.({
+            modal,
+            image,
+            title,
+            description,
+            prevBtn,
+            nextBtn,
+            closeBtn,
+            items,
         });
 
-        closeBtn?.addEventListener('click', closeModal);
-        modal.addEventListener('click', (event) => {
-            if (event.target === modal) closeModal();
+        if (!lightbox) return;
+
+        buttons.forEach((button, index) => {
+            button.addEventListener('click', () => lightbox.open(index));
         });
     })();
 </script>

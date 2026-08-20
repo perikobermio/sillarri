@@ -526,7 +526,7 @@
             button.addEventListener('click', () => {
                 const items = JSON.parse(button.dataset.items || '[]');
                 const itemsMarkup = items.map((item) => `
-                    <li>${escapeHtml(item.name)} · ${escapeHtml(item.color)} · ${escapeHtml(item.size)} · x${escapeHtml(item.qty)} <strong>${escapeHtml(item.line_total)} €</strong></li>
+                    <li>${escapeHtml(item.name)}${item.color ? ` · Kolorea: ${escapeHtml(item.color)}` : ''}${item.size ? ` · Talla: ${escapeHtml(item.size)}` : ''} · x${escapeHtml(item.qty)} <strong>${escapeHtml(item.line_total)} €</strong></li>
                 `).join('');
                 const notes = button.dataset.notes ? `
                     <div class="admin-order-section">

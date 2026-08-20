@@ -56,11 +56,32 @@
     })->values();
 @endphp
 
+<a class="shop-krokis-chip" href="{{ route('shop') }}" aria-label="Ogoño krokis berria dendan">
+    <span class="shop-krokis-chip-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" focusable="false">
+            <path d="M6 6h13l-1.6 8H8z"></path>
+            <path d="M4 4h2l1 2"></path>
+            <path d="M10 19a1 1 0 1 0 0 2 1 1 0 0 0 0-2Z"></path>
+            <path d="M16 19a1 1 0 1 0 0 2 1 1 0 0 0 0-2Z"></path>
+        </svg>
+    </span>
+    <span class="shop-krokis-chip-copy">
+        <strong>Ogoño krokis</strong>
+    </span>
+</a>
+
 <a class="kilter-spotlight" href="{{ route('kilter') }}">
     <p class="eyebrow">Atal nagusia</p>
     <h2>KILTER</h2>
     <p>Plaka eta desplome saioak, ranking-a, entrenamendua eta asteko erronkak.</p>
     <span>KILTER atalera sartu</span>
+</a>
+
+<a class="txosna-spotlight" href="{{ route('eskalada-txosneroa') }}">
+    <p class="eyebrow">Urteroko jaia</p>
+    <h2>Eskalada Txosneroa</h2>
+    <p>Umeek kaxaz osatutako dorrea eskalatzen dute, festa giroan, erronka beraiek handitzen duten bitartean.</p>
+    <span>Eskalada Txosneroaren atalera sartu</span>
 </a>
 
 <a class="denda-spotlight" href="{{ route('shop') }}">
@@ -145,21 +166,17 @@
     </div>
 </section>
 
-<div class="modal-shell hidden-modal" id="hero-gallery-modal" role="dialog" aria-modal="true" aria-labelledby="hero-gallery-title">
-    <div class="modal-card modal-card-xl">
-        <div class="modal-head">
-            <h2 id="hero-gallery-title">Argazkia</h2>
-            <button type="button" class="btn btn-secondary" id="hero-gallery-close">Itzuli</button>
+<div class="modal-shell hidden-modal image-lightbox-modal" id="hero-gallery-modal" role="dialog" aria-modal="true" aria-labelledby="hero-gallery-title">
+    <div class="modal-card image-lightbox-card">
+        <button type="button" class="image-lightbox-close" id="hero-gallery-close" aria-label="Itxi">×</button>
+        <button type="button" class="image-lightbox-nav prev" id="hero-gallery-prev" aria-label="Aurrekoa">‹</button>
+        <button type="button" class="image-lightbox-nav next" id="hero-gallery-next" aria-label="Hurrengoa">›</button>
+        <div class="image-lightbox-stage">
+            <img id="hero-gallery-image" class="image-lightbox-image" alt="Argazkia">
         </div>
-        <div class="media-lightbox-body">
-            <img id="hero-gallery-image" alt="Argazkia">
-            <div class="media-lightbox-text">
-                <p id="hero-gallery-desc"></p>
-                <div class="hero-gallery-controls">
-                    <button type="button" class="btn btn-secondary" id="hero-gallery-prev">Aurrekoa</button>
-                    <button type="button" class="btn btn-secondary" id="hero-gallery-next">Hurrengoa</button>
-                </div>
-            </div>
+        <div class="image-lightbox-caption">
+            <h2 id="hero-gallery-title">Argazkia</h2>
+            <p id="hero-gallery-desc"></p>
         </div>
     </div>
 </div>
@@ -244,33 +261,23 @@
         const heroPrev = document.getElementById('hero-gallery-prev');
         const heroNext = document.getElementById('hero-gallery-next');
         const heroClose = document.getElementById('hero-gallery-close');
+        const heroLightbox = window.initImageLightbox?.({
+            modal: heroModal,
+            image: heroModalImage,
+            title: heroModalTitle,
+            description: heroModalDesc,
+            prevBtn: heroPrev,
+            nextBtn: heroNext,
+            closeBtn: heroClose,
+            items: heroImages.map((item) => ({
+                image: item.url,
+                title: item.title || 'Argazkia',
+                description: item.description || '',
+            })),
+        });
 
-        function openHeroModal(index) {
-            if (!heroModal || !heroModalImage || !heroImages.length) return;
-            heroIndex = index;
-            const item = heroImages[heroIndex];
-            heroModalImage.src = item.url;
-            heroModalTitle.textContent = item.title || 'Argazkia';
-            heroModalDesc.textContent = item.description || '';
-            heroModal.classList.remove('hidden-modal');
-        }
-
-        function closeHeroModal() {
-            heroModal?.classList.add('hidden-modal');
-        }
-
-        function stepHero(direction) {
-            if (!heroImages.length) return;
-            heroIndex = (heroIndex + direction + heroImages.length) % heroImages.length;
-            openHeroModal(heroIndex);
-        }
-
-        heroCard?.addEventListener('click', () => openHeroModal(heroIndex));
-        heroPrev?.addEventListener('click', () => stepHero(-1));
-        heroNext?.addEventListener('click', () => stepHero(1));
-        heroClose?.addEventListener('click', closeHeroModal);
-        heroModal?.addEventListener('click', (event) => {
-            if (event.target === heroModal) closeHeroModal();
+        heroCard?.addEventListener('click', () => {
+            heroLightbox?.open(heroIndex);
         });
 
         const weatherBaseUrl = "{{ route('weather') }}";

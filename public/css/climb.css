@@ -540,12 +540,6 @@ button.is-loading > * {
   opacity: 1;
 }
 
-.hero-gallery-controls {
-  margin-top: 0.8rem;
-  display: flex;
-  gap: 0.6rem;
-}
-
 .card-overlay {
   position: absolute;
   left: 0;
@@ -553,6 +547,78 @@ button.is-loading > * {
   bottom: 0;
   padding: 1rem;
   background: linear-gradient(to top, rgba(10, 10, 10, 0.8), rgba(10, 10, 10, 0));
+}
+
+.shop-krokis-chip {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  z-index: 180;
+  width: 92px;
+  height: 122px;
+  display: grid;
+  justify-items: start;
+  align-content: end;
+  gap: 0.35rem;
+  padding: 1rem 0.5rem 0.52rem 0.45rem;
+  clip-path: polygon(0 100%, 0 0, 100% 100%);
+  background: linear-gradient(135deg, rgba(56, 34, 18, 0.96), rgba(24, 20, 16, 0.92));
+  color: var(--text);
+  text-decoration: none;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.24);
+}
+
+.shop-krokis-chip-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: rgba(240, 139, 62, 0.16);
+  box-shadow: 0 0 0 rgba(240, 139, 62, 0.5);
+  animation: krokis-pulse 1.7s ease-out infinite;
+}
+
+.shop-krokis-chip-icon svg {
+  width: 14px;
+  height: 14px;
+  stroke: #ffd7b4;
+  fill: none;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.shop-krokis-chip-copy {
+  display: block;
+  line-height: 1;
+  text-align: left;
+}
+
+.shop-krokis-chip-copy strong {
+  display: block;
+  max-width: 62px;
+  font-size: 0.62rem;
+  color: #fff1de;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.shop-krokis-chip-copy span {
+  font-size: 0.68rem;
+  color: rgba(246, 241, 232, 0.72);
+}
+
+@keyframes krokis-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(240, 139, 62, 0.45);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(240, 139, 62, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(240, 139, 62, 0);
+  }
 }
 
 .feature-grid {
@@ -755,6 +821,61 @@ button.is-loading > * {
   padding: 1.4rem;
   background: linear-gradient(120deg, rgba(20, 18, 16, 0.8), rgba(46, 32, 22, 0.7));
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+}
+
+.txosna-spotlight {
+  margin-top: 1.4rem;
+  display: block;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  text-decoration: none;
+  color: var(--text);
+  border-radius: 22px;
+  border: 1px solid rgba(255, 194, 102, 0.42);
+  padding: 1.4rem;
+  background:
+    radial-gradient(circle at 18% 22%, rgba(255, 194, 102, 0.18), transparent 24%),
+    radial-gradient(circle at 82% 30%, rgba(255, 120, 78, 0.16), transparent 26%),
+    linear-gradient(125deg, rgba(56, 28, 18, 0.9), rgba(109, 63, 33, 0.8) 55%, rgba(38, 66, 60, 0.72));
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.38);
+}
+
+.txosna-spotlight::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("/images/eskalada-txosneroa-banner.jpg");
+  background-size: 100% auto;
+  background-repeat: no-repeat;
+  background-position: center 50%;
+  opacity: 0.18;
+  filter: blur(2px) saturate(0.9);
+  transform: scale(1.03);
+  z-index: 0;
+}
+
+.txosna-spotlight > * {
+  position: relative;
+  z-index: 1;
+}
+
+.txosna-spotlight h2 {
+  margin: 0.25rem 0;
+  font-family: "Bebas Neue", sans-serif;
+  letter-spacing: 1px;
+  font-size: clamp(2rem, 6vw, 3.5rem);
+}
+
+.txosna-spotlight p {
+  margin: 0 0 0.7rem;
+}
+
+.txosna-spotlight span {
+  color: #ffe0a5;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .denda-spotlight h2 {
@@ -1518,8 +1639,15 @@ button.is-loading > * {
 @media (max-width: 920px) {
   .hero,
   .feature-grid,
-  .stats-grid {
+  .stats-grid,
+  .txosna-highlight-grid {
     grid-template-columns: 1fr;
+  }
+
+  .shop-krokis-chip {
+    width: 84px;
+    height: 108px;
+    padding: 0.9rem 0.46rem 0.46rem 0.42rem;
   }
 
   .weather-table {
@@ -1586,11 +1714,216 @@ button.is-loading > * {
     display: inline-flex;
   }
 
+  .txosna-year-head {
+    flex-direction: column;
+  }
+
+  .txosna-year-meta {
+    justify-content: flex-start;
+  }
+
 }
 
 .multimedia-page {
   display: grid;
   gap: 1rem;
+}
+
+.txosna-page {
+  display: grid;
+  gap: 1rem;
+}
+
+.txosna-hero {
+  display: grid;
+  gap: 1.2rem;
+  background:
+    radial-gradient(circle at top left, rgba(255, 191, 105, 0.22), transparent 28%),
+    linear-gradient(140deg, rgba(61, 29, 17, 0.78), rgba(31, 59, 54, 0.55));
+}
+
+.txosna-hero h1 {
+  margin: 0.35rem 0 0.7rem;
+  font-family: "Bebas Neue", sans-serif;
+  letter-spacing: 1px;
+  font-size: clamp(2.4rem, 6vw, 4rem);
+}
+
+.txosna-note {
+  margin: 0.8rem 0 0;
+  color: rgba(255, 235, 208, 0.82);
+}
+
+.txosna-highlight-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.txosna-highlight {
+  padding: 1rem;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(15, 13, 12, 0.32);
+}
+
+.txosna-highlight h2 {
+  margin: 0.2rem 0 0.45rem;
+  font-size: 1.2rem;
+}
+
+.txosna-highlight p {
+  margin: 0;
+  color: rgba(245, 240, 229, 0.8);
+}
+
+.txosna-highlight-kicker {
+  display: inline-flex;
+  padding: 0.28rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(255, 194, 102, 0.14);
+  border: 1px solid rgba(255, 194, 102, 0.32);
+  color: #ffe3b3;
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.txosna-year {
+  display: grid;
+  gap: 1rem;
+}
+
+.txosna-year-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.txosna-year-head h2 {
+  margin: 0.2rem 0 0.35rem;
+  font-family: "Bebas Neue", sans-serif;
+  letter-spacing: 0.8px;
+  font-size: clamp(1.9rem, 4vw, 3rem);
+}
+
+.txosna-year-summary {
+  margin: 0;
+  max-width: 62ch;
+  color: rgba(246, 241, 232, 0.82);
+}
+
+.txosna-year-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.txosna-year-meta span {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.4rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 194, 102, 0.3);
+  background: rgba(255, 194, 102, 0.1);
+  color: #ffe3b3;
+  font-weight: 700;
+  font-size: 0.82rem;
+}
+
+.txosna-winners h3,
+.txosna-section-head h3 {
+  margin: 0;
+}
+
+.txosna-winner-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.txosna-winner-card {
+  padding: 0.9rem 1rem;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+  display: grid;
+  gap: 0.28rem;
+}
+
+.txosna-winner-card span {
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 224, 165, 0.74);
+}
+
+.txosna-winner-card strong {
+  font-size: 1.05rem;
+}
+
+.txosna-media-block {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.txosna-media-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.9rem;
+}
+
+.txosna-video-grid {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.txosna-media-card {
+  display: grid;
+  gap: 0.7rem;
+  padding: 0.75rem;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(11, 10, 10, 0.38);
+}
+
+.txosna-media-link {
+  display: block;
+}
+
+.txosna-image,
+.txosna-video-player {
+  width: 100%;
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.txosna-image {
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  display: block;
+}
+
+.txosna-media-copy h4 {
+  margin: 0 0 0.2rem;
+  font-size: 1rem;
+}
+
+.txosna-media-copy p {
+  margin: 0;
+  color: rgba(246, 241, 232, 0.7);
+  font-size: 0.82rem;
+}
+
+.txosna-download {
+  justify-self: start;
+}
+
+.txosna-empty-copy {
+  margin: 0;
+  color: rgba(246, 241, 232, 0.72);
 }
 
 .multimedia-upload textarea {
@@ -1637,21 +1970,117 @@ button.is-loading > * {
   text-overflow: ellipsis;
 }
 
-.media-lightbox-body {
+.image-lightbox-modal {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  padding: 0 !important;
+  place-items: stretch;
+  overflow: hidden;
+  border-radius: 0 !important;
+}
+
+.image-lightbox-card {
+  position: fixed;
+  inset: 0;
+  width: 100dvw;
+  height: 100dvh;
+  max-width: none;
+  border: 0;
+  border-radius: 0;
+  background: #000;
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+  margin: 0;
+  box-shadow: none;
+  border-radius: 0 !important;
+}
+
+.image-lightbox-stage {
+  position: absolute;
+  inset: 0;
   display: grid;
-  gap: 1rem;
-  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
-  align-items: start;
+  place-items: center;
+  background: #000;
+  border-radius: 0 !important;
 }
 
-.media-lightbox-body img {
+.image-lightbox-image {
   width: 100%;
-  border-radius: 14px;
-  object-fit: cover;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  border-radius: 0 !important;
 }
 
-.media-lightbox-text h3 {
-  margin: 0 0 0.4rem;
+.image-lightbox-close,
+.image-lightbox-nav {
+  position: absolute;
+  z-index: 2;
+  border: 0;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.42);
+  backdrop-filter: blur(6px);
+  cursor: pointer;
+}
+
+.image-lightbox-close {
+  top: 1rem;
+  right: 1rem;
+  width: 48px;
+  height: 48px;
+  border-radius: 0;
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.image-lightbox-nav {
+  top: 50%;
+  transform: translateY(-50%);
+  width: 54px;
+  height: 54px;
+  border-radius: 0;
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.image-lightbox-nav.prev {
+  left: 1rem;
+}
+
+.image-lightbox-nav.next {
+  right: 1rem;
+}
+
+.image-lightbox-caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  padding: 1rem 1.25rem 1.3rem;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.88), rgba(0, 0, 0, 0));
+}
+
+.image-lightbox-caption h2 {
+  margin: 0;
+  font-family: "Bebas Neue", sans-serif;
+  letter-spacing: 0.06em;
+  font-size: clamp(1.5rem, 3vw, 2.3rem);
+  color: #fff3e0;
+}
+
+.image-lightbox-caption p {
+  margin: 0.35rem 0 0;
+  max-width: 72ch;
+  color: rgba(255, 245, 230, 0.82);
+}
+
+.image-lightbox-modal *,
+.image-lightbox-modal *::before,
+.image-lightbox-modal *::after {
+  border-radius: 0 !important;
 }
 
 .admin-page .admin-section h3 {
@@ -1962,12 +2391,34 @@ button.is-loading > * {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .media-lightbox-body {
-    grid-template-columns: 1fr;
-  }
-
   .multimedia-thumb img {
     height: auto;
+  }
+
+  .image-lightbox-close {
+    top: 0.7rem;
+    right: 0.7rem;
+    width: 42px;
+    height: 42px;
+    font-size: 1.5rem;
+  }
+
+  .image-lightbox-nav {
+    width: 44px;
+    height: 44px;
+    font-size: 1.7rem;
+  }
+
+  .image-lightbox-nav.prev {
+    left: 0.6rem;
+  }
+
+  .image-lightbox-nav.next {
+    right: 0.6rem;
+  }
+
+  .image-lightbox-caption {
+    padding: 0.9rem 1rem 1.1rem;
   }
 }
 
@@ -3318,6 +3769,11 @@ button.is-loading > * {
 
 .modal-card-xl {
   width: min(1100px, 100%);
+}
+
+html.has-fullscreen-lightbox,
+html.has-fullscreen-lightbox body {
+  overflow: hidden;
 }
 
 .map-upload-label {

@@ -67,6 +67,7 @@ Si Caddy está en otra máquina, cambia `127.0.0.1` por la IP de tu NAS donde co
 ## Rutas principales
 
 - `/` inicio pública
+- `/eskalada-txosneroa` archivo del evento anual con fotos, vídeos y ganadores
 - `/login` iniciar sesión
 - `/register` crear cuenta
 - `/dashboard` zona privada (requiere auth)
@@ -77,3 +78,4 @@ Si Caddy está en otra máquina, cambia `127.0.0.1` por la IP de tu NAS donde co
 - El CSS está en `public/css/climb.css`.
 - Las vistas Blade están en `resources/views`.
 - El proyecto usa sesiones en base de datos (`SESSION_DRIVER=database`).
+- Para `Eskalada Txosneroa`, coloca los archivos en `public/media/eskalada-txosneroa/<año>/` y ajusta ganadores/textos en `config/eskalada_txosneroa.php`.

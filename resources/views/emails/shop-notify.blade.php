@@ -12,6 +12,7 @@
             'Kamiseta teknikue' => 9,
             'Kamiseta tirantedune' => 9,
             'Sudaderie' => 20,
+            'Ogoño krokis' => 20,
         ];
         $informativeTotal = 0;
     @endphp
@@ -63,7 +64,11 @@
                                     <tr>
                                         <td style="padding:8px 0;border-bottom:1px solid #e3e9ed;">
                                             <strong>{{ $item['name'] }}</strong>
-                                            <div style="color:#5f6b75;font-size:12px;margin-top:2px;">Kolorea: {{ $item['color'] }} · Talla: {{ $item['size'] }} · Kopurua: {{ $item['qty'] }}</div>
+                                            <div style="color:#5f6b75;font-size:12px;margin-top:2px;">
+                                                @if(!empty($item['color']))Kolorea: {{ $item['color'] }} · @endif
+                                                @if(!empty($item['size']))Talla: {{ $item['size'] }} · @endif
+                                                Kopurua: {{ $item['qty'] }}
+                                            </div>
                                             <div style="color:#5f6b75;font-size:12px;margin-top:2px;">Prezio informatiboa: {{ number_format($informativeUnitPrice, 0) }} € / unitate</div>
                                         </td>
                                         <td align="right" style="padding:8px 0;border-bottom:1px solid #e3e9ed;">{{ number_format($informativeLineTotal, 0) }} €</td>

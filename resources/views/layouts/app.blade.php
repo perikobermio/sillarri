@@ -8,6 +8,114 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/climb.css">
+    <script>
+        (function () {
+            window.initImageLightbox = function (config = {}) {
+                const modal = config.modal;
+                const image = config.image;
+                const title = config.title;
+                const description = config.description;
+                const prevBtn = config.prevBtn;
+                const nextBtn = config.nextBtn;
+                const closeBtn = config.closeBtn;
+                const items = Array.isArray(config.items) ? config.items : [];
+                const getTitle = config.getTitle || ((item) => item?.title || 'Argazkia');
+                const getDescription = config.getDescription || ((item) => item?.description || '');
+                const getImageUrl = config.getImageUrl || ((item) => item?.image || item?.url || '');
+
+                if (!modal || !image || !items.length) return null;
+
+                let currentIndex = 0;
+                let startX = 0;
+                let startY = 0;
+                let activeTouchId = null;
+
+                function render(index) {
+                    const item = items[index];
+                    if (!item) return;
+                    currentIndex = index;
+                    image.src = getImageUrl(item);
+                    image.alt = getTitle(item);
+                    if (title) title.textContent = getTitle(item);
+                    if (description) description.textContent = getDescription(item);
+                }
+
+                function open(index = 0) {
+                    render(index);
+                    modal.classList.remove('hidden-modal');
+                    document.documentElement.classList.add('has-fullscreen-lightbox');
+                }
+
+                function close() {
+                    modal.classList.add('hidden-modal');
+                    document.documentElement.classList.remove('has-fullscreen-lightbox');
+                }
+
+                function step(direction) {
+                    if (!items.length) return;
+                    const nextIndex = (currentIndex + direction + items.length) % items.length;
+                    render(nextIndex);
+                }
+
+                function onKeydown(event) {
+                    if (modal.classList.contains('hidden-modal')) return;
+                    if (event.key === 'Escape') {
+                        close();
+                    } else if (event.key === 'ArrowLeft') {
+                        step(-1);
+                    } else if (event.key === 'ArrowRight') {
+                        step(1);
+                    }
+                }
+
+                function onTouchStart(event) {
+                    if (modal.classList.contains('hidden-modal')) return;
+                    const touch = event.changedTouches?.[0];
+                    if (!touch) return;
+                    activeTouchId = touch.identifier;
+                    startX = touch.clientX;
+                    startY = touch.clientY;
+                }
+
+                function onTouchEnd(event) {
+                    if (modal.classList.contains('hidden-modal')) return;
+                    const touch = Array.from(event.changedTouches || []).find((item) => item.identifier === activeTouchId);
+                    if (!touch) return;
+                    const deltaX = touch.clientX - startX;
+                    const deltaY = touch.clientY - startY;
+                    activeTouchId = null;
+                    if (Math.abs(deltaX) < 40 || Math.abs(deltaX) < Math.abs(deltaY)) return;
+                    if (deltaX < 0) {
+                        step(1);
+                    } else {
+                        step(-1);
+                    }
+                }
+
+                prevBtn?.addEventListener('click', () => step(-1));
+                nextBtn?.addEventListener('click', () => step(1));
+                closeBtn?.addEventListener('click', close);
+                modal.addEventListener('click', (event) => {
+                    if (event.target === modal) close();
+                });
+                modal.addEventListener('touchstart', onTouchStart, { passive: true });
+                modal.addEventListener('touchend', onTouchEnd, { passive: true });
+                document.addEventListener('keydown', onKeydown);
+
+                return {
+                    open,
+                    close,
+                    step,
+                    setIndex(index) {
+                        render(index);
+                    },
+                    getIndex() {
+                        return currentIndex;
+                    },
+                };
+            };
+        })();
+    </script>
 </head>
 <body>
     <div class="bg-layer"></div>
@@ -443,6 +551,7 @@
                 window.setButtonLoading?.(submitter, true);
             });
         })();
+
     </script>
 </body>
 </html>

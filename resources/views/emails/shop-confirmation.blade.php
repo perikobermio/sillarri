@@ -39,7 +39,11 @@
                                     <tr>
                                         <td style="padding:8px 0;border-bottom:1px solid #e9dfd1;">
                                             <strong>{{ $item['name'] }}</strong>
-                                            <div style="color:#6c655b;font-size:12px;margin-top:2px;">Kolorea: {{ $item['color'] }} · Talla: {{ $item['size'] }} · Kopurua: {{ $item['qty'] }}</div>
+                                            <div style="color:#6c655b;font-size:12px;margin-top:2px;">
+                                                @if(!empty($item['color']))Kolorea: {{ $item['color'] }} · @endif
+                                                @if(!empty($item['size']))Talla: {{ $item['size'] }} · @endif
+                                                Kopurua: {{ $item['qty'] }}
+                                            </div>
                                         </td>
                                         <td align="right" style="padding:8px 0;border-bottom:1px solid #e9dfd1;">{{ number_format($item['line_total'], 0) }} €</td>
                                     </tr>

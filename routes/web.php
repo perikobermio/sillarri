@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\EskaladaTxosneroaController;
 use App\Http\Controllers\KilterController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\MultimediaController;
@@ -11,6 +12,7 @@ use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/eskalada-txosneroa', [EskaladaTxosneroaController::class, 'index'])->name('eskalada-txosneroa');
 
 Route::get('/kilter', [KilterController::class, 'index'])->name('kilter');
 Route::get('/kilter/kokapenak', [KilterController::class, 'locations'])->name('kilter.locations');
